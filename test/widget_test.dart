@@ -7,24 +7,48 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:vihomeapp/main.dart';
+import 'package:vihomeapp/app/app.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('FlavorApp Widget Tests', () {
+    testWidgets('should render MaterialApp with correct title', (
+      WidgetTester tester,
+    ) async {
+      // Build our app and trigger a frame.
+      await tester.pumpWidget(const FlavorApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      // Verify that MaterialApp is present
+      expect(find.byType(MaterialApp), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+      // Verify AppBar title is correct
+      expect(find.text('Material App Bar'), findsOneWidget);
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    testWidgets('should display Scaffold with correct body text', (
+      WidgetTester tester,
+    ) async {
+      // Build our app and trigger a frame.
+      await tester.pumpWidget(const FlavorApp());
+
+      // Verify Scaffold is present
+      expect(find.byType(Scaffold), findsOneWidget);
+
+      // Verify body contains text that starts with 'Hello World'
+      expect(find.textContaining('Hello World'), findsOneWidget);
+    });
+
+    testWidgets('should have correct widget tree structure', (
+      WidgetTester tester,
+    ) async {
+      // Build our app and trigger a frame.
+      await tester.pumpWidget(const FlavorApp());
+
+      // Verify the widget tree structure
+      expect(find.byType(MaterialApp), findsOneWidget);
+      expect(find.byType(Scaffold), findsOneWidget);
+      expect(find.byType(AppBar), findsOneWidget);
+      expect(find.byType(Center), findsOneWidget);
+      expect(find.byType(Text), findsNWidgets(2)); // AppBar title and body text
+    });
   });
 }
