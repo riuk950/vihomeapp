@@ -59,6 +59,7 @@ flutter:
   default-flavor: dev
   uses-material-design: true
   assets:
+    - .env.example
     - .env.dev
     - .env.prod
 
