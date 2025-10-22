@@ -1,6 +1,0 @@
-import 'package:flutter/material.dart';
-import 'package:vihomeapp/app/app.dart';
-
-void main() {
-  runApp(const FlavorApp());
-}

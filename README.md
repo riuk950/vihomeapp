@@ -1,16 +1,24 @@
-# vihomeapp
+# FLUTTER VIHOME
 
-A new Flutter project.
+## Descripción
 
-## Getting Started
+`vihome` es una aplicación móvil para iOS y Android que funcionará como una plataforma inmobiliaria para la venta y arriendo de propiedades. La aplicación se construirá utilizando Flutter y seguirá los principios de Arquitectura Limpia para garantizar que sea escalable, mantenible y testeable.
 
-This project is a starting point for a Flutter application.
+## Datos de liderazgo
+* Diego Armando Villate
 
-A few resources to get you started if this is your first Flutter project:
+## Keywords (palabras claves del proyecto)
+* Pipeline
+* CI
+* CD
+* Flutter
+* Dart
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Documentos principales
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+* Enlace al documento de acuedos de contribución [Contributing Agreement](CONTRIBUTING.md).
+* Guía de Adecuar ambiente local [Getting Started](GETTINGSTARTED.md).
+
+## Repositorios relacionados
+Tenemos varios cursos de referencia:
+* Repositorio Arquitectura de Referencia Flutter [enlace](https://github.com/riuk950/vihomeapp).
