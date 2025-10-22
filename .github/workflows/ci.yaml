@@ -44,14 +44,15 @@ jobs:
         with:
           channel: "stable"
       - name: Instalar dependencias 📦
+        if: env.FLAVOR == 'dev'
         run: flutter pub get
-        working-directory: .
+        working-directory: ./lib/env
       - name: Limpiar proyecto 🧹
         run: flutter clean
-        working-directory: .
+        working-directory: ./lib/env
       - name: Construir aplicación 🚀
         run: flutter build ios --flavor ${{ env.FLAVOR }} --release --no-codesign
-        working-directory: .
+        working-directory: ./lib/env
 
   construir_appbundle:
     name: Build Flutter (Android)
@@ -67,11 +68,12 @@ jobs:
         with:
           channel: "stable"
       - name: Instalar dependencias 📦
+        if: env.FLAVOR == 'dev'
         run: flutter pub get
-        working-directory: .
+        working-directory: ./lib/env
       - name: Limpiar proyecto 🧹
         run: flutter clean
-        working-directory: .
+        working-directory: ./lib/env
       - name: Construir aplicación 🚀
         run: flutter build appbundle --flavor ${{ env.FLAVOR }}
-        working-directory: .
+        working-directory: ./lib/env
