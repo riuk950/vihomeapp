@@ -51,7 +51,12 @@ jobs:
         run: flutter clean
         working-directory: ./lib/env
       - name: Construir aplicación 🚀
-        run: flutter build ios --flavor ${{ env.FLAVOR }} --release --no-codesign
+        run: |
+          if [ "${{ env.FLAVOR }}" = "prod" ]; then
+            flutter build ios --flavor prod --release --no-codesign --target=lib/env/main.prod.dart
+          else
+            flutter build ios --flavor ${{ env.FLAVOR }} --release --no-codesign
+          fi
         working-directory: ./lib/env
 
   construir_appbundle:
@@ -75,5 +80,10 @@ jobs:
         run: flutter clean
         working-directory: ./lib/env
       - name: Construir aplicación 🚀
-        run: flutter build appbundle --flavor ${{ env.FLAVOR }}
+        run: |
+          if [ "${{ env.FLAVOR }}" = "prod" ]; then
+            flutter build appbundle --flavor prod --target=lib/env/main.prod.dart
+          else
+            flutter build appbundle --flavor ${{ env.FLAVOR }}
+          fi
         working-directory: ./lib/env
