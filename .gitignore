@@ -10,7 +10,8 @@
 .history
 .svn/
 .swiftpm/
-.env
+.env.dev
+.env.prod
 migrate_working_dir/
 
 # IntelliJ related

@@ -4,8 +4,7 @@ import 'package:vihomeapp/app/app.dart';
 import 'package:vihomeapp/env/env_def.dart';
 
 Future<void> main() async {
-  await dotenv.load(fileName: ".env");
-  final titleEnv = dotenv.env['TitleProd'];
-  EnvDef.title = titleEnv ?? 'Production';
+  await dotenv.load(fileName: ".env.prod");
+  EnvDef.title = dotenv.env['APP_NAME'] ?? 'Production';
   runApp(const FlavorApp());
 }
