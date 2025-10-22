@@ -5,9 +5,7 @@ import 'package:vihomeapp/env/env_def.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
-  EnvDef.title = 'Development';
-  // Ejemplo: leer una variable del .env
-  final apiUrl = dotenv.env['API_URL'];
-  print('API_URL desde .env: $apiUrl');
+  final titleEnv = dotenv.env['TitleDev'];
+  EnvDef.title = titleEnv ?? 'Development';
   runApp(const FlavorApp());
 }
