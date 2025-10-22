@@ -16,9 +16,7 @@
 
 ## Documentos principales
 
-* Enlace al documento de acuedos de contribución [Contributing Agreement](CONTRIBUTING.md).
 * Guía de Adecuar ambiente local [Getting Started](GETTINGSTARTED.md).
 
 ## Repositorios relacionados
-Tenemos varios cursos de referencia:
 * Repositorio Arquitectura de Referencia Flutter [enlace](https://github.com/riuk950/vihomeapp).
