@@ -6,7 +6,7 @@ on:
     branches: [ "main", "develop", "release" ]
 
 env:
-  FLAVOR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || 'dev' }}
+  FLAVOR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev'}}
 
 jobs:
   ejecutar_pruebas:
@@ -24,24 +24,21 @@ jobs:
       - name: Instalar dependencias 📦
         run: flutter pub get
         working-directory: .
-      name: "Crear archivo .env"
-      runs:
-        using: "bash"
-        steps:
-          - run: |
-              if [ "${{ inputs.flavor }}" = "prod" ]; then
-                echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
-                echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
-                echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
-                echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
-                echo "DEBUG_MODE=false" >> .env.prod
-              else
-                echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
-                echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
-                echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
-                echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
-                echo "DEBUG_MODE=true" >> .env.dev
-              fi
+      - name: Crear archivo .env 📝
+        run: |
+          if [ "${{ env.FLAVOR }}" = "prod" ]; then
+            echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
+            echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
+            echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
+            echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
+            echo "DEBUG_MODE=false" >> .env.prod
+          else
+            echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
+            echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
+            echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
+            echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
+            echo "DEBUG_MODE=true" >> .env.dev
+          fi
       - name: Crear archivos .env si faltan 🧩
         run: |
           touch .env.dev
@@ -68,25 +65,21 @@ jobs:
       - name: Instalar dependencias 📦
         run: flutter pub get
         working-directory: .
-      name: "Crear archivo .env"
-      runs:
-        using: "bash"
-        steps:
-          - run: |
-              if [ "${{ inputs.flavor }}" = "prod" ]; then
-                echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
-                echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
-                echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
-                echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
-                echo "DEBUG_MODE=false" >> .env.prod
-              else
-                echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
-                echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
-                echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
-                echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
-                echo "DEBUG_MODE=true" >> .env.dev
-              fi
-
+      - name: Crear archivo .env 📝
+        run: |
+          if [ "${{ env.FLAVOR }}" = "prod" ]; then
+            echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
+            echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
+            echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
+            echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
+            echo "DEBUG_MODE=false" >> .env.prod
+          else
+            echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
+            echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
+            echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
+            echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
+            echo "DEBUG_MODE=true" >> .env.dev
+          fi
       - name: Limpiar proyecto 🧹
         run: flutter clean
         working-directory: .
@@ -115,25 +108,21 @@ jobs:
       - name: Instalar dependencias 📦
         run: flutter pub get
         working-directory: .
-      name: "Crear archivo .env"
-      runs:
-        using: "bash"
-        steps:
-          - run: |
-              if [ "${{ inputs.flavor }}" = "prod" ]; then
-                echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
-                echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
-                echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
-                echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
-                echo "DEBUG_MODE=false" >> .env.prod
-              else
-                echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
-                echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
-                echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
-                echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
-                echo "DEBUG_MODE=true" >> .env.dev
-              fi
-
+      - name: Crear archivo .env 📝
+        run: |
+          if [ "${{ env.FLAVOR }}" = "prod" ]; then
+            echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
+            echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
+            echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
+            echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
+            echo "DEBUG_MODE=false" >> .env.prod
+          else
+            echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
+            echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
+            echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
+            echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
+            echo "DEBUG_MODE=true" >> .env.dev
+          fi
       - name: Limpiar proyecto 🧹
         run: flutter clean
         working-directory: .
