@@ -24,21 +24,13 @@ jobs:
       - name: Instalar dependencias 📦
         run: flutter pub get
         working-directory: .
-      - name: Crear archivo .env 📝
+      - uses: ./.github/actions/crear-env
+        with:
+          flavor: ${{ env.FLAVOR }}
+      - name: Crear archivos .env si faltan 🧩
         run: |
-          if [ "${{ env.FLAVOR }}" = "prod" ]; then
-            echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
-            echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
-            echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
-            echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
-            echo "DEBUG_MODE=false" >> .env.prod
-          else
-            echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
-            echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
-            echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
-            echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
-            echo "DEBUG_MODE=true" >> .env.dev
-          fi
+          touch .env.dev
+          touch .env.prod
       - name: Analizar código 🧐
         run: flutter analyze
         working-directory: .
@@ -61,21 +53,9 @@ jobs:
       - name: Instalar dependencias 📦
         run: flutter pub get
         working-directory: .
-      - name: Crear archivo .env 📝
-        run: |
-          if [ "${{ env.FLAVOR }}" = "prod" ]; then
-            echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
-            echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
-            echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
-            echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
-            echo "DEBUG_MODE=false" >> .env.prod
-          else
-            echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
-            echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
-            echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
-            echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
-            echo "DEBUG_MODE=true" >> .env.dev
-          fi
+      - uses: ./.github/actions/crear-env
+        with:
+          flavor: ${{ env.FLAVOR }}
       - name: Limpiar proyecto 🧹
         run: flutter clean
         working-directory: .
@@ -104,21 +84,9 @@ jobs:
       - name: Instalar dependencias 📦
         run: flutter pub get
         working-directory: .
-      - name: Crear archivo .env 📝
-        run: |
-          if [ "${{ env.FLAVOR }}" = "prod" ]; then
-            echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
-            echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
-            echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
-            echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
-            echo "DEBUG_MODE=false" >> .env.prod
-          else
-            echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
-            echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
-            echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
-            echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
-            echo "DEBUG_MODE=true" >> .env.dev
-          fi
+      - uses: ./.github/actions/crear-env
+        with:
+          flavor: ${{ env.FLAVOR }}
       - name: Limpiar proyecto 🧹
         run: flutter clean
         working-directory: .
