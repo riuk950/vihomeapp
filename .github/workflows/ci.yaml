@@ -80,6 +80,10 @@ jobs:
             echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
             echo "DEBUG_MODE=true" >> .env.dev
           fi
+      - name: Crear archivos .env si faltan 🧩
+        run: |
+          touch .env.dev
+          touch .env.prod
       - name: Limpiar proyecto 🧹
         run: flutter clean
         working-directory: .
@@ -123,6 +127,10 @@ jobs:
             echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
             echo "DEBUG_MODE=true" >> .env.dev
           fi
+      - name: Crear archivos .env si faltan 🧩
+        run: |
+          touch .env.dev
+          touch .env.prod
       - name: Limpiar proyecto 🧹
         run: flutter clean
         working-directory: .
