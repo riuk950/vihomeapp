@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vihomeapp/config/config.dart';
 import 'package:vihomeapp/env/env_def.dart';
 
 class FlavorApp extends StatelessWidget {
@@ -7,6 +8,8 @@ class FlavorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme().getTheme(),
       title: 'Material App',
       home: Scaffold(
         appBar: AppBar(title: const Text('Material App Bar')),
