@@ -4,6 +4,7 @@ import 'package:vihomeapp/app/app.dart';
 import 'package:vihomeapp/env/env_def.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env.dev");
   EnvDef.title = dotenv.env['APP_NAME'] ?? 'Development';
   runApp(const FlavorApp());
