@@ -9,6 +9,11 @@ final appRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/',
+      name: 'splash',
+      builder: (context, state) => SplashScreen(),
+    ),
+    GoRoute(
+      path: '/home',
       name: 'home',
       builder: (context, state) => HomePage(),
     ),

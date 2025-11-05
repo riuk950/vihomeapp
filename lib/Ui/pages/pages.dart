@@ -1,1 +1,7 @@
 export 'home_page.dart';
+export 'splash_screen.dart';
+export 'inicio_page.dart';
+export 'buscar_page.dart';
+export 'favoritos_page.dart';
+export 'consultas_page.dart';
+export 'perfil_page.dart';
