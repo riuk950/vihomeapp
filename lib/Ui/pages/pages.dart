@@ -5,3 +5,5 @@ export 'buscar_page.dart';
 export 'favoritos_page.dart';
 export 'consultas_page.dart';
 export 'perfil_page.dart';
+export 'login_page.dart';
+export 'register_page.dart';

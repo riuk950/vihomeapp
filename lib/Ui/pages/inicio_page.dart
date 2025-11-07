@@ -181,7 +181,7 @@ class _InicioPageState extends State<InicioPage> {
                       // Imprimir en consola la selección actual
                       // Ejemplo: Buscar -> tipo: Casa, ciudad: Duitama, modo: venta
                       // ignore: avoid_print
-                      print('Buscar -> tipo: ' + tipo + ', ciudad: ' + ciudad + ', modo: ' + modo);
+                      print('Buscar -> tipo: $tipo, ciudad: $ciudad, modo: $modo');
                     },
                     icon: const Icon(Icons.search),
                     label: const Text('Buscar'),

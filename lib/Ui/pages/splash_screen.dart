@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,13 +15,24 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToHome();
+    _checkAuthAndNavigate();
   }
 
-  _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 5));
+  _checkAuthAndNavigate() async {
+    // Esperar un momento para mostrar el splash
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (!mounted) return;
+    
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final isAuthenticated = authProvider.isAuthenticated;
+    
     if (mounted) {
-      context.go('/home');
+      if (isAuthenticated) {
+        context.go('/home');
+      } else {
+        context.go('/login');
+      }
     }
   }
 
