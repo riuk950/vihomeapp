@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../Ui/pages/pages.dart';
 import '../../env/env_def.dart';
-import '../../providers/auth_provider.dart';
+import '../../presentation/pages/pages.dart';
+import '../../presentation/providers/auth_provider.dart';
 
 GoRouter createAppRouter() {
   return GoRouter(
@@ -104,3 +104,4 @@ GoRouter createAppRouter() {
 
 // Crear el router después de que el provider esté disponible
 final appRouter = createAppRouter();
+

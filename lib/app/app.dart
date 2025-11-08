@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:vihomeapp/config/config.dart';
-import 'package:vihomeapp/config/router/app_router.dart';
-import 'package:vihomeapp/env/env_def.dart';
-import 'package:vihomeapp/providers/auth_provider.dart';
+import '../core/di/injection_container.dart';
+import '../core/router/app_router.dart';
+import '../core/theme/app_theme.dart';
+import '../env/env_def.dart';
+import '../presentation/providers/auth_provider.dart';
 
 class FlavorApp extends StatelessWidget {
   const FlavorApp({super.key});
@@ -11,7 +12,7 @@ class FlavorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => AuthProvider(),
+      create: (_) => getIt<AuthProvider>(),
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
           return MaterialApp.router(

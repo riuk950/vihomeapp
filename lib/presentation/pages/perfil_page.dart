@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import '../providers/auth_provider.dart';
+
 
 class PerfilPage extends StatelessWidget {
   const PerfilPage({super.key});
@@ -58,7 +59,7 @@ class PerfilPage extends StatelessWidget {
                       radius: 50,
                       backgroundColor: Colors.green,
                       child: Text(
-                        user?.email?.substring(0, 1).toUpperCase() ?? 'U',
+                        (user?.email ?? 'U').substring(0, 1).toUpperCase(),
                         style: const TextStyle(
                           fontSize: 40,
                           color: Colors.white,
@@ -102,9 +103,7 @@ class PerfilPage extends StatelessWidget {
                             Icons.calendar_today_outlined,
                             'Fecha de registro',
                             user?.createdAt != null
-                                ? DateTime.parse(user!.createdAt)
-                                    .toString()
-                                    .substring(0, 10)
+                                ? user!.createdAt!.toString().substring(0, 10)
                                 : 'No disponible',
                           ),
                         ],

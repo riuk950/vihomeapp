@@ -1,0 +1,179 @@
+import 'package:flutter/foundation.dart';
+import '../../domain/entities/user.dart';
+import '../../domain/usecases/auth/get_current_user_usecase.dart';
+import '../../domain/usecases/auth/sign_in_usecase.dart';
+import '../../domain/usecases/auth/sign_out_usecase.dart';
+import '../../domain/usecases/auth/sign_up_usecase.dart';
+import '../../domain/usecases/auth/reset_password_usecase.dart';
+
+class AuthProvider with ChangeNotifier {
+  final GetCurrentUserUseCase getCurrentUserUseCase;
+  final SignInUseCase signInUseCase;
+  final SignUpUseCase signUpUseCase;
+  final SignOutUseCase signOutUseCase;
+  final ResetPasswordUseCase resetPasswordUseCase;
+
+  User? _user;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  User? get user => _user;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+  bool get isAuthenticated => _user != null;
+
+  AuthProvider({
+    required this.getCurrentUserUseCase,
+    required this.signInUseCase,
+    required this.signUpUseCase,
+    required this.signOutUseCase,
+    required this.resetPasswordUseCase,
+  }) {
+    _initializeAuth();
+  }
+
+  void _initializeAuth() async {
+    final result = await getCurrentUserUseCase();
+    result.fold(
+      (failure) => _setError(failure.message),
+      (user) {
+        _user = user;
+        notifyListeners();
+      },
+    );
+  }
+
+  Future<bool> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final result = await signInUseCase(
+        email: email,
+        password: password,
+      );
+
+      return result.fold(
+        (failure) {
+          _setError(failure.message);
+          _setLoading(false);
+          return false;
+        },
+        (user) {
+          _user = user;
+          _setLoading(false);
+          return true;
+        },
+      );
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> signUp({
+    required String email,
+    required String password,
+    Map<String, dynamic>? metadata,
+  }) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final result = await signUpUseCase(
+        email: email,
+        password: password,
+        metadata: metadata,
+      );
+
+      return result.fold(
+        (failure) {
+          _setError(failure.message);
+          _setLoading(false);
+          return false;
+        },
+        (user) {
+          _user = user;
+          _setLoading(false);
+          return true;
+        },
+      );
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final result = await signOutUseCase();
+
+      result.fold(
+        (failure) {
+          _setError(failure.message);
+          _setLoading(false);
+        },
+        (_) {
+          _user = null;
+          _setLoading(false);
+        },
+      );
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> resetPassword(String email) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final result = await resetPasswordUseCase(email);
+
+      return result.fold(
+        (failure) {
+          _setError(failure.message);
+          _setLoading(false);
+          return false;
+        },
+        (_) {
+          _setLoading(false);
+          return true;
+        },
+      );
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  void _setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
+  void _setError(String? message) {
+    _errorMessage = message;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void clearError() {
+    _clearError();
+  }
+}
+

@@ -1,41 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import '../providers/auth_provider.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _nameController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Las contraseñas no coinciden'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     authProvider.clearError();
 
-    final success = await authProvider.signInWithEmail(
+    final success = await authProvider.signUp(
       email: _emailController.text.trim(),
       password: _passwordController.text,
+      metadata: _nameController.text.isNotEmpty
+          ? {'name': _nameController.text}
+          : null,
     );
 
     if (success && mounted) {
-      context.go('/home');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cuenta creada exitosamente. Revisa tu email para verificar tu cuenta.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      // Esperar un momento y luego redirigir
+      await Future.delayed(const Duration(seconds: 2));
+      
+      if (mounted) {
+        context.go('/login');
+      }
     }
   }
 
@@ -43,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Iniciar Sesión'),
+        title: const Text('Crear Cuenta'),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -58,13 +89,13 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     const SizedBox(height: 40),
                     const Icon(
-                      Icons.lock_outline,
+                      Icons.person_add_outlined,
                       size: 80,
                       color: Colors.green,
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'Bienvenido',
+                      'Crea tu cuenta',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -73,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Inicia sesión en tu cuenta',
+                      'Completa el formulario para registrarte',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey[600],
@@ -81,6 +112,15 @@ class _LoginPageState extends State<LoginPage> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 40),
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre (opcional)',
+                        prefixIcon: Icon(Icons.person_outlined),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -118,11 +158,12 @@ class _LoginPageState extends State<LoginPage> {
                           },
                         ),
                         border: const OutlineInputBorder(),
+                        helperText: 'Mínimo 6 caracteres',
                       ),
                       obscureText: _obscurePassword,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa tu contraseña';
+                          return 'Por favor ingresa una contraseña';
                         }
                         if (value.length < 6) {
                           return 'La contraseña debe tener al menos 6 caracteres';
@@ -130,20 +171,36 @@ class _LoginPageState extends State<LoginPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {
-                          // TODO: Implementar recuperación de contraseña
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Funcionalidad próximamente disponible'),
-                            ),
-                          );
-                        },
-                        child: const Text('¿Olvidaste tu contraseña?'),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'Confirmar contraseña',
+                        prefixIcon: const Icon(Icons.lock_outlined),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                        border: const OutlineInputBorder(),
                       ),
+                      obscureText: _obscureConfirmPassword,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor confirma tu contraseña';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'Las contraseñas no coinciden';
+                        }
+                        return null;
+                      },
                     ),
                     if (authProvider.errorMessage != null) ...[
                       const SizedBox(height: 16),
@@ -170,7 +227,7 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: authProvider.isLoading ? null : _handleLogin,
+                      onPressed: authProvider.isLoading ? null : _handleRegister,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
@@ -189,7 +246,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             )
                           : const Text(
-                              'Iniciar Sesión',
+                              'Registrarse',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -200,11 +257,11 @@ class _LoginPageState extends State<LoginPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('¿No tienes cuenta? '),
+                        const Text('¿Ya tienes cuenta? '),
                         TextButton(
-                          onPressed: () => context.go('/register'),
+                          onPressed: () => context.go('/login'),
                           child: const Text(
-                            'Regístrate',
+                            'Inicia sesión',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
