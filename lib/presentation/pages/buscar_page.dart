@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/property_provider.dart';
 
 class BuscarPage extends StatelessWidget {
   const BuscarPage({super.key});
@@ -6,24 +8,46 @@ class BuscarPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search,
-              size: 64,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Buscar',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
+      appBar: AppBar(
+        title: const Text('Propiedades'),
+      ),
+      body: Consumer<PropertyProvider>(
+        builder: (context, propertyProvider, child) {
+          if (propertyProvider.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (propertyProvider.errorMessage != null) {
+            return Center(
+              child: Text(propertyProvider.errorMessage!),
+            );
+          }
+
+          if (propertyProvider.properties.isEmpty) {
+            return const Center(
+              child: Text('No se encontraron propiedades'),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: propertyProvider.properties.length,
+            itemBuilder: (context, index) {
+              final property = propertyProvider.properties[index];
+              return Card(
+                child: ListTile(
+                  title: Text(property.titulo),
+                  subtitle: Text(property.direccion),
+                  onTap: () {
+                    // TODO: Navigate to property details page
+                  },
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
 }
-
