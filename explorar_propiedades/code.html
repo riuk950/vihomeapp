@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Búsqueda de Propiedades</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#137fec",
+            "background-light": "#f6f7f8",
+            "background-dark": "#101922",
+          },
+          fontFamily: {
+            "display": ["Public Sans", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-size: 24px;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex h-auto min-h-screen w-full max-w-md mx-auto flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden">
+<!-- Top App Bar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<h1 class="text-zinc-900 dark:text-zinc-100 text-2xl font-bold leading-tight tracking-[-0.015em] flex-1">Encuentra tu próximo hogar</h1>
+<div class="text-zinc-900 dark:text-zinc-100 flex size-12 shrink-0 items-center justify-end">
+<span class="material-symbols-outlined">account_circle</span>
+</div>
+</div>
+<!-- SearchBar -->
+<div class="px-4 py-3 sticky top-[72px] bg-background-light dark:bg-background-dark z-10">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-zinc-500 dark:text-zinc-400 flex border-none bg-zinc-100 dark:bg-zinc-800 items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-zinc-900 dark:text-zinc-100 focus:outline-0 focus:ring-0 border-none bg-zinc-100 dark:bg-zinc-800 h-full placeholder:text-zinc-500 dark:placeholder:text-zinc-400 px-4 pl-2 text-base font-normal leading-normal" placeholder="Busca por ciudad, colonia o código postal" value=""/>
+</div>
+</label>
+</div>
+<!-- Chips -->
+<div class="flex gap-2 p-4 pt-1 overflow-x-auto">
+<button class="flex h-8 shrink-0 items-center justify-center gap-x-1 rounded-full bg-zinc-200/70 dark:bg-zinc-800/70 px-4">
+<p class="text-zinc-900 dark:text-zinc-100 text-sm font-medium leading-normal">Casa</p>
+</button>
+<button class="flex h-8 shrink-0 items-center justify-center gap-x-1 rounded-full bg-zinc-200/70 dark:bg-zinc-800/70 px-4">
+<p class="text-zinc-900 dark:text-zinc-100 text-sm font-medium leading-normal">Departamento</p>
+</button>
+<button class="flex h-8 shrink-0 items-center justify-center gap-x-1 rounded-full bg-zinc-200/70 dark:bg-zinc-800/70 pl-4 pr-3">
+<p class="text-zinc-900 dark:text-zinc-100 text-sm font-medium leading-normal">Precio</p>
+<div class="text-zinc-900 dark:text-zinc-100"><span class="material-symbols-outlined !text-xl">arrow_drop_down</span></div>
+</button>
+<button class="flex h-8 shrink-0 items-center justify-center gap-x-1 rounded-full bg-zinc-200/70 dark:bg-zinc-800/70 pl-4 pr-3">
+<p class="text-zinc-900 dark:text-zinc-100 text-sm font-medium leading-normal">Habitaciones</p>
+<div class="text-zinc-900 dark:text-zinc-100"><span class="material-symbols-outlined !text-xl">arrow_drop_down</span></div>
+</button>
+<button class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full border border-zinc-300 dark:border-zinc-700 pl-3 pr-4">
+<div class="text-zinc-900 dark:text-zinc-100"><span class="material-symbols-outlined !text-xl">tune</span></div>
+<p class="text-zinc-900 dark:text-zinc-100 text-sm font-medium leading-normal">Más filtros</p>
+</button>
+</div>
+<!-- SegmentedButtons -->
+<div class="flex px-4 py-3">
+<div class="flex h-10 flex-1 items-center justify-center rounded-lg bg-zinc-200/70 dark:bg-zinc-800/70 p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-zinc-700 has-[:checked]:shadow-[0_0_4px_rgba(0,0,0,0.1)] has-[:checked]:text-zinc-900 dark:has-[:checked]:text-zinc-100 text-zinc-600 dark:text-zinc-400 text-sm font-medium leading-normal">
+<span class="truncate">Lista</span>
+<input checked="" class="invisible w-0" name="view-toggle" type="radio" value="Lista"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-zinc-700 has-[:checked]:shadow-[0_0_4px_rgba(0,0,0,0.1)] has-[:checked]:text-zinc-900 dark:has-[:checked]:text-zinc-100 text-zinc-600 dark:text-zinc-400 text-sm font-medium leading-normal">
+<span class="truncate">Mapa</span>
+<input class="invisible w-0" name="view-toggle" type="radio" value="Mapa"/>
+</label>
+</div>
+</div>
+<!-- Property Cards -->
+<div class="flex flex-col gap-6 p-4 pb-24">
+<!-- Card 1 -->
+<div class="flex flex-col items-stretch justify-start rounded-xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm">
+<div class="relative w-full aspect-video bg-cover bg-center" data-alt="Modern house with a large front yard and a clean facade" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBznvSeBZo2u5wmfgSGTAIxk6FAI-hzGloRQs7COiyilqqRISpd90FTAQ0HCV-oZiSHYnKxmGP8fYgfclZQ5aF4yhpG6oIzXZHgReGlR19wtaQLJkib07XgMlW_T7G50frsBWRu0T-MIea5LmGNmz5eOSEWfoYgdAS16tgACavr-93yQyVpgAvwYOcR3bvbV0V9AeA3w9ezbjTKxF7YKn5aJ5ShDEumpXo5kZJnriZfLNE4GUutIjYYidkoySY5lp9Kdi6hJYM-N9A");'>
+<button class="absolute top-3 right-3 flex items-center justify-center size-8 rounded-full bg-black/40 text-white">
+<span class="material-symbols-outlined !text-xl">favorite_border</span>
+</button>
+<div class="absolute bottom-3 left-3 px-2 py-1 rounded bg-primary/80 text-white text-xs font-medium">Nuevo</div>
+</div>
+<div class="flex w-full grow flex-col items-stretch justify-center gap-1 p-4">
+<p class="text-zinc-900 dark:text-zinc-100 text-xl font-bold leading-tight tracking-[-0.015em]">$25,000 MXN /mes</p>
+<p class="text-zinc-600 dark:text-zinc-400 text-base font-normal leading-normal">3 hab, 2 baños, 120 m²</p>
+<p class="text-zinc-600 dark:text-zinc-400 text-base font-normal leading-normal">Colonia del Valle, Ciudad de México</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="flex flex-col items-stretch justify-start rounded-xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm">
+<div class="relative w-full aspect-video bg-cover bg-center" data-alt="Luxury apartment with a balcony view of a pool and palm trees" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCnNwIo2IDHT65BT2Qx0taZu4xNRJ3CRteQ3TD3glGvGxwkcyfI2itx1YNwR40ainOGZBBw0SHF5v9lENaKxYaLSrm7UdiBLdztXURW_Lyflvrosg7gNem-9DUlFGE3FwzXRWojeFybfFPPD2-ypHMslw13hWqMwRg3dUeb7O19iaknsQVS0jpx2HhQPN9DW_et_GDR4i_u8qm7SikqtHU8DCCVg1XyL6yvAOgf9PWmjD2Q2ePM6yhgklPS8_CvGzHy6fK9wqGgk-s");'>
+<button class="absolute top-3 right-3 flex items-center justify-center size-8 rounded-full bg-black/40 text-white">
+<span class="material-symbols-outlined !text-xl !font-['Material_Symbols_Outlined_Fill']" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+<div class="absolute bottom-3 left-3 px-2 py-1 rounded bg-yellow-500 text-black text-xs font-medium">Recomendado</div>
+</div>
+<div class="flex w-full grow flex-col items-stretch justify-center gap-1 p-4">
+<p class="text-zinc-900 dark:text-zinc-100 text-xl font-bold leading-tight tracking-[-0.015em]">$32,500 MXN /mes</p>
+<p class="text-zinc-600 dark:text-zinc-400 text-base font-normal leading-normal">2 hab, 2 baños, 100 m²</p>
+<p class="text-zinc-600 dark:text-zinc-400 text-base font-normal leading-normal">Polanco, Ciudad de México</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="flex flex-col items-stretch justify-start rounded-xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm">
+<div class="relative w-full aspect-video bg-cover bg-center" data-alt="Cozy suburban home with a pointed roof and garden" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC_BwH2ACsaaS7lhkRTbFYJPXv7-gbJnHCwOIUb4mWO9fvBHPx2CWp1JnAwClmVD7gYd8QuWuRv48nzu0ZIqv_J5Ri-cBW7qHF8hdGo1wT6jUORHwP7pwnLUCWzLiKFTARDKUCbFHMdqvGfDyrxquaee3TCbUxL_ZybvlZJqZq_fRpjnAFRtcJ0bHK1-VB3Y59G3MNqFtx0bHG0JJA1llmNny_QUwfzynOV0al5ulej1qMqY1__UidVD_OwIEbXNINSv15QDn25iw4");'>
+<button class="absolute top-3 right-3 flex items-center justify-center size-8 rounded-full bg-black/40 text-white">
+<span class="material-symbols-outlined !text-xl">favorite_border</span>
+</button>
+</div>
+<div class="flex w-full grow flex-col items-stretch justify-center gap-1 p-4">
+<p class="text-zinc-900 dark:text-zinc-100 text-xl font-bold leading-tight tracking-[-0.015em]">$18,000 MXN /mes</p>
+<p class="text-zinc-600 dark:text-zinc-400 text-base font-normal leading-normal">4 hab, 3 baños, 150 m²</p>
+<p class="text-zinc-600 dark:text-zinc-400 text-base font-normal leading-normal">Coyoacán, Ciudad de México</p>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto h-20 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-t border-zinc-200 dark:border-zinc-800">
+<div class="flex justify-around items-center h-full">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">search</span>
+<span class="text-xs font-medium">Buscar</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-500 dark:text-zinc-400">
+<span class="material-symbols-outlined">favorite_border</span>
+<span class="text-xs font-medium">Favoritos</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-500 dark:text-zinc-400">
+<span class="material-symbols-outlined">description</span>
+<span class="text-xs font-medium">Contratos</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-500 dark:text-zinc-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-xs font-medium">Perfil</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

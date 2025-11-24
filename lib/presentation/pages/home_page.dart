@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'inicio_page.dart';
 import 'buscar_page.dart';
 import 'favoritos_page.dart';
 import 'consultas_page.dart';
@@ -16,7 +15,6 @@ class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    const InicioPage(),
     const BuscarPage(),
     const FavoritosPage(),
     const ConsultasPage(),
@@ -26,10 +24,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: SafeArea(
         child: Container(
           decoration: BoxDecoration(
@@ -54,10 +49,6 @@ class _HomePageState extends State<HomePage> {
             selectedFontSize: 12,
             unselectedFontSize: 12,
             items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Inicio',
-              ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.search),
                 label: 'Buscar',
