@@ -58,8 +58,8 @@ class _HomePageState extends State<HomePage> {
                 label: 'Favoritos',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.chat_bubble_outline),
-                label: 'Consultas',
+                icon: Icon(Icons.edit_document),
+                label: 'Contratos',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),

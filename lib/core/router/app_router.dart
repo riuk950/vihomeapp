@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import '../../env/env_def.dart';
 import '../../presentation/pages/pages.dart';
 import '../../presentation/providers/auth_provider.dart';
+import '../../domain/entities/property.dart';
+import '../../data/models/property_model.dart';
+import '../../presentation/pages/detalles_propiedades_page.dart';
 
 GoRouter createAppRouter() {
   return GoRouter(
@@ -60,7 +63,10 @@ GoRouter createAppRouter() {
           path: '/debug',
           name: 'debug',
           builder: (context, state) {
-            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+            final authProvider = Provider.of<AuthProvider>(
+              context,
+              listen: false,
+            );
             return Scaffold(
               appBar: AppBar(title: const Text('Debug Info')),
               body: Center(
@@ -81,6 +87,29 @@ GoRouter createAppRouter() {
             );
           },
         ),
+      GoRoute(
+        path: '/property-details',
+        name: 'property-details',
+        builder: (context, state) {
+          final extra = state.extra;
+          Property? property;
+
+          if (extra is Property) {
+            property = extra;
+          } else if (extra is Map<String, dynamic>) {
+            property = PropertyModel.fromJson(extra);
+          }
+
+          if (property == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Error')),
+              body: const Center(child: Text('Error: Propiedad no válida')),
+            );
+          }
+
+          return DetallesPropiedadesPage(property: property);
+        },
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Error')),
@@ -89,8 +118,7 @@ GoRouter createAppRouter() {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('Ruta no encontrada: ${state.uri}'),
-            if (EnvDef.isDebugMode)
-              Text('Error: ${state.error}'),
+            if (EnvDef.isDebugMode) Text('Error: ${state.error}'),
             ElevatedButton(
               onPressed: () => context.go('/'),
               child: const Text('Volver al inicio'),
@@ -104,4 +132,3 @@ GoRouter createAppRouter() {
 
 // Crear el router después de que el provider esté disponible
 final appRouter = createAppRouter();
-

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/property_provider.dart';
 import '../../domain/entities/property.dart';
+import 'package:go_router/go_router.dart';
 
 class BuscarPage extends StatelessWidget {
   const BuscarPage({super.key});
@@ -86,7 +87,7 @@ class BuscarPage extends StatelessWidget {
                   itemCount: propertyProvider.properties.length,
                   itemBuilder: (context, index) {
                     final property = propertyProvider.properties[index];
-                    return _buildPropertyCard(property);
+                    return _buildPropertyCard(context, property);
                   },
                 );
               },
@@ -117,92 +118,103 @@ class BuscarPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPropertyCard(Property property) {
+  Widget _buildPropertyCard(BuildContext context, Property property) {
+    // Updated signature
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 2,
       clipBehavior: Clip.antiAlias,
       color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image
-          Container(
-            height: 180,
-            width: double.infinity,
-            color: Colors.grey[300],
-            child:
-                property.fotosPropiedad != null &&
-                    property.fotosPropiedad!.isNotEmpty
-                ? Image.network(
-                    property.fotosPropiedad!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Center(
-                      child: Icon(
-                        Icons.broken_image,
-                        size: 50,
+      child: InkWell(
+        // Added InkWell
+        onTap: () {
+          context.push(
+            '/property-details',
+            extra: property,
+          ); // Added onTap navigation
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            Container(
+              height: 180,
+              width: double.infinity,
+              color: Colors.grey[300],
+              child:
+                  property.fotosPropiedad != null &&
+                      property.fotosPropiedad!.isNotEmpty
+                  ? Image.network(
+                      property.fotosPropiedad!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Center(
+                            child: Icon(
+                              Icons.broken_image,
+                              size: 50,
+                              color: Colors.grey,
+                            ),
+                          ),
+                    )
+                  : const Center(
+                      child: Icon(Icons.home, size: 50, color: Colors.grey),
+                    ),
+            ),
+
+            // Details
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    property.titulo,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
                         color: Colors.grey,
                       ),
-                    ),
-                  )
-                : const Center(
-                    child: Icon(Icons.home, size: 50, color: Colors.grey),
-                  ),
-          ),
-
-          // Details
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  property.titulo,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      size: 16,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        property.direccion,
-                        style: const TextStyle(color: Colors.grey),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          property.direccion,
+                          style: const TextStyle(color: Colors.grey),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _buildFeature(
-                      Icons.bed_outlined,
-                      '${property.habitaciones} Hab',
-                    ),
-                    const SizedBox(width: 16),
-                    _buildFeature(
-                      Icons.bathtub_outlined,
-                      '${property.banos} Baños',
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _buildFeature(
+                        Icons.bed_outlined,
+                        '${property.habitaciones} Hab',
+                      ),
+                      const SizedBox(width: 16),
+                      _buildFeature(
+                        Icons.bathtub_outlined,
+                        '${property.banos} Baños',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
