@@ -10,81 +10,58 @@ class DetallesPropiedadesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text('Detalles de la Propiedad'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share, color: Colors.black),
+            onPressed: () {},
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           CustomScrollView(
             slivers: [
               // App Bar & Image
-              SliverAppBar(
-                expandedHeight: 300,
-                pinned: true,
-                backgroundColor: Colors.white,
-                leading: Container(
-                  margin: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.black),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ),
-                actions: [
-                  Container(
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.share_outlined,
-                        color: Colors.black,
-                      ),
-                      onPressed: () {},
-                    ),
-                  ),
-                ],
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    fit: StackFit.expand,
+              // Image Carousel
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 300,
+                  child: Stack(
                     children: [
-                      property.fotosPropiedad != null &&
-                              property.fotosPropiedad!.isNotEmpty
-                          ? Image.network(
-                              property.fotosPropiedad!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Container(
-                                    color: Colors.grey[300],
-                                    child: const Icon(
-                                      Icons.broken_image,
-                                      size: 64,
-                                      color: Colors.grey,
-                                    ),
+                      PageView(
+                        children: [
+                          property.fotosPropiedad != null &&
+                                  property.fotosPropiedad!.isNotEmpty
+                              ? Image.network(
+                                  property.fotosPropiedad!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
+                                        color: Colors.grey[300],
+                                        child: const Icon(
+                                          Icons.broken_image,
+                                          size: 64,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                )
+                              : Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.home,
+                                    size: 64,
+                                    color: Colors.grey,
                                   ),
-                            )
-                          : Container(
-                              color: Colors.grey[300],
-                              child: const Icon(
-                                Icons.home,
-                                size: 64,
-                                color: Colors.grey,
-                              ),
-                            ),
+                                ),
+                          // Placeholder for additional images if they existed
+                        ],
+                      ),
                       // Gradient Overlay
                       Container(
                         decoration: BoxDecoration(
