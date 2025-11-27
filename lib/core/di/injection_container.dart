@@ -14,6 +14,12 @@ import '../../domain/usecases/auth/sign_up_usecase.dart';
 import '../../domain/usecases/property/get_properties_usecase.dart';
 import '../../infrastructure/services/supabase_service.dart';
 import '../../presentation/providers/auth_provider.dart';
+import '../../presentation/providers/tenant_provider.dart';
+import '../../data/datasources/tenant_remote_datasource.dart';
+import '../../data/repositories/tenant_repository_impl.dart';
+import '../../domain/repositories/tenant_repository.dart';
+import '../../domain/usecases/tenant/get_tenant_profile_usecase.dart';
+import '../../domain/usecases/tenant/save_tenant_profile_usecase.dart';
 
 final getIt = GetIt.instance;
 
@@ -29,6 +35,9 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton<PropertyRemoteDataSource>(
     () => PropertyRemoteDataSourceImpl(getIt<SupabaseService>()),
   );
+  getIt.registerLazySingleton<TenantRemoteDataSource>(
+    () => TenantRemoteDataSourceImpl(getIt<SupabaseService>()),
+  );
 
   // Repositories
   getIt.registerLazySingleton<AuthRepository>(
@@ -37,14 +46,29 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton<PropertyRepository>(
     () => PropertyRepositoryImpl(getIt<PropertyRemoteDataSource>()),
   );
+  getIt.registerLazySingleton<TenantRepository>(
+    () => TenantRepositoryImpl(getIt<TenantRemoteDataSource>()),
+  );
 
   // Use cases
-  getIt.registerLazySingleton(() => GetCurrentUserUseCase(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(
+    () => GetCurrentUserUseCase(getIt<AuthRepository>()),
+  );
   getIt.registerLazySingleton(() => SignInUseCase(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => SignUpUseCase(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => SignOutUseCase(getIt<AuthRepository>()));
-  getIt.registerLazySingleton(() => ResetPasswordUseCase(getIt<AuthRepository>()));
-  getIt.registerLazySingleton(() => GetPropertiesUseCase(getIt<PropertyRepository>()));
+  getIt.registerLazySingleton(
+    () => ResetPasswordUseCase(getIt<AuthRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetPropertiesUseCase(getIt<PropertyRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetTenantProfileUseCase(getIt<TenantRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => SaveTenantProfileUseCase(getIt<TenantRepository>()),
+  );
 
   // Providers
   getIt.registerFactory(
@@ -57,9 +81,12 @@ Future<void> setupDependencyInjection() async {
     ),
   );
   getIt.registerFactory(
-    () => PropertyProvider(
-      getPropertiesUseCase: getIt<GetPropertiesUseCase>(),
+    () => PropertyProvider(getPropertiesUseCase: getIt<GetPropertiesUseCase>()),
+  );
+  getIt.registerFactory(
+    () => TenantProvider(
+      getTenantProfileUseCase: getIt<GetTenantProfileUseCase>(),
+      saveTenantProfileUseCase: getIt<SaveTenantProfileUseCase>(),
     ),
   );
 }
-

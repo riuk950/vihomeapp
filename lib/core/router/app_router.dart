@@ -7,6 +7,7 @@ import '../../presentation/providers/auth_provider.dart';
 import '../../domain/entities/property.dart';
 import '../../data/models/property_model.dart';
 import '../../presentation/pages/detalles_propiedades_page.dart';
+import '../../presentation/pages/complete_tenant_profile_page.dart';
 
 GoRouter createAppRouter() {
   return GoRouter(
@@ -109,6 +110,11 @@ GoRouter createAppRouter() {
 
           return DetallesPropiedadesPage(property: property);
         },
+      ),
+      GoRoute(
+        path: '/complete-profile',
+        name: 'complete-profile',
+        builder: (context, state) => const CompleteTenantProfilePage(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

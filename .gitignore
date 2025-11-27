@@ -13,6 +13,8 @@
 .env.dev
 .env.prod
 migrate_working_dir/
+stitch/
+api_routers/
 
 # IntelliJ related
 *.iml

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/tenant_provider.dart';
 
 class PerfilPage extends StatelessWidget {
   const PerfilPage({super.key});
@@ -39,6 +40,22 @@ class PerfilPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Cargar perfil del arrendatario si es necesario
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+
+    if (user?.role == 'arrendatario') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final tenantProvider = Provider.of<TenantProvider>(
+          context,
+          listen: false,
+        );
+        if (tenantProvider.tenant == null && !tenantProvider.isLoading) {
+          tenantProvider.loadTenantProfile(user!.id);
+        }
+      });
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F8), // background-light
       appBar: AppBar(
@@ -119,53 +136,140 @@ class PerfilPage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         Text(
                           user?.email ?? 'usuario@email.com', // Mock Name
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF0F172A),
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.verified_user,
-                              color: Colors.green,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Arrendatario Verificado',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[600],
+                        if (user?.role == 'arrendatario') ...[
+                          Consumer<TenantProvider>(
+                            builder: (context, tenantProvider, child) {
+                              if (tenantProvider.isLoading) {
+                                return const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                );
+                              }
+
+                              final isVerified = tenantProvider.isVerified;
+
+                              return Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        isVerified
+                                            ? Icons.verified_user
+                                            : Icons.warning_amber_rounded,
+                                        color: isVerified
+                                            ? Colors.green
+                                            : Colors.orange,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        isVerified
+                                            ? 'Arrendatario Verificado'
+                                            : 'Arrendatario no verificado',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (!isVerified) ...[
+                                    const SizedBox(height: 16),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          context.push('/complete-profile');
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(
+                                            0xFF137FEC,
+                                          ),
+                                          foregroundColor: Colors.white,
+                                          elevation: 0,
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 12,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Completar Perfil',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
+                        ] else ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.verified_user,
+                                color: Colors.green,
+                                size: 18,
                               ),
-                            ),
-                          ],
-                        ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Usuario Verificado',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[200],
-                              foregroundColor: const Color(0xFF0F172A),
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                        if (user?.role != 'arrendatario' ||
+                            (Provider.of<TenantProvider>(
+                              context,
+                              listen: false,
+                            ).isVerified))
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[200],
+                                foregroundColor: const Color(0xFF0F172A),
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
-                            ),
-                            child: const Text(
-                              'Editar Perfil',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              child: const Text(
+                                'Editar Perfil',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
