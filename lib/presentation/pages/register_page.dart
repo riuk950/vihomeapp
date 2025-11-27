@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 
-
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -19,6 +18,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nameController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  String _role = 'arrendatario';
 
   @override
   void dispose() {
@@ -45,25 +45,31 @@ class _RegisterPageState extends State<RegisterPage> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     authProvider.clearError();
 
+    final metadata = <String, dynamic>{'role': _role};
+
+    if (_nameController.text.isNotEmpty) {
+      metadata['name'] = _nameController.text;
+    }
+
     final success = await authProvider.signUp(
       email: _emailController.text.trim(),
       password: _passwordController.text,
-      metadata: _nameController.text.isNotEmpty
-          ? {'name': _nameController.text}
-          : null,
+      metadata: metadata,
     );
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Cuenta creada exitosamente. Revisa tu email para verificar tu cuenta.'),
+          content: Text(
+            'Cuenta creada exitosamente. Revisa tu email para verificar tu cuenta.',
+          ),
           backgroundColor: Colors.green,
         ),
       );
-      
+
       // Esperar un momento y luego redirigir
       await Future.delayed(const Duration(seconds: 2));
-      
+
       if (mounted) {
         context.go('/login');
       }
@@ -73,10 +79,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Crear Cuenta'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Crear Cuenta'), centerTitle: true),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -105,10 +108,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 8),
                     Text(
                       'Completa el formulario para registrarte',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 40),
@@ -119,6 +119,44 @@ class _RegisterPageState extends State<RegisterPage> {
                         prefixIcon: Icon(Icons.person_outlined),
                         border: OutlineInputBorder(),
                       ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Selecciona tu rol:',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('Arrendatario'),
+                            value: 'arrendatario',
+                            groupValue: _role,
+                            onChanged: (value) {
+                              setState(() {
+                                _role = value!;
+                              });
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('Arrendador'),
+                            value: 'arrendador',
+                            groupValue: _role,
+                            onChanged: (value) {
+                              setState(() {
+                                _role = value!;
+                              });
+                            },
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -227,7 +265,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     ],
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: authProvider.isLoading ? null : _handleRegister,
+                      onPressed: authProvider.isLoading
+                          ? null
+                          : _handleRegister,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
@@ -242,7 +282,9 @@ class _RegisterPageState extends State<RegisterPage> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           : const Text(
@@ -277,4 +319,3 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
-
