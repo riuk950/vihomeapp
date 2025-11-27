@@ -79,11 +79,6 @@ class PerfilPage extends StatelessWidget {
         child: Consumer<AuthProvider>(
           builder: (context, authProvider, child) {
             final user = authProvider.user;
-            final userEmail = user?.email ?? 'usuario@email.com';
-            final userInitial = userEmail.isNotEmpty
-                ? userEmail[0].toUpperCase()
-                : 'U';
-
             return SingleChildScrollView(
               child: Column(
                 children: [
@@ -442,12 +437,26 @@ class PerfilPage extends StatelessWidget {
 
                   // Menu Options
                   _buildMenuOption(
+                    context,
                     Icons.person_outline,
                     'Información Personal',
+                    route: '/personal-info',
                   ),
-                  _buildMenuOption(Icons.history, 'Historial de Solicitudes'),
-                  _buildMenuOption(Icons.description_outlined, 'Mis Contratos'),
-                  _buildMenuOption(Icons.notifications_none, 'Notificaciones'),
+                  _buildMenuOption(
+                    context,
+                    Icons.history,
+                    'Historial de Solicitudes',
+                  ),
+                  _buildMenuOption(
+                    context,
+                    Icons.description_outlined,
+                    'Mis Contratos',
+                  ),
+                  _buildMenuOption(
+                    context,
+                    Icons.notifications_none,
+                    'Notificaciones',
+                  ),
 
                   const Padding(
                     padding: EdgeInsets.symmetric(
@@ -457,7 +466,11 @@ class PerfilPage extends StatelessWidget {
                     child: Divider(),
                   ),
 
-                  _buildMenuOption(Icons.help_outline, 'Ayuda y Soporte'),
+                  _buildMenuOption(
+                    context,
+                    Icons.help_outline,
+                    'Ayuda y Soporte',
+                  ),
 
                   // Logout Option
                   InkWell(
@@ -504,9 +517,18 @@ class PerfilPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuOption(IconData icon, String title) {
+  Widget _buildMenuOption(
+    BuildContext context,
+    IconData icon,
+    String title, {
+    String? route,
+  }) {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        if (route != null) {
+          context.push(route);
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Row(

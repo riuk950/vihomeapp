@@ -8,6 +8,7 @@ import '../../domain/entities/property.dart';
 import '../../data/models/property_model.dart';
 import '../../presentation/pages/detalles_propiedades_page.dart';
 import '../../presentation/pages/complete_tenant_profile_page.dart';
+import '../../presentation/pages/informacion_personal_page.dart';
 
 GoRouter createAppRouter() {
   return GoRouter(
@@ -115,6 +116,11 @@ GoRouter createAppRouter() {
         path: '/complete-profile',
         name: 'complete-profile',
         builder: (context, state) => const CompleteTenantProfilePage(),
+      ),
+      GoRoute(
+        path: '/personal-info',
+        name: 'personal-info',
+        builder: (context, state) => const InformacionPersonalPage(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
