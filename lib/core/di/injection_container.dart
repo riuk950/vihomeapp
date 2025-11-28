@@ -20,6 +20,11 @@ import '../../data/repositories/tenant_repository_impl.dart';
 import '../../domain/repositories/tenant_repository.dart';
 import '../../domain/usecases/tenant/get_tenant_profile_usecase.dart';
 import '../../domain/usecases/tenant/save_tenant_profile_usecase.dart';
+import '../../data/repositories/landlord_repository_impl.dart';
+import '../../domain/repositories/landlord_repository.dart';
+import '../../domain/usecases/landlord/get_landlord_profile_usecase.dart';
+import '../../domain/usecases/landlord/save_landlord_profile_usecase.dart';
+import '../../presentation/providers/landlord_provider.dart';
 
 final getIt = GetIt.instance;
 
@@ -49,6 +54,9 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton<TenantRepository>(
     () => TenantRepositoryImpl(getIt<TenantRemoteDataSource>()),
   );
+  getIt.registerLazySingleton<LandlordRepository>(
+    () => LandlordRepositoryImpl(getIt<SupabaseService>()),
+  );
 
   // Use cases
   getIt.registerLazySingleton(
@@ -69,6 +77,12 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton(
     () => SaveTenantProfileUseCase(getIt<TenantRepository>()),
   );
+  getIt.registerLazySingleton(
+    () => GetLandlordProfileUseCase(getIt<LandlordRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => SaveLandlordProfileUseCase(getIt<LandlordRepository>()),
+  );
 
   // Providers
   getIt.registerFactory(
@@ -87,6 +101,12 @@ Future<void> setupDependencyInjection() async {
     () => TenantProvider(
       getTenantProfileUseCase: getIt<GetTenantProfileUseCase>(),
       saveTenantProfileUseCase: getIt<SaveTenantProfileUseCase>(),
+    ),
+  );
+  getIt.registerFactory(
+    () => LandlordProvider(
+      getLandlordProfileUseCase: getIt<GetLandlordProfileUseCase>(),
+      saveLandlordProfileUseCase: getIt<SaveLandlordProfileUseCase>(),
     ),
   );
 }

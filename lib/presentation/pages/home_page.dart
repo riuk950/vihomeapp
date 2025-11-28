@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'buscar_page.dart';
 import 'favoritos_page.dart';
 import 'consultas_page.dart';
 import 'perfil_page.dart';
+import 'panel_page.dart';
+import '../providers/auth_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,17 +17,21 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    const BuscarPage(),
-    const FavoritosPage(),
-    const ConsultasPage(),
-    const PerfilPage(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+    final isLandlord = user?.role == 'arrendador';
+
+    final List<Widget> pages = [
+      const BuscarPage(),
+      const FavoritosPage(),
+      const ConsultasPage(),
+      isLandlord ? const PanelPage() : const PerfilPage(),
+    ];
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: IndexedStack(index: _currentIndex, children: pages),
       bottomNavigationBar: SafeArea(
         child: Container(
           decoration: BoxDecoration(
@@ -48,22 +55,22 @@ class _HomePageState extends State<HomePage> {
             unselectedItemColor: Colors.grey,
             selectedFontSize: 12,
             unselectedFontSize: 12,
-            items: const [
-              BottomNavigationBarItem(
+            items: [
+              const BottomNavigationBarItem(
                 icon: Icon(Icons.search),
                 label: 'Buscar',
               ),
-              BottomNavigationBarItem(
+              const BottomNavigationBarItem(
                 icon: Icon(Icons.favorite),
                 label: 'Favoritos',
               ),
-              BottomNavigationBarItem(
+              const BottomNavigationBarItem(
                 icon: Icon(Icons.edit_document),
                 label: 'Contratos',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Perfil',
+                icon: Icon(isLandlord ? Icons.dashboard : Icons.person),
+                label: isLandlord ? 'Panel' : 'Perfil',
               ),
             ],
           ),

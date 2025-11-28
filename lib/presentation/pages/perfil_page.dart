@@ -61,10 +61,6 @@ class PerfilPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFFF6F7F8),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
-          onPressed: () => context.canPop() ? context.pop() : null,
-        ),
         title: const Text(
           'Mi Perfil',
           style: TextStyle(
