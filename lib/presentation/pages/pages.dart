@@ -7,3 +7,4 @@ export 'perfil_page.dart';
 export 'login_page.dart';
 export 'register_page.dart';
 export 'mis_propiedades_page.dart';
+export 'crear_propiedad_page.dart';

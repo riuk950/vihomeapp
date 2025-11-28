@@ -7,4 +7,7 @@ abstract class PropertyRepository {
   Future<Either<Failure, List<Property>>> getPropertiesByLandlord(
     String landlordId,
   );
+  Future<Either<Failure, Property>> createProperty(
+    Map<String, dynamic> propertyData,
+  );
 }

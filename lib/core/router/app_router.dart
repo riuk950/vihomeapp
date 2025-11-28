@@ -139,6 +139,11 @@ GoRouter createAppRouter() {
         name: 'mis-propiedades',
         builder: (context, state) => const MisPropiedadesPage(),
       ),
+      GoRoute(
+        path: '/crear-propiedad',
+        name: 'crear-propiedad',
+        builder: (context, state) => const CrearPropiedadPage(),
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Error')),

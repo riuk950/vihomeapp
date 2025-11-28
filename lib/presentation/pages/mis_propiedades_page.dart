@@ -53,7 +53,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
           IconButton(
             icon: const Icon(Icons.add, color: Color(0xFF137FEC)),
             onPressed: () {
-              // TODO: Navegar a página de crear propiedad
+              context.push('/crear-propiedad');
             },
             tooltip: 'Agregar propiedad',
           ),
@@ -120,7 +120,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: () {
-                      // TODO: Navegar a página de crear propiedad
+                      context.push('/crear-propiedad');
                     },
                     icon: const Icon(Icons.add),
                     label: const Text('Agregar Propiedad'),

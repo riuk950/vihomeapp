@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/property.dart';
 import '../../domain/usecases/property/get_properties_by_landlord_usecase.dart';
+import '../../domain/usecases/property/create_property_usecase.dart';
 
 class LandlordPropertiesProvider with ChangeNotifier {
   final GetPropertiesByLandlordUseCase getPropertiesByLandlordUseCase;
+  final CreatePropertyUseCase createPropertyUseCase;
 
   List<Property> _properties = [];
   bool _isLoading = false;
@@ -17,7 +19,10 @@ class LandlordPropertiesProvider with ChangeNotifier {
   int get inactivePropertiesCount =>
       _properties.where((p) => !p.publicado).length;
 
-  LandlordPropertiesProvider({required this.getPropertiesByLandlordUseCase});
+  LandlordPropertiesProvider({
+    required this.getPropertiesByLandlordUseCase,
+    required this.createPropertyUseCase,
+  });
 
   Future<void> fetchPropertiesByLandlord(String landlordId) async {
     try {
@@ -39,6 +44,32 @@ class LandlordPropertiesProvider with ChangeNotifier {
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
+    }
+  }
+
+  Future<bool> createProperty(Map<String, dynamic> propertyData) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final result = await createPropertyUseCase(propertyData);
+
+      return result.fold(
+        (failure) {
+          _setError(failure.message);
+          _setLoading(false);
+          return false;
+        },
+        (property) {
+          _properties.add(property);
+          _setLoading(false);
+          return true;
+        },
+      );
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
     }
   }
 

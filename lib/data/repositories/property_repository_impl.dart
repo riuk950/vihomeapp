@@ -36,4 +36,18 @@ class PropertyRepositoryImpl implements PropertyRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, Property>> createProperty(
+    Map<String, dynamic> propertyData,
+  ) async {
+    try {
+      final property = await remoteDataSource.createProperty(propertyData);
+      return Right(property);
+    } on ServerFailure catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }
