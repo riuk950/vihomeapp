@@ -7,6 +7,7 @@ import '../presentation/providers/auth_provider.dart';
 import '../presentation/providers/property_provider.dart';
 import '../presentation/providers/tenant_provider.dart';
 import '../presentation/providers/landlord_provider.dart';
+import '../presentation/providers/landlord_properties_provider.dart';
 
 class FlavorApp extends StatelessWidget {
   const FlavorApp({super.key});
@@ -19,6 +20,9 @@ class FlavorApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => getIt<PropertyProvider>()),
         ChangeNotifierProvider(create: (_) => getIt<TenantProvider>()),
         ChangeNotifierProvider(create: (_) => getIt<LandlordProvider>()),
+        ChangeNotifierProvider(
+          create: (_) => getIt<LandlordPropertiesProvider>(),
+        ),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {

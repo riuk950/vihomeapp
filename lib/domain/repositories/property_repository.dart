@@ -4,4 +4,7 @@ import '../entities/property.dart';
 
 abstract class PropertyRepository {
   Future<Either<Failure, List<Property>>> getProperties();
+  Future<Either<Failure, List<Property>>> getPropertiesByLandlord(
+    String landlordId,
+  );
 }

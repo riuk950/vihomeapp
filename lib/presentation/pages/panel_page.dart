@@ -251,7 +251,9 @@ class PanelPage extends StatelessWidget {
                           icon: Icons.home_outlined,
                           title: 'Mis Propiedades',
                           subtitle: 'Accede a tus propiedades',
-                          onTap: () {},
+                          onTap: () {
+                            context.push('/mis-propiedades');
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -410,7 +412,9 @@ class PanelPage extends StatelessWidget {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          context.push('/mis-propiedades');
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF137FEC),
                           foregroundColor: Colors.white,

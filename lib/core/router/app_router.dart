@@ -134,6 +134,11 @@ GoRouter createAppRouter() {
         name: 'personal-info-landlord',
         builder: (context, state) => const InformacionPersonalLandlordPage(),
       ),
+      GoRoute(
+        path: '/mis-propiedades',
+        name: 'mis-propiedades',
+        builder: (context, state) => const MisPropiedadesPage(),
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Error')),

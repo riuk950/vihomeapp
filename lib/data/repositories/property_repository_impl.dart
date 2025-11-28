@@ -20,4 +20,20 @@ class PropertyRepositoryImpl implements PropertyRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, List<Property>>> getPropertiesByLandlord(
+    String landlordId,
+  ) async {
+    try {
+      final properties = await remoteDataSource.getPropertiesByLandlord(
+        landlordId,
+      );
+      return Right(properties);
+    } on ServerFailure catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }
