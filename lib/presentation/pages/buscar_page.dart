@@ -142,24 +142,9 @@ class BuscarPage extends StatelessWidget {
               height: 180,
               width: double.infinity,
               color: Colors.grey[300],
-              child:
-                  property.fotosPropiedad != null &&
-                      property.fotosPropiedad!.isNotEmpty
-                  ? Image.network(
-                      property.fotosPropiedad!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Center(
-                            child: Icon(
-                              Icons.broken_image,
-                              size: 50,
-                              color: Colors.grey,
-                            ),
-                          ),
-                    )
-                  : const Center(
-                      child: Icon(Icons.home, size: 50, color: Colors.grey),
-                    ),
+              child: const Center(
+                child: Icon(Icons.home, size: 50, color: Colors.grey),
+              ),
             ),
 
             // Details

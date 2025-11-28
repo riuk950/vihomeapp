@@ -36,30 +36,14 @@ class DetallesPropiedadesPage extends StatelessWidget {
                     children: [
                       PageView(
                         children: [
-                          property.fotosPropiedad != null &&
-                                  property.fotosPropiedad!.isNotEmpty
-                              ? Image.network(
-                                  property.fotosPropiedad!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                        color: Colors.grey[300],
-                                        child: const Icon(
-                                          Icons.broken_image,
-                                          size: 64,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                )
-                              : Container(
-                                  color: Colors.grey[300],
-                                  child: const Icon(
-                                    Icons.home,
-                                    size: 64,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                          // Placeholder for additional images if they existed
+                          Container(
+                            color: Colors.grey[300],
+                            child: const Icon(
+                              Icons.home,
+                              size: 64,
+                              color: Colors.grey,
+                            ),
+                          ),
                         ],
                       ),
                       // Gradient Overlay
@@ -117,9 +101,9 @@ class DetallesPropiedadesPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        '\$2,500,000 COP/mes', // Mock Price
-                        style: TextStyle(
+                      Text(
+                        '\$${property.precioRenta.toStringAsFixed(0)} COP/mes',
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF137FEC), // Primary Blue
@@ -140,7 +124,10 @@ class DetallesPropiedadesPage extends StatelessWidget {
                             Icons.bathtub_outlined,
                             '${property.banos} Baños',
                           ),
-                          _buildFeatureItem(Icons.square_foot, '120 m²'),
+                          _buildFeatureItem(
+                            Icons.square_foot,
+                            '${property.metrosCuadrados.toStringAsFixed(0)} m²',
+                          ),
                         ],
                       ),
 
