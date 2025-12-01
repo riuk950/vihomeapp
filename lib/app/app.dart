@@ -3,11 +3,7 @@ import 'package:provider/provider.dart';
 import '../core/di/injection_container.dart';
 import '../core/router/app_router.dart';
 import '../env/env_def.dart';
-import '../presentation/providers/auth_provider.dart';
-import '../presentation/providers/property_provider.dart';
-import '../presentation/providers/tenant_provider.dart';
-import '../presentation/providers/landlord_provider.dart';
-import '../presentation/providers/landlord_properties_provider.dart';
+import '../presentation/providers/providers.dart';
 
 class FlavorApp extends StatelessWidget {
   const FlavorApp({super.key});

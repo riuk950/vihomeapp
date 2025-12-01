@@ -1,34 +1,22 @@
 import 'package:get_it/get_it.dart';
-import 'package:vihomeapp/presentation/providers/property_provider.dart';
-import '../../data/datasources/auth_remote_datasource.dart';
-import '../../data/datasources/property_remote_datasource.dart';
-import '../../data/repositories/auth_repository_impl.dart';
-import '../../data/repositories/property_repository_impl.dart';
-import '../../domain/repositories/auth_repository.dart';
-import '../../domain/repositories/property_repository.dart';
-import '../../domain/usecases/auth/get_current_user_usecase.dart';
-import '../../domain/usecases/auth/reset_password_usecase.dart';
-import '../../domain/usecases/auth/sign_in_usecase.dart';
-import '../../domain/usecases/auth/sign_out_usecase.dart';
-import '../../domain/usecases/auth/sign_up_usecase.dart';
-import '../../domain/usecases/property/get_properties_usecase.dart';
-import '../../domain/usecases/property/get_properties_by_landlord_usecase.dart';
-import '../../domain/usecases/property/create_property_usecase.dart';
-import '../../domain/usecases/property/update_property_usecase.dart';
+
+//Data sources
+import '../../data/datasources/datasources.dart';
+
+//Repositorios
+import '../../domain/repositories/repositories.dart';
+
+//Casos de uso
+import '../../domain/usecases/usecases.dart';
+
+//Servicios
 import '../../infrastructure/services/supabase_service.dart';
-import '../../presentation/providers/auth_provider.dart';
-import '../../presentation/providers/tenant_provider.dart';
-import '../../presentation/providers/landlord_properties_provider.dart';
-import '../../data/datasources/tenant_remote_datasource.dart';
-import '../../data/repositories/tenant_repository_impl.dart';
-import '../../domain/repositories/tenant_repository.dart';
-import '../../domain/usecases/tenant/get_tenant_profile_usecase.dart';
-import '../../domain/usecases/tenant/save_tenant_profile_usecase.dart';
-import '../../data/repositories/landlord_repository_impl.dart';
-import '../../domain/repositories/landlord_repository.dart';
-import '../../domain/usecases/landlord/get_landlord_profile_usecase.dart';
-import '../../domain/usecases/landlord/save_landlord_profile_usecase.dart';
-import '../../presentation/providers/landlord_provider.dart';
+
+//Providers
+import '../../presentation/providers/providers.dart';
+
+//Repositorios Data
+import '../../data/repositories/repositories.dart';
 
 final getIt = GetIt.instance;
 
