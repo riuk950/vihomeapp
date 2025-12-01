@@ -23,7 +23,7 @@ class FlavorApp extends StatelessWidget {
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
           return MaterialApp.router(
-            debugShowCheckedModeBanner: EnvDef.isDevelopment,
+            debugShowCheckedModeBanner: EnvDef.isDebugMode,
             themeMode: ThemeMode.system,
             title: EnvDef.title,
             routerConfig: appRouter,

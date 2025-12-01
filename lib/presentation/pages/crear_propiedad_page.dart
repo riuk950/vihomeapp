@@ -398,7 +398,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           items: items.map((item) {
             return DropdownMenuItem(value: item, child: Text(item));
           }).toList(),

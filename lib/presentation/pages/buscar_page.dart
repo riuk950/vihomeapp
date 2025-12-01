@@ -4,8 +4,21 @@ import '../providers/property_provider.dart';
 import '../../domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 
-class BuscarPage extends StatelessWidget {
+class BuscarPage extends StatefulWidget {
   const BuscarPage({super.key});
+
+  @override
+  State<BuscarPage> createState() => _BuscarPageState();
+}
+
+class _BuscarPageState extends State<BuscarPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PropertyProvider>(context, listen: false).fetchProperties();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,13 +95,16 @@ class BuscarPage extends StatelessWidget {
                   );
                 }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: propertyProvider.properties.length,
-                  itemBuilder: (context, index) {
-                    final property = propertyProvider.properties[index];
-                    return _buildPropertyCard(context, property);
-                  },
+                return RefreshIndicator(
+                  onRefresh: () => propertyProvider.fetchProperties(),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: propertyProvider.properties.length,
+                    itemBuilder: (context, index) {
+                      final property = propertyProvider.properties[index];
+                      return _buildPropertyCard(context, property);
+                    },
+                  ),
                 );
               },
             ),

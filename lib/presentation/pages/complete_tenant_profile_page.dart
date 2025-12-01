@@ -148,7 +148,7 @@ class _CompleteTenantProfilePageState extends State<CompleteTenantProfilePage> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _tipoDocumento,
+                      initialValue: _tipoDocumento,
                       decoration: const InputDecoration(
                         labelText: 'Tipo de Documento',
                         border: OutlineInputBorder(),

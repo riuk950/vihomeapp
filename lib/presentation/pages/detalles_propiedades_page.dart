@@ -262,26 +262,6 @@ class DetallesPropiedadesPage extends StatelessWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(color: Color(0xFF137FEC)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Contactar',
-                          style: TextStyle(
-                            color: Color(0xFF137FEC),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
                       child: Consumer<LandlordPropertiesProvider>(
                         builder: (context, provider, child) {
                           final isPublished = property.publicado;
