@@ -10,4 +10,8 @@ abstract class PropertyRepository {
   Future<Either<Failure, Property>> createProperty(
     Map<String, dynamic> propertyData,
   );
+  Future<Either<Failure, Property>> updateProperty(
+    String id,
+    Map<String, dynamic> data,
+  );
 }
