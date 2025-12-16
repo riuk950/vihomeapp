@@ -1,7 +1,12 @@
 import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+
+import '../network/network_info.dart';
 
 //Data sources
 import '../../data/datasources/datasources.dart';
+import '../../data/datasources/property_local_datasource.dart';
 
 //Repositorios
 import '../../domain/repositories/repositories.dart';
@@ -21,6 +26,16 @@ import '../../data/repositories/repositories.dart';
 final getIt = GetIt.instance;
 
 Future<void> setupDependencyInjection() async {
+  // External
+  final sharedPreferences = await SharedPreferences.getInstance();
+  getIt.registerLazySingleton(() => sharedPreferences);
+  getIt.registerLazySingleton(() => Connectivity());
+
+  // Core
+  getIt.registerLazySingleton<NetworkInfo>(
+    () => NetworkInfoImpl(getIt<Connectivity>()),
+  );
+
   // Infrastructure
   getIt.registerSingleton<SupabaseService>(SupabaseService.instance);
   await getIt<SupabaseService>().initialize();
@@ -32,6 +47,11 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton<PropertyRemoteDataSource>(
     () => PropertyRemoteDataSourceImpl(getIt<SupabaseService>()),
   );
+  getIt.registerLazySingleton<PropertyLocalDataSource>(
+    () => PropertyLocalDataSourceImpl(
+      sharedPreferences: getIt<SharedPreferences>(),
+    ),
+  );
   getIt.registerLazySingleton<TenantRemoteDataSource>(
     () => TenantRemoteDataSourceImpl(getIt<SupabaseService>()),
   );
@@ -41,7 +61,11 @@ Future<void> setupDependencyInjection() async {
     () => AuthRepositoryImpl(getIt<AuthRemoteDataSource>()),
   );
   getIt.registerLazySingleton<PropertyRepository>(
-    () => PropertyRepositoryImpl(getIt<PropertyRemoteDataSource>()),
+    () => PropertyRepositoryImpl(
+      remoteDataSource: getIt<PropertyRemoteDataSource>(),
+      localDataSource: getIt<PropertyLocalDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
   );
   getIt.registerLazySingleton<TenantRepository>(
     () => TenantRepositoryImpl(getIt<TenantRemoteDataSource>()),
