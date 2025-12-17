@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/landlord_properties_provider.dart';
-import '../providers/auth_provider.dart';
+import 'package:vihomeapp/presentation/providers/auth_provider.dart';
+import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
 
 class CrearPropiedadPage extends StatefulWidget {
   const CrearPropiedadPage({super.key});

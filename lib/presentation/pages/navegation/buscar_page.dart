@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/property_provider.dart';
-import '../../domain/entities/property.dart';
+import '../../providers/property_provider.dart';
+import '../../../domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 
 class BuscarPage extends StatefulWidget {

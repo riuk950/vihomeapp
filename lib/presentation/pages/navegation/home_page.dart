@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import 'buscar_page.dart';
 import 'favoritos_page.dart';
 import 'consultas_page.dart';
-import 'perfil_page.dart';
+import '../user/perfil_page.dart';
 import 'panel_page.dart';
-import '../providers/auth_provider.dart';
+import '../../providers/auth_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

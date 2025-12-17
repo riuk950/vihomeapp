@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../domain/entities/tenant.dart';
-import '../providers/auth_provider.dart';
-import '../providers/tenant_provider.dart';
+import '../../../domain/entities/tenant.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/tenant_provider.dart';
 
 class CompleteTenantProfilePage extends StatefulWidget {
   const CompleteTenantProfilePage({super.key});

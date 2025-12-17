@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:vihomeapp/presentation/pages/informacion_personal_landlord_page.dart';
-import '../../env/env_def.dart';
-import '../../presentation/pages/pages.dart';
-import '../../presentation/providers/auth_provider.dart';
-import '../../domain/entities/property.dart';
-import '../../data/models/property_model.dart';
-import '../../presentation/pages/detalles_propiedades_page.dart';
-import '../../presentation/pages/complete_tenant_profile_page.dart';
-import '../../presentation/pages/complete_landlord_profile_page.dart';
-import '../../presentation/pages/informacion_personal_page.dart';
+import 'package:vihomeapp/data/models/property_model.dart';
+import 'package:vihomeapp/domain/entities/property.dart';
+import 'package:vihomeapp/env/env_def.dart';
+import 'package:vihomeapp/presentation/pages/landlord/informacion_personal_landlord_page.dart';
+import 'package:vihomeapp/presentation/pages/pages.dart';
+import 'package:vihomeapp/presentation/pages/propiedades/detalles_propiedades_page.dart';
+import 'package:vihomeapp/presentation/pages/tenant/complete_tenant_profile_page.dart';
+import 'package:vihomeapp/presentation/pages/landlord/complete_landlord_profile_page.dart';
+import 'package:vihomeapp/presentation/pages/user/informacion_personal_page.dart';
+import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 
 GoRouter createAppRouter() {
   return GoRouter(

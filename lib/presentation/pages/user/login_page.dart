@@ -1,85 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import '../../providers/auth_provider.dart';
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  final _nameController = TextEditingController();
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
-  String _role = 'arrendatario';
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    _nameController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleRegister() async {
+  Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Las contraseñas no coinciden'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     authProvider.clearError();
 
-    final metadata = <String, dynamic>{'role': _role};
-
-    if (_nameController.text.isNotEmpty) {
-      metadata['name'] = _nameController.text;
-    }
-
-    final success = await authProvider.signUp(
+    final success = await authProvider.signInWithEmail(
       email: _emailController.text.trim(),
       password: _passwordController.text,
-      metadata: metadata,
     );
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Cuenta creada exitosamente. Revisa tu email para verificar tu cuenta.',
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      // Esperar un momento y luego redirigir
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (mounted) {
-        context.go('/login');
-      }
+      context.go('/home');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear Cuenta'), centerTitle: true),
+      appBar: AppBar(title: const Text('Iniciar Sesión'), centerTitle: true),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -92,13 +55,13 @@ class _RegisterPageState extends State<RegisterPage> {
                   children: [
                     const SizedBox(height: 40),
                     const Icon(
-                      Icons.person_add_outlined,
+                      Icons.lock_outline,
                       size: 80,
                       color: Colors.green,
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'Crea tu cuenta',
+                      'Bienvenido',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -107,58 +70,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Completa el formulario para registrarte',
+                      'Inicia sesión en tu cuenta',
                       style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 40),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre (opcional)',
-                        prefixIcon: Icon(Icons.person_outlined),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Selecciona tu rol:',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: const Text('Arrendatario'),
-                            value: 'arrendatario',
-                            groupValue: _role,
-                            onChanged: (value) {
-                              setState(() {
-                                _role = value!;
-                              });
-                            },
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: const Text('Arrendador'),
-                            value: 'arrendador',
-                            groupValue: _role,
-                            onChanged: (value) {
-                              setState(() {
-                                _role = value!;
-                              });
-                            },
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -196,12 +112,11 @@ class _RegisterPageState extends State<RegisterPage> {
                           },
                         ),
                         border: const OutlineInputBorder(),
-                        helperText: 'Mínimo 6 caracteres',
                       ),
                       obscureText: _obscurePassword,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa una contraseña';
+                          return 'Por favor ingresa tu contraseña';
                         }
                         if (value.length < 6) {
                           return 'La contraseña debe tener al menos 6 caracteres';
@@ -209,36 +124,22 @@ class _RegisterPageState extends State<RegisterPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _confirmPasswordController,
-                      decoration: InputDecoration(
-                        labelText: 'Confirmar contraseña',
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                        border: const OutlineInputBorder(),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          // TODO: Implementar recuperación de contraseña
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Funcionalidad próximamente disponible',
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text('¿Olvidaste tu contraseña?'),
                       ),
-                      obscureText: _obscureConfirmPassword,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor confirma tu contraseña';
-                        }
-                        if (value != _passwordController.text) {
-                          return 'Las contraseñas no coinciden';
-                        }
-                        return null;
-                      },
                     ),
                     if (authProvider.errorMessage != null) ...[
                       const SizedBox(height: 16),
@@ -265,9 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ],
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: authProvider.isLoading
-                          ? null
-                          : _handleRegister,
+                      onPressed: authProvider.isLoading ? null : _handleLogin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
@@ -288,7 +187,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
                             )
                           : const Text(
-                              'Registrarse',
+                              'Iniciar Sesión',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -299,11 +198,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('¿Ya tienes cuenta? '),
+                        const Text('¿No tienes cuenta? '),
                         TextButton(
-                          onPressed: () => context.go('/login'),
+                          onPressed: () => context.go('/register'),
                           child: const Text(
-                            'Inicia sesión',
+                            'Regístrate',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),

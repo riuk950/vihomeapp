@@ -1,22 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
-import '../../domain/entities/property.dart';
-import '../providers/landlord_properties_provider.dart';
+import '../../../domain/entities/property.dart';
+import '../../providers/landlord_properties_provider.dart';
+import '../../../domain/entities/landlord.dart';
+import '../../../domain/usecases/landlord/get_landlord_profile_usecase.dart';
+import '../../../core/di/injection_container.dart';
 
-class DetallesPropiedadesPage extends StatelessWidget {
+class DetallesPropiedadesPage extends StatefulWidget {
   final Property property;
 
   const DetallesPropiedadesPage({super.key, required this.property});
 
   @override
+  State<DetallesPropiedadesPage> createState() =>
+      _DetallesPropiedadesPageState();
+}
+
+class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
+  Landlord? _landlord;
+  bool _isLoadingLandlord = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLandlord();
+  }
+
+  Future<void> _loadLandlord() async {
+    final useCase = getIt<GetLandlordProfileUseCase>();
+    final result = await useCase(widget.property.arrendadorId);
+
+    if (!mounted) return;
+
+    result.fold(
+      (failure) {
+        setState(() => _isLoadingLandlord = false);
+      },
+      (landlord) {
+        setState(() {
+          _landlord = landlord;
+          _isLoadingLandlord = false;
+        });
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
+
+    // Determine if the current user is the owner of the property
+    final isOwner = user != null && user.id == widget.property.arrendadorId;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Detalles de la Propiedad'),
+        title: const Text('Detalles de la Propiedad'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
@@ -32,7 +73,6 @@ class DetallesPropiedadesPage extends StatelessWidget {
         children: [
           CustomScrollView(
             slivers: [
-              // App Bar & Image
               // Image Carousel
               SliverToBoxAdapter(
                 child: SizedBox(
@@ -90,7 +130,7 @@ class DetallesPropiedadesPage extends StatelessWidget {
                     children: [
                       // Title & Address
                       Text(
-                        property.titulo,
+                        widget.property.titulo,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -99,7 +139,7 @@ class DetallesPropiedadesPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        property.direccion,
+                        widget.property.direccion,
                         style: const TextStyle(
                           fontSize: 16,
                           color: Color(0xFF475569), // Slate 600
@@ -107,7 +147,7 @@ class DetallesPropiedadesPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        '\$${property.precioRenta.toStringAsFixed(0)} COP/mes',
+                        '\$${widget.property.precioRenta.toStringAsFixed(0)} COP/mes',
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -123,15 +163,15 @@ class DetallesPropiedadesPage extends StatelessWidget {
                         children: [
                           _buildFeatureItem(
                             Icons.bed_outlined,
-                            '${property.habitaciones} Hab',
+                            '${widget.property.habitaciones} Hab',
                           ),
                           _buildFeatureItem(
                             Icons.bathtub_outlined,
-                            '${property.banos} Baños',
+                            '${widget.property.banos} Baños',
                           ),
                           _buildFeatureItem(
                             Icons.square_foot,
-                            '${property.metrosCuadrados.toStringAsFixed(0)} m²',
+                            '${widget.property.metrosCuadrados.toStringAsFixed(0)} m²',
                           ),
                         ],
                       ),
@@ -151,8 +191,8 @@ class DetallesPropiedadesPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        property.descripcion.isNotEmpty
-                            ? property.descripcion
+                        widget.property.descripcion.isNotEmpty
+                            ? widget.property.descripcion
                             : 'Disfruta de la vida de lujo en este espectacular inmueble. Con acabados modernos, amplios espacios y una ubicación inmejorable. Ideal para quienes buscan comodidad y estilo.',
                         style: const TextStyle(
                           fontSize: 16,
@@ -194,47 +234,53 @@ class DetallesPropiedadesPage extends StatelessWidget {
                       const SizedBox(height: 24),
 
                       // Landlord Profile
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            const CircleAvatar(
-                              radius: 28,
-                              backgroundImage: NetworkImage(
-                                'https://i.pravatar.cc/150?img=11',
-                              ), // Mock Image
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Publicado por Juan Pérez',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Propietario',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
+                      if (_isLoadingLandlord)
+                        const Center(child: CircularProgressIndicator())
+                      else if (_landlord != null)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 28,
+                                backgroundImage: NetworkImage(
+                                  'https://i.pravatar.cc/150?img=11',
+                                ), // Mock Image
                               ),
-                            ),
-                            const Icon(Icons.chevron_right, color: Colors.blue),
-                          ],
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${_landlord!.primerNombre} ${_landlord!.primerApellido}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Propietario',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right,
+                                color: Colors.blue,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
 
                       const SizedBox(height: 100), // Space for bottom bar
                     ],
@@ -245,7 +291,7 @@ class DetallesPropiedadesPage extends StatelessWidget {
           ),
 
           // Bottom Action Bar
-          if (user?.role == 'arrendador')
+          if (isOwner)
             Positioned(
               bottom: 0,
               left: 0,
@@ -264,15 +310,15 @@ class DetallesPropiedadesPage extends StatelessWidget {
                     Expanded(
                       child: Consumer<LandlordPropertiesProvider>(
                         builder: (context, provider, child) {
-                          final isPublished = property.publicado;
+                          final isPublished = widget.property.publicado;
                           return ElevatedButton(
                             onPressed: provider.isLoading
                                 ? null
                                 : () async {
                                     final success = await provider
                                         .togglePropertyPublication(
-                                          property.id,
-                                          property.publicado,
+                                          widget.property.id,
+                                          widget.property.publicado,
                                         );
                                     if (success && context.mounted) {
                                       ScaffoldMessenger.of(
@@ -322,7 +368,7 @@ class DetallesPropiedadesPage extends StatelessWidget {
                                   )
                                 : Text(
                                     isPublished
-                                        ? 'Despublicar propiedad'
+                                        ? 'Pausar Publicación'
                                         : 'Publicar propiedad',
                                     style: const TextStyle(
                                       color: Colors.white,
@@ -337,7 +383,8 @@ class DetallesPropiedadesPage extends StatelessWidget {
                 ),
               ),
             ),
-          if (user?.role == 'arrendatario')
+
+          if (!isOwner && user?.role == 'arrendatario')
             Positioned(
               bottom: 0,
               left: 0,
