@@ -9,6 +9,8 @@ class EnvDef {
       dotenv.env['AUTH_TOKEN_KEY'] ?? 'auth_token';
   static String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
   static String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+  static String get mapboxAccessToken =>
+      dotenv.env['MAPBOX_ACCESS_TOKEN'] ?? '';
   static bool get isDebugMode => dotenv.env['DEBUG_MODE'] == 'true';
   static bool get isProduction => dotenv.env['DEBUG_MODE'] == 'false';
   static bool get isDevelopment => !isProduction;

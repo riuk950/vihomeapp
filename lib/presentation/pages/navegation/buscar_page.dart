@@ -34,6 +34,12 @@ class _BuscarPageState extends State<BuscarPage> {
         centerTitle: false,
         actions: [
           IconButton(
+            icon: const Icon(Icons.map_outlined, color: Colors.black),
+            onPressed: () {
+              context.push('/mapa');
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.black),
             onPressed: () {},
           ),
