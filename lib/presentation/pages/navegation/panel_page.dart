@@ -60,7 +60,7 @@ class PanelPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Bienvenido, ${user?.name ?? 'Arrendador'}',
+                    'Bienvenido, ${user?.name ?? 'Usuario'}',
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -263,7 +263,15 @@ class PanelPage extends StatelessWidget {
                           icon: Icons.list_alt_outlined,
                           title: 'Solicitudes',
                           subtitle: 'Revisa tus solicitudes',
-                          onTap: () {},
+                          onTap: () {
+                            // Check role to navigate
+                            final role = user?.role;
+                            if (role == 'arrendador') {
+                              context.push('/solicitudes-arrendador');
+                            } else {
+                              context.push('/solicitudes-arrendatario');
+                            }
+                          },
                         ),
                       ),
                     ],
@@ -459,6 +467,9 @@ class PanelPage extends StatelessWidget {
   }
 
   Widget _buildApplicationStatusCard(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
@@ -592,7 +603,14 @@ class PanelPage extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                final role = user?.role;
+                if (role == 'arrendador') {
+                  context.push('/solicitudes-arrendador');
+                } else {
+                  context.push('/solicitudes-arrendatario');
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF137FEC),
                 foregroundColor: Colors.white,

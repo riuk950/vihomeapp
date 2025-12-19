@@ -141,6 +141,16 @@ GoRouter createAppRouter() {
         builder: (context, state) => const MisPropiedadesPage(),
       ),
       GoRoute(
+        path: '/solicitudes-arrendador',
+        name: 'solicitudes-arrendador',
+        builder: (context, state) => const SolicitudesArrendadorPage(),
+      ),
+      GoRoute(
+        path: '/solicitudes-arrendatario',
+        name: 'solicitudes-arrendatario',
+        builder: (context, state) => const SolicitudesArrendatarioPage(),
+      ),
+      GoRoute(
         path: '/crear-propiedad',
         name: 'crear-propiedad',
         builder: (context, state) => const CrearPropiedadPage(),

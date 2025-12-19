@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/core/di/injection_container.dart';
+import 'package:vihomeapp/domain/entities/landlord.dart';
+import 'package:vihomeapp/domain/entities/property.dart';
+import 'package:vihomeapp/domain/usecases/landlord/get_landlord_profile_usecase.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
-import '../../../domain/entities/property.dart';
-import '../../providers/landlord_properties_provider.dart';
-import '../../../domain/entities/landlord.dart';
-import '../../../domain/usecases/landlord/get_landlord_profile_usecase.dart';
-import '../../../core/di/injection_container.dart';
+import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
 
 class DetallesPropiedadesPage extends StatefulWidget {
   final Property property;
@@ -28,22 +28,30 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
   }
 
   Future<void> _loadLandlord() async {
-    final useCase = getIt<GetLandlordProfileUseCase>();
-    final result = await useCase(widget.property.arrendadorId);
+    try {
+      final useCase = getIt<GetLandlordProfileUseCase>();
+      final result = await useCase(widget.property.arrendadorId);
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    result.fold(
-      (failure) {
+      result.fold(
+        (failure) {
+          debugPrint('Error loading landlord profile: ${failure.toString()}');
+          setState(() => _isLoadingLandlord = false);
+        },
+        (landlord) {
+          setState(() {
+            _landlord = landlord;
+            _isLoadingLandlord = false;
+          });
+        },
+      );
+    } catch (e) {
+      debugPrint('Exception loading landlord profile: $e');
+      if (mounted) {
         setState(() => _isLoadingLandlord = false);
-      },
-      (landlord) {
-        setState(() {
-          _landlord = landlord;
-          _isLoadingLandlord = false;
-        });
-      },
-    );
+      }
+    }
   }
 
   @override
@@ -234,53 +242,82 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                       const SizedBox(height: 24),
 
                       // Landlord Profile
-                      if (_isLoadingLandlord)
-                        const Center(child: CircularProgressIndicator())
-                      else if (_landlord != null)
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey.shade200),
-                          ),
-                          child: Row(
-                            children: [
-                              const CircleAvatar(
-                                radius: 28,
-                                backgroundImage: NetworkImage(
-                                  'https://i.pravatar.cc/150?img=11',
-                                ), // Mock Image
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${_landlord!.primerNombre} ${_landlord!.primerApellido}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Propietario',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(
-                                Icons.chevron_right,
-                                color: Colors.blue,
-                              ),
-                            ],
-                          ),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
                         ),
+                        child: _isLoadingLandlord
+                            ? const Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 28,
+                                    backgroundColor: Colors.grey,
+                                  ),
+                                  SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(
+                                          height: 16,
+                                          width: 100,
+                                          child: LinearProgressIndicator(),
+                                        ),
+                                        SizedBox(height: 8),
+                                        SizedBox(
+                                          height: 12,
+                                          width: 60,
+                                          child: LinearProgressIndicator(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  const CircleAvatar(
+                                    radius: 28,
+                                    backgroundImage: NetworkImage(
+                                      'https://i.pravatar.cc/150?img=11',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _landlord != null
+                                              ? '${_landlord!.primerNombre} ${_landlord!.primerApellido}'
+                                              : 'Propietario',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Propietario',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.chevron_right,
+                                    color: Colors.blue,
+                                  ),
+                                ],
+                              ),
+                      ),
 
                       const SizedBox(height: 100), // Space for bottom bar
                     ],

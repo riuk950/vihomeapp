@@ -7,9 +7,11 @@ import '../network/network_info.dart';
 //Data sources
 import '../../data/datasources/datasources.dart';
 import '../../data/datasources/property_local_datasource.dart';
+import '../../data/datasources/application_datasource.dart';
 
 //Repositorios
 import '../../domain/repositories/repositories.dart';
+import '../../domain/repositories/application_repository.dart';
 
 //Casos de uso
 import '../../domain/usecases/usecases.dart';
@@ -19,9 +21,11 @@ import '../../infrastructure/services/supabase_service.dart';
 
 //Providers
 import '../../presentation/providers/providers.dart';
+import '../../presentation/providers/application_provider.dart';
 
 //Repositorios Data
 import '../../data/repositories/repositories.dart';
+import '../../data/repositories/application_repository_impl.dart';
 
 final getIt = GetIt.instance;
 
@@ -55,6 +59,9 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton<TenantRemoteDataSource>(
     () => TenantRemoteDataSourceImpl(getIt<SupabaseService>()),
   );
+  getIt.registerLazySingleton<ApplicationDatasource>(
+    () => ApplicationDatasourceImpl(getIt<SupabaseService>().client),
+  );
 
   // Repositories
   getIt.registerLazySingleton<AuthRepository>(
@@ -72,6 +79,9 @@ Future<void> setupDependencyInjection() async {
   );
   getIt.registerLazySingleton<LandlordRepository>(
     () => LandlordRepositoryImpl(getIt<SupabaseService>()),
+  );
+  getIt.registerLazySingleton<ApplicationRepository>(
+    () => ApplicationRepositoryImpl(getIt<ApplicationDatasource>()),
   );
 
   // Use cases
@@ -140,5 +150,8 @@ Future<void> setupDependencyInjection() async {
       getLandlordProfileUseCase: getIt<GetLandlordProfileUseCase>(),
       saveLandlordProfileUseCase: getIt<SaveLandlordProfileUseCase>(),
     ),
+  );
+  getIt.registerFactory(
+    () => ApplicationProvider(getIt<ApplicationRepository>()),
   );
 }

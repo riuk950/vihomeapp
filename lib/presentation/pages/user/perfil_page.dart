@@ -442,6 +442,7 @@ class PerfilPage extends StatelessWidget {
                     context,
                     Icons.history,
                     'Historial de Solicitudes',
+                    route: '/solicitudes-arrendatario',
                   ),
                   _buildMenuOption(
                     context,
