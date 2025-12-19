@@ -10,6 +10,7 @@ import 'package:vihomeapp/presentation/pages/propiedades/detalles_propiedades_pa
 import 'package:vihomeapp/presentation/pages/tenant/complete_tenant_profile_page.dart';
 import 'package:vihomeapp/presentation/pages/landlord/complete_landlord_profile_page.dart';
 import 'package:vihomeapp/presentation/pages/user/informacion_personal_page.dart';
+import 'package:vihomeapp/presentation/pages/location_picker_page.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 
 GoRouter createAppRouter() {
@@ -148,6 +149,11 @@ GoRouter createAppRouter() {
         path: '/mapa',
         name: 'mapa',
         builder: (context, state) => const MapaPage(),
+      ),
+      GoRoute(
+        path: '/location-picker',
+        name: 'location-picker',
+        builder: (context, state) => const LocationPickerPage(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class CrearPropiedadPage extends StatefulWidget {
   const CrearPropiedadPage({super.key});
@@ -26,6 +27,8 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
 
   String _tipoPropiedad = 'Casa';
   bool _publicado = true;
+  double? _lat;
+  double? _lng;
 
   final List<String> _tiposPropiedad = [
     'Casa',
@@ -75,8 +78,8 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         'banos': int.tryParse(_banosController.text) ?? 0,
         'metros_cuadrados':
             double.tryParse(_metrosCuadradosController.text) ?? 0,
-        'lat': 0.0, // Placeholder
-        'lng': 0.0, // Placeholder
+        'lat': _lat ?? 0.0,
+        'lng': _lng ?? 0.0,
         'publicado': _publicado,
       };
 
@@ -173,6 +176,9 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                         validator: (v) =>
                             v?.isEmpty ?? true ? 'Requerido' : null,
                       ),
+                      const SizedBox(height: 16),
+                      // Location Picker
+                      _buildLocationPicker(),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _descripcionController,
@@ -421,6 +427,66 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFF137FEC)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationPicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Ubicación',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF111418),
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () async {
+            // Note: Mapbox Point type might be exported as Point or something else.
+            // Usually it is Point. Ensure correct import.
+            final dynamic result = await context.pushNamed('location-picker');
+
+            if (result != null && result is Point) {
+              setState(() {
+                _lat = result.coordinates.lat.toDouble();
+                _lng = result.coordinates.lng.toDouble();
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.map, color: Color(0xFF137FEC)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _lat != null && _lng != null
+                        ? 'Lat: ${_lat!.toStringAsFixed(4)}, Lng: ${_lng!.toStringAsFixed(4)}'
+                        : 'Seleccionar en el mapa',
+                    style: TextStyle(
+                      color: _lat != null ? Colors.black : Colors.grey[400],
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Colors.grey,
+                ),
+              ],
             ),
           ),
         ),
