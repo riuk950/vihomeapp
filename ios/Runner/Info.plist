@@ -47,5 +47,9 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Esta aplicación necesita acceso a tu ubicación para mostrarte propiedades cercanas y permitirte seleccionar ubicaciones en el mapa.</string>
+		<key>NSLocationAlwaysUsageDescription</key>
+		<string>Esta aplicación necesita acceso a tu ubicación para mostrarte propiedades cercanas.</string>
 	</dict>
 </plist>

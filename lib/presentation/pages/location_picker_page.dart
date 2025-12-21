@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vihomeapp/env/env_def.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class LocationPickerPage extends StatefulWidget {
   const LocationPickerPage({super.key});
@@ -23,10 +24,29 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     if (EnvDef.mapboxAccessToken.isNotEmpty) {
       MapboxOptions.setAccessToken(EnvDef.mapboxAccessToken);
     }
+    // Solicitar permisos de ubicación al iniciar
+    _requestLocationPermission();
+  }
+
+  Future<void> _requestLocationPermission() async {
+    final status = await Permission.location.request();
+    if (status.isGranted) {
+      debugPrint('Permiso de ubicación concedido');
+    } else if (status.isDenied) {
+      debugPrint('Permiso de ubicación denegado');
+    } else if (status.isPermanentlyDenied) {
+      debugPrint('Permiso de ubicación denegado permanentemente');
+      // Opcionalmente, abrir configuración de la app
+      // await openAppSettings();
+    }
   }
 
   _onMapCreated(MapboxMap mapboxMap) async {
     this.mapboxMap = mapboxMap;
+
+    // Habilitar el puck de ubicación
+    await _enableLocationPuck();
+
     // Crear el gestor de anotaciones
     pointAnnotationManager = await mapboxMap.annotations
         .createPointAnnotationManager();
@@ -45,6 +65,61 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
       );
     } catch (e) {
       debugPrint('Error adding image to style: $e');
+    }
+  }
+
+  Future<void> _enableLocationPuck() async {
+    if (mapboxMap == null) return;
+
+    try {
+      // Configurar el puck de ubicación
+      await mapboxMap!.location.updateSettings(
+        LocationComponentSettings(
+          enabled: true,
+          pulsingEnabled: true,
+          pulsingColor: Colors.blue.toARGB32(),
+          pulsingMaxRadius: 20.0,
+          showAccuracyRing: true,
+          accuracyRingColor: Colors.blue.withValues(alpha: 0.2).toARGB32(),
+          accuracyRingBorderColor: Colors.blue
+              .withValues(alpha: 0.5)
+              .toARGB32(),
+        ),
+      );
+
+      debugPrint('Location puck habilitado correctamente');
+    } catch (e) {
+      debugPrint('Error al habilitar location puck: $e');
+    }
+  }
+
+  void _centerOnUserLocation() async {
+    // Verificar si tenemos permisos
+    final status = await Permission.location.status;
+
+    if (!status.isGranted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Necesitas conceder permisos de ubicación para usar esta función',
+            ),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      // Intentar solicitar permisos nuevamente
+      await _requestLocationPermission();
+      return;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('El puck azul muestra tu ubicación actual'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -166,6 +241,17 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                 ),
               ),
             ),
+          Positioned(
+            bottom: 100,
+            right: 20,
+            child: FloatingActionButton(
+              onPressed: _centerOnUserLocation,
+              tooltip: 'Mi ubicación',
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.blue,
+              child: const Icon(Icons.my_location),
+            ),
+          ),
         ],
       ),
     );
