@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/property_model.dart';
-import '../../core/errors/exceptions.dart';
+import 'package:vihomeapp/core/errors/exceptions.dart';
+import 'package:vihomeapp/data/models/property_model.dart';
 
 abstract class PropertyLocalDataSource {
   Future<List<PropertyModel>> getLastProperties();
   Future<void> cacheProperties(List<PropertyModel> propertiesToCache);
 }
 
-const CACHED_PROPERTIES = 'CACHED_PROPERTIES';
+const cachedProperties = 'CACHED_PROPERTIES';
 
 class PropertyLocalDataSourceImpl implements PropertyLocalDataSource {
   final SharedPreferences sharedPreferences;
@@ -17,7 +17,7 @@ class PropertyLocalDataSourceImpl implements PropertyLocalDataSource {
 
   @override
   Future<List<PropertyModel>> getLastProperties() {
-    final jsonString = sharedPreferences.getString(CACHED_PROPERTIES);
+    final jsonString = sharedPreferences.getString(cachedProperties);
     if (jsonString != null) {
       return Future.value(
         (json.decode(jsonString) as List)
@@ -32,7 +32,7 @@ class PropertyLocalDataSourceImpl implements PropertyLocalDataSource {
   @override
   Future<void> cacheProperties(List<PropertyModel> propertiesToCache) {
     return sharedPreferences.setString(
-      CACHED_PROPERTIES,
+      cachedProperties,
       json.encode(
         propertiesToCache.map((property) => property.toJson()).toList(),
       ),

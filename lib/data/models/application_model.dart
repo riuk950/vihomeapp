@@ -9,6 +9,13 @@ class ApplicationModel extends Application {
     required super.estado,
     required super.createdAt,
     required super.updatedAt,
+    super.empresa,
+    super.cargo,
+    super.tiempoEmpleo,
+    super.ingresosMensuales,
+    super.otrosIngresos,
+    super.documentoUrl,
+    super.refPersonales,
     super.nombreArrendatario,
     super.tituloPropiedad,
     super.direccionPropiedad,
@@ -19,11 +26,7 @@ class ApplicationModel extends Application {
     // Intentar extraer datos anidados si vienen del join
     String? nombreArrendatario;
     if (json['arrendatario'] != null && json['arrendatario'] is Map) {
-      // Ajustar según estructura de usuario, asumiendo metadata o campos directos
-      // Por ahora placeholder o estructura común
       final userData = json['arrendatario'];
-      // Esto depende de cómo se guarde el usuario (auth.users o tabla publica perfiles)
-      // Asumiremos que si viene de un join a una tabla publica 'perfiles' o similar:
       nombreArrendatario = userData['nombre'] ?? userData['email'];
     }
 
@@ -38,6 +41,20 @@ class ApplicationModel extends Application {
       precioRenta = (propData['precio_renta'] as num?)?.toDouble();
     }
 
+    // Parsear referencias personales
+    List<PersonalReference>? refPersonales;
+    if (json['ref_personales'] != null && json['ref_personales'] is List) {
+      refPersonales = (json['ref_personales'] as List)
+          .map(
+            (ref) => PersonalReference(
+              nombre: ref['nombre'] ?? '',
+              telefono: ref['telefono'] ?? '',
+              relacion: ref['relacion'] ?? '',
+            ),
+          )
+          .toList();
+    }
+
     return ApplicationModel(
       id: json['id'],
       arrendatarioId: json['arrendatario_id'],
@@ -46,6 +63,13 @@ class ApplicationModel extends Application {
       estado: json['estado'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
+      empresa: json['empresa']?.toString(),
+      cargo: json['cargo']?.toString(),
+      tiempoEmpleo: json['tiempo_empleo']?.toString(),
+      ingresosMensuales: json['ingresos_mensuales']?.toString(),
+      otrosIngresos: json['otros_ingresos']?.toString(),
+      documentoUrl: json['documento_url']?.toString(),
+      refPersonales: refPersonales,
       nombreArrendatario: nombreArrendatario,
       tituloPropiedad: tituloPropiedad,
       direccionPropiedad: direccionPropiedad,
@@ -62,6 +86,48 @@ class ApplicationModel extends Application {
       'estado': estado,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      if (empresa != null) 'empresa': empresa,
+      if (cargo != null) 'cargo': cargo,
+      if (tiempoEmpleo != null) 'tiempo_empleo': tiempoEmpleo,
+      if (ingresosMensuales != null) 'ingresos_mensuales': ingresosMensuales,
+      if (otrosIngresos != null) 'otros_ingresos': otrosIngresos,
+      if (documentoUrl != null) 'documento_url': documentoUrl,
+      if (refPersonales != null)
+        'ref_personales': refPersonales!
+            .map(
+              (ref) => {
+                'nombre': ref.nombre,
+                'telefono': ref.telefono,
+                'relacion': ref.relacion,
+              },
+            )
+            .toList(),
+    };
+  }
+
+  // Método específico para crear una nueva solicitud (sin id, created_at, updated_at)
+  Map<String, dynamic> toJsonCreate() {
+    return {
+      'arrendatario_id': arrendatarioId,
+      'arrendador_id': arrendadorId,
+      'propiedad_id': propiedadId,
+      'estado': estado,
+      if (empresa != null) 'empresa': empresa,
+      if (cargo != null) 'cargo': cargo,
+      if (tiempoEmpleo != null) 'tiempo_empleo': tiempoEmpleo,
+      if (ingresosMensuales != null) 'ingresos_mensuales': ingresosMensuales,
+      if (otrosIngresos != null) 'otros_ingresos': otrosIngresos,
+      if (documentoUrl != null) 'documento_url': documentoUrl,
+      if (refPersonales != null)
+        'ref_personales': refPersonales!
+            .map(
+              (ref) => {
+                'nombre': ref.nombre,
+                'telefono': ref.telefono,
+                'relacion': ref.relacion,
+              },
+            )
+            .toList(),
     };
   }
 }

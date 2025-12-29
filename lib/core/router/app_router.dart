@@ -165,6 +165,24 @@ GoRouter createAppRouter() {
         name: 'location-picker',
         builder: (context, state) => const LocationPickerPage(),
       ),
+      GoRoute(
+        path: '/solicitud-arriendo',
+        name: 'solicitud-arriendo',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, String>?;
+          if (extra == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Error')),
+              body: const Center(child: Text('Error: Datos no válidos')),
+            );
+          }
+          return SolicitudDeArriendoPage(
+            propertyId: extra['propertyId']!,
+            propertyTitle: extra['propertyTitle']!,
+            landlordId: extra['landlordId']!,
+          );
+        },
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Error')),

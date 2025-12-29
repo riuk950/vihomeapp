@@ -94,4 +94,23 @@ class ApplicationProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<Application?> createApplication(Application application) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final newApplication = await repository.createApplication(application);
+      // Agregar la nueva aplicación a la lista local
+      _applications.insert(0, newApplication);
+      return newApplication;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

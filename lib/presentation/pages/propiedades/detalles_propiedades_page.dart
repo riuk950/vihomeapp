@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/di/injection_container.dart';
 import 'package:vihomeapp/domain/entities/landlord.dart';
@@ -6,6 +7,7 @@ import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:vihomeapp/domain/usecases/landlord/get_landlord_profile_usecase.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
+import 'package:vihomeapp/presentation/providers/tenant_provider.dart';
 
 class DetallesPropiedadesPage extends StatefulWidget {
   final Property property;
@@ -435,48 +437,77 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                   color: Colors.white,
                   border: Border(top: BorderSide(color: Colors.grey.shade200)),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(color: Color(0xFF137FEC)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                child: Consumer<TenantProvider>(
+                  builder: (context, tenantProvider, child) {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {},
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              side: const BorderSide(color: Color(0xFF137FEC)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Contactar',
+                              style: TextStyle(
+                                color: Color(0xFF137FEC),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
-                        child: const Text(
-                          'Contactar',
-                          style: TextStyle(
-                            color: Color(0xFF137FEC),
-                            fontWeight: FontWeight.bold,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // Verificar si el arrendatario está verificado
+                              if (!tenantProvider.isVerified) {
+                                // Mostrar mensaje y redirigir a completar perfil
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Debes completar tu perfil antes de solicitar un arriendo',
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                    duration: Duration(seconds: 3),
+                                  ),
+                                );
+                                context.push('/complete-profile');
+                              } else {
+                                // Si está verificado, ir a la página de solicitud
+                                context.push(
+                                  '/solicitud-arriendo',
+                                  extra: {
+                                    'propertyId': widget.property.id,
+                                    'propertyTitle': widget.property.titulo,
+                                    'landlordId': widget.property.arrendadorId,
+                                  },
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF137FEC),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Solicitar Arriendo',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF137FEC),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Solicitar Arriendo',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

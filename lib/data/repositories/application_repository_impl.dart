@@ -24,4 +24,9 @@ class ApplicationRepositoryImpl implements ApplicationRepository {
   ) async {
     return await datasource.updateApplicationStatus(applicationId, status);
   }
+
+  @override
+  Future<Application> createApplication(Application application) async {
+    return await datasource.createApplication(application as dynamic);
+  }
 }

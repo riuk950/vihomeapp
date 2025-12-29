@@ -21,7 +21,6 @@ import '../../infrastructure/services/supabase_service.dart';
 
 //Providers
 import '../../presentation/providers/providers.dart';
-import '../../presentation/providers/application_provider.dart';
 
 //Repositorios Data
 import '../../data/repositories/repositories.dart';
