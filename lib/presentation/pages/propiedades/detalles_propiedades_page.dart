@@ -5,6 +5,7 @@ import 'package:vihomeapp/core/di/injection_container.dart';
 import 'package:vihomeapp/domain/entities/landlord.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:vihomeapp/domain/usecases/landlord/get_landlord_profile_usecase.dart';
+import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
 import 'package:vihomeapp/presentation/providers/tenant_provider.dart';
@@ -22,11 +23,14 @@ class DetallesPropiedadesPage extends StatefulWidget {
 class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
   Landlord? _landlord;
   bool _isLoadingLandlord = true;
+  bool _hasExistingApplication = false;
+  bool _isCheckingApplication = true;
 
   @override
   void initState() {
     super.initState();
     _loadLandlord();
+    _checkExistingApplication();
   }
 
   Future<void> _loadLandlord() async {
@@ -52,6 +56,40 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
       debugPrint('Exception loading landlord profile: $e');
       if (mounted) {
         setState(() => _isLoadingLandlord = false);
+      }
+    }
+  }
+
+  Future<void> _checkExistingApplication() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final applicationProvider = Provider.of<ApplicationProvider>(
+        context,
+        listen: false,
+      );
+
+      if (authProvider.user != null) {
+        final hasApplication = await applicationProvider
+            .hasApplicationForProperty(
+              authProvider.user!.id,
+              widget.property.id,
+            );
+
+        if (mounted) {
+          setState(() {
+            _hasExistingApplication = hasApplication;
+            _isCheckingApplication = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() => _isCheckingApplication = false);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking existing application: $e');
+      if (mounted) {
+        setState(() => _isCheckingApplication = false);
       }
     }
   }
@@ -439,6 +477,39 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                 ),
                 child: Consumer<TenantProvider>(
                   builder: (context, tenantProvider, child) {
+                    // Mostrar loading mientras verifica
+                    if (_isCheckingApplication) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    // Si ya tiene una solicitud, mostrar botón para ver solicitudes
+                    if (_hasExistingApplication) {
+                      return SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            context.push('/solicitudes-arrendatario');
+                          },
+                          icon: const Icon(Icons.list_alt, color: Colors.white),
+                          label: const Text(
+                            'Ver Mis Solicitudes',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF10B981),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
+                    // Si no tiene solicitud, mostrar botones normales
                     return Row(
                       children: [
                         Expanded(

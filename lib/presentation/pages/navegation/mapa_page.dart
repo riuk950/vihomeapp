@@ -240,7 +240,7 @@ class _MapaPageState extends State<MapaPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '\$${property.precio}',
+                    '\$${property.precioRenta}',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

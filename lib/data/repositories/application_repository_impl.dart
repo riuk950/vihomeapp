@@ -29,4 +29,12 @@ class ApplicationRepositoryImpl implements ApplicationRepository {
   Future<Application> createApplication(Application application) async {
     return await datasource.createApplication(application as dynamic);
   }
+
+  @override
+  Future<bool> hasApplicationForProperty(
+    String tenantId,
+    String propertyId,
+  ) async {
+    return await datasource.hasApplicationForProperty(tenantId, propertyId);
+  }
 }

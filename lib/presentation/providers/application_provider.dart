@@ -113,4 +113,15 @@ class ApplicationProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> hasApplicationForProperty(
+    String tenantId,
+    String propertyId,
+  ) async {
+    try {
+      return await repository.hasApplicationForProperty(tenantId, propertyId);
+    } catch (e) {
+      return false;
+    }
+  }
 }

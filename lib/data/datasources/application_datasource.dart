@@ -6,6 +6,7 @@ abstract class ApplicationDatasource {
   Future<List<ApplicationModel>> getTenantApplications(String tenantId);
   Future<bool> updateApplicationStatus(String applicationId, String status);
   Future<ApplicationModel> createApplication(ApplicationModel application);
+  Future<bool> hasApplicationForProperty(String tenantId, String propertyId);
 }
 
 class ApplicationDatasourceImpl implements ApplicationDatasource {
@@ -86,6 +87,25 @@ class ApplicationDatasourceImpl implements ApplicationDatasource {
       return ApplicationModel.fromJson(response);
     } catch (e) {
       throw Exception('Error creating application: $e');
+    }
+  }
+
+  @override
+  Future<bool> hasApplicationForProperty(
+    String tenantId,
+    String propertyId,
+  ) async {
+    try {
+      final response = await client
+          .from('solicitudes')
+          .select('id')
+          .eq('arrendatario_id', tenantId)
+          .eq('propiedad_id', propertyId)
+          .limit(1);
+
+      return (response as List).isNotEmpty;
+    } catch (e) {
+      return false;
     }
   }
 }
