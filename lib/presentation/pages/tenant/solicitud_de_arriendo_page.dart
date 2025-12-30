@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vihomeapp/data/models/application_model.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
@@ -232,6 +234,42 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
           )
           .toList();
 
+      String? documentoUrlsString;
+      if (_documentosAdjuntos.isNotEmpty) {
+        try {
+          final supabase = Supabase.instance.client;
+          final List<String> urls = [];
+
+          for (var file in _documentosAdjuntos) {
+            // Generate unique path
+            final fileName =
+                '${DateTime.now().millisecondsSinceEpoch}_${file.name.replaceAll(RegExp(r'\s+'), '_')}';
+            final path = 'solicitudes/${authProvider.user!.id}/$fileName';
+
+            if (file.path != null) {
+              final fileObj = File(file.path!);
+              await supabase.storage
+                  .from('documentos_solicitudes')
+                  .upload(path, fileObj);
+            } else if (file.bytes != null) {
+              await supabase.storage
+                  .from('documentos_solicitudes')
+                  .uploadBinary(path, file.bytes!);
+            }
+
+            final publicUrl = supabase.storage
+                .from('documentos_solicitudes')
+                .getPublicUrl(path);
+            urls.add(publicUrl);
+          }
+          documentoUrlsString = urls.join(',');
+        } catch (e) {
+          debugPrint('Error uploading file: $e');
+          // Continue? Or throw? Better to throw so user knows.
+          throw Exception('Error al subir documentos: $e');
+        }
+      }
+
       // Crear la solicitud
       final application = ApplicationModel(
         id: '', // Se generará en el servidor
@@ -248,9 +286,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
         otrosIngresos: _otrosIngresosController.text.isEmpty
             ? null
             : _otrosIngresosController.text,
-        documentoUrl: _documentosAdjuntos.isNotEmpty
-            ? 'pending_upload' // Placeholder - aquí deberías subir los archivos
-            : null,
+        documentoUrl: documentoUrlsString,
         refPersonales: refPersonales,
       );
 
