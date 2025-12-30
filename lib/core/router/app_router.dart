@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/data/models/property_model.dart';
+import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:vihomeapp/env/env_def.dart';
+import 'package:vihomeapp/presentation/pages/landlord/complete_landlord_profile_page.dart';
 import 'package:vihomeapp/presentation/pages/landlord/informacion_personal_landlord_page.dart';
+import 'package:vihomeapp/presentation/pages/location_picker_page.dart';
 import 'package:vihomeapp/presentation/pages/pages.dart';
 import 'package:vihomeapp/presentation/pages/propiedades/detalles_propiedades_page.dart';
 import 'package:vihomeapp/presentation/pages/tenant/complete_tenant_profile_page.dart';
-import 'package:vihomeapp/presentation/pages/landlord/complete_landlord_profile_page.dart';
+import 'package:vihomeapp/presentation/pages/tenant/detalle_solicitud_page.dart';
 import 'package:vihomeapp/presentation/pages/user/informacion_personal_page.dart';
-import 'package:vihomeapp/presentation/pages/location_picker_page.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 
 GoRouter createAppRouter() {
@@ -181,6 +183,20 @@ GoRouter createAppRouter() {
             propertyTitle: extra['propertyTitle']!,
             landlordId: extra['landlordId']!,
           );
+        },
+      ),
+      GoRoute(
+        path: '/detalle-solicitud',
+        name: 'detalle-solicitud',
+        builder: (context, state) {
+          final application = state.extra as Application?;
+          if (application == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Error')),
+              body: const Center(child: Text('Error: Solicitud no válida')),
+            );
+          }
+          return DetalleSolicitudPage(application: application);
         },
       ),
     ],
