@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CrearPropiedadPage extends StatefulWidget {
   const CrearPropiedadPage({super.key});
@@ -29,6 +32,8 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
   bool _publicado = true;
   double? _lat;
   double? _lng;
+  final List<File> _selectedImages = [];
+  bool _isUploadingImages = false;
 
   final List<String> _tiposPropiedad = [
     'Casa',
@@ -65,6 +70,45 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         return;
       }
 
+      setState(() => _isUploadingImages = true);
+      List<String> photoUrls = [];
+
+      try {
+        if (_selectedImages.isNotEmpty) {
+          final supabase = Supabase.instance.client;
+          for (var image in _selectedImages) {
+            final fileName =
+                '${DateTime.now().millisecondsSinceEpoch}_${image.path.split('/').last}';
+            final path = 'propiedades/$fileName';
+
+            await supabase.storage
+                .from('propiedades-fotos')
+                .upload(
+                  path,
+                  image,
+                  fileOptions: const FileOptions(
+                    cacheControl: '3600',
+                    upsert: false,
+                  ),
+                );
+
+            final String publicUrl = supabase.storage
+                .from('propiedades-fotos')
+                .getPublicUrl(path);
+
+            photoUrls.add(publicUrl);
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al subir imágenes: $e')),
+          );
+          setState(() => _isUploadingImages = false);
+          return;
+        }
+      }
+
       final propertyData = {
         'arrendador_id': authProvider.user!.id,
         'tipo_propiedad': _tipoPropiedad,
@@ -81,11 +125,13 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         'lat': _lat ?? 0.0,
         'lng': _lng ?? 0.0,
         'publicado': _publicado,
+        'fotos': photoUrls,
       };
 
       final success = await landlordProvider.createProperty(propertyData);
 
       if (mounted) {
+        setState(() => _isUploadingImages = false);
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Propiedad creada exitosamente')),
@@ -190,6 +236,11 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                       ),
 
                       const SizedBox(height: 24),
+                      _buildSectionTitle('Fotos de la Propiedad'),
+                      const SizedBox(height: 16),
+                      _buildImagePicker(),
+
+                      const SizedBox(height: 24),
                       _buildSectionTitle('Detalles y Precio'),
                       const SizedBox(height: 16),
 
@@ -283,7 +334,9 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: provider.isLoading ? null : _submitForm,
+                          onPressed: (provider.isLoading || _isUploadingImages)
+                              ? null
+                              : _submitForm,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF137FEC),
                             foregroundColor: Colors.white,
@@ -306,7 +359,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                   ),
                 ),
               ),
-              if (provider.isLoading)
+              if (provider.isLoading || _isUploadingImages)
                 Container(
                   color: Colors.black.withValues(alpha: 0.3),
                   child: const Center(child: CircularProgressIndicator()),
@@ -492,5 +545,125 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         ),
       ],
     );
+  }
+
+  Widget _buildImagePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_selectedImages.isNotEmpty)
+          SizedBox(
+            height: 120,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _selectedImages.length,
+              itemBuilder: (context, index) {
+                return Stack(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(right: 12),
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        image: DecorationImage(
+                          image: FileImage(_selectedImages[index]),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 16,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedImages.removeAt(index);
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        if (_selectedImages.isNotEmpty) const SizedBox(height: 16),
+        InkWell(
+          onTap: _pickImages,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF137FEC),
+                style: BorderStyle
+                    .values[1], // dashed emulation? No, solid is fine for now or use library for dashed
+              ),
+            ),
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.add_photo_alternate_outlined,
+                  size: 48,
+                  color: Color(0xFF137FEC),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Agregar Fotos',
+                  style: TextStyle(
+                    color: Color(0xFF137FEC),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'JPG, PNG (Max 5MB)',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickImages() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.image,
+      );
+
+      if (result != null) {
+        final files = result.paths
+            .where((path) => path != null)
+            .map((path) => File(path!))
+            .toList();
+
+        setState(() {
+          _selectedImages.addAll(files);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking images: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al seleccionar imágenes')),
+      );
+    }
   }
 }

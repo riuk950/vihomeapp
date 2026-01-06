@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -24,13 +25,23 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
   Landlord? _landlord;
   bool _isLoadingLandlord = true;
   bool _hasExistingApplication = false;
+
   bool _isCheckingApplication = true;
+  int _currentImageIndex = 0;
+  late final PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(viewportFraction: 0.9);
     _loadLandlord();
     _checkExistingApplication();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadLandlord() async {
@@ -122,50 +133,130 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
         children: [
           CustomScrollView(
             slivers: [
-              // Image Carousel
+              // Image Carousel Card
               SliverToBoxAdapter(
-                child: SizedBox(
+                child: Container(
                   height: 300,
-                  child: Stack(
-                    children: [
-                      PageView(
-                        children: [
-                          Container(
-                            color: Colors.grey[300],
-                            child: const Icon(
-                              Icons.home,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                      // Gradient Overlay
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.3),
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.1),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // Favorite Button
-                      Positioned(
-                        top: 16,
-                        right: 16,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
+                  margin: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Stack(
+                      children: [
+                        PageView.builder(
+                          controller: _pageController,
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: widget.property.fotos.isEmpty
+                              ? 1
+                              : widget.property.fotos.length,
+                          itemBuilder: (context, index) {
+                            if (widget.property.fotos.isEmpty) {
+                              return Container(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.home,
+                                  size: 64,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            }
+                            return Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              child: CachedNetworkImage(
+                                imageUrl: widget.property.fotos[index],
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.broken_image,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          onPageChanged: (index) {
+                            setState(() {
+                              _currentImageIndex = index;
+                            });
+                          },
+                        ),
+
+                        // Gradient Overlay
+                        IgnorePointer(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black.withValues(alpha: 0.3),
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.1),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Image Indicators
+                        if (widget.property.fotos.length > 1)
+                          Positioned(
+                            bottom: 16,
+                            left: 0,
+                            right: 0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: widget.property.fotos
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                    return Container(
+                                      width: 8.0,
+                                      height: 8.0,
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 4.0,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white.withValues(
+                                          alpha: _currentImageIndex == entry.key
+                                              ? 0.9
+                                              : 0.4,
+                                        ),
+                                      ),
+                                    );
+                                  })
+                                  .toList(),
+                            ),
+                          ),
+                        // Favorite Button
+                        Positioned(
+                          top: 16,
+                          right: 16,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.4),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

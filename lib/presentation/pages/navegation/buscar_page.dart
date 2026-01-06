@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/property_provider.dart';
 import '../../../domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class BuscarPage extends StatefulWidget {
   const BuscarPage({super.key});
@@ -159,14 +160,36 @@ class _BuscarPageState extends State<BuscarPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
-            Container(
+            // ImageCarousel
+            SizedBox(
               height: 180,
               width: double.infinity,
-              color: Colors.grey[300],
-              child: const Center(
-                child: Icon(Icons.home, size: 50, color: Colors.grey),
-              ),
+              child: property.fotos.isEmpty
+                  ? Container(
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Icon(Icons.home, size: 50, color: Colors.grey),
+                      ),
+                    )
+                  : Stack(
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: property.fotos.first,
+                          height: 180,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                              const Center(child: CircularProgressIndicator()),
+                          errorWidget: (context, url, error) => Container(
+                            color: Colors.grey[300],
+                            child: const Icon(
+                              Icons.broken_image,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
             ),
 
             // Details

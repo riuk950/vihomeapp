@@ -16,6 +16,7 @@ class Property {
   final bool publicado;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<String> fotos;
 
   const Property({
     required this.id,
@@ -35,5 +36,6 @@ class Property {
     required this.publicado,
     required this.createdAt,
     required this.updatedAt,
+    this.fotos = const [],
   });
 }
