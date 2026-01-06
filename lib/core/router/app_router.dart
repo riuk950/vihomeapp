@@ -14,6 +14,7 @@ import 'package:vihomeapp/presentation/pages/tenant/complete_tenant_profile_page
 import 'package:vihomeapp/presentation/pages/tenant/detalle_solicitud_page.dart';
 import 'package:vihomeapp/presentation/pages/user/informacion_personal_page.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
+import 'package:vihomeapp/presentation/pages/landlord/detalle_solicitud_arrendador_page.dart';
 
 GoRouter createAppRouter() {
   return GoRouter(
@@ -146,6 +147,20 @@ GoRouter createAppRouter() {
         path: '/solicitudes-arrendador',
         name: 'solicitudes-arrendador',
         builder: (context, state) => const SolicitudesArrendadorPage(),
+      ),
+      GoRoute(
+        path: '/detalle-solicitud-arrendador',
+        name: 'detalle-solicitud-arrendador',
+        builder: (context, state) {
+          final application = state.extra as Application?;
+          if (application == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Error')),
+              body: const Center(child: Text('Error: Solicitud no válida')),
+            );
+          }
+          return DetalleSolicitudArrendadorPage(application: application);
+        },
       ),
       GoRoute(
         path: '/solicitudes-arrendatario',

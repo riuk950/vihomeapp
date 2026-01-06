@@ -15,6 +15,7 @@ class TenantProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isVerified => _tenant != null;
+  String get nombre => _tenant?.nombre ?? '';
 
   TenantProvider({
     required this.getTenantProfileUseCase,
@@ -57,6 +58,11 @@ class TenantProvider with ChangeNotifier {
         return true;
       },
     );
+  }
+
+  Future<Tenant?> getTenantById(String id) async {
+    final result = await getTenantProfileUseCase(id);
+    return result.fold((failure) => null, (tenant) => tenant);
   }
 
   void _setLoading(bool value) {

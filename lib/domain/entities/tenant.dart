@@ -21,6 +21,8 @@ class Tenant {
     required this.telefonoContacto,
   });
 
+  String get nombre => '$primerNombre $primerApellido';
+
   List<Object?> get props => [
     id,
     primerNombre,

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
+import 'package:vihomeapp/domain/entities/tenant.dart';
+import 'package:vihomeapp/presentation/providers/tenant_provider.dart';
 
 class SolicitudesArrendadorPage extends StatefulWidget {
   const SolicitudesArrendadorPage({super.key});
@@ -54,14 +56,6 @@ class _SolicitudesArrendadorPageState extends State<SolicitudesArrendadorPage> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF111418)),
           onPressed: () => context.pop(),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list, color: Color(0xFF111418)),
-            onPressed: () {
-              // TODO: Mostrar filtro avanzado si es necesario
-            },
-          ),
-        ],
       ),
       body: Consumer<ApplicationProvider>(
         builder: (context, provider, child) {
@@ -81,26 +75,35 @@ class _SolicitudesArrendadorPageState extends State<SolicitudesArrendadorPage> {
                   horizontal: 16,
                   vertical: 12,
                 ),
-                child: Row(
-                  children: [
-                    _FilterChip(
-                      label: 'Todas',
-                      isSelected: provider.currentFilter == 'Todas',
-                      onTap: () => provider.setFilter('Todas'),
-                    ),
-                    const SizedBox(width: 8),
-                    _FilterChip(
-                      label: 'Pendientes',
-                      isSelected: provider.currentFilter == 'Pendientes',
-                      onTap: () => provider.setFilter('Pendientes'),
-                    ),
-                    const SizedBox(width: 8),
-                    _FilterChip(
-                      label: 'Revisadas',
-                      isSelected: provider.currentFilter == 'Revisadas',
-                      onTap: () => provider.setFilter('Revisadas'),
-                    ),
-                  ],
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _FilterChip(
+                        label: 'Todas',
+                        isSelected: provider.currentFilter == 'Todas',
+                        onTap: () => provider.setFilter('Todas'),
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'Pendientes',
+                        isSelected: provider.currentFilter == 'Pendientes',
+                        onTap: () => provider.setFilter('Pendientes'),
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'Aceptadas',
+                        isSelected: provider.currentFilter == 'Aceptadas',
+                        onTap: () => provider.setFilter('Aceptadas'),
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'Revisadas',
+                        isSelected: provider.currentFilter == 'Revisadas',
+                        onTap: () => provider.setFilter('Revisadas'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
@@ -118,6 +121,10 @@ class _SolicitudesArrendadorPageState extends State<SolicitudesArrendadorPage> {
                           return _ApplicationCard(
                             application: app,
                             provider: provider,
+                            tenantProvider: Provider.of<TenantProvider>(
+                              context,
+                              listen: false,
+                            ),
                           );
                         },
                       ),
@@ -172,8 +179,13 @@ class _FilterChip extends StatelessWidget {
 class _ApplicationCard extends StatelessWidget {
   final Application application;
   final ApplicationProvider provider;
+  final TenantProvider tenantProvider;
 
-  const _ApplicationCard({required this.application, required this.provider});
+  const _ApplicationCard({
+    required this.application,
+    required this.provider,
+    required this.tenantProvider,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -229,18 +241,40 @@ class _ApplicationCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      application.nombreArrendatario ?? 'Usuario',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF111418),
+                    FutureBuilder<Tenant?>(
+                      future: tenantProvider.getTenantById(
+                        application.arrendatarioId,
                       ),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData || snapshot.data == null) {
+                          return const SizedBox.shrink();
+                        }
+                        final tenant = snapshot.data!;
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            '${tenant.primerNombre} ${tenant.primerApellido}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF111418),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     Text(
                       dateStr,
                       style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
+                    if (application.ingresosMensuales != null)
+                      Text(
+                        'Ingresos: \$${application.ingresosMensuales}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF137FEC),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -305,15 +339,16 @@ class _ApplicationCard extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Action Buttons
-          isPending
-              ? Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
+          Row(
+            children: [
+              Expanded(
+                child: isPending
+                    ? ElevatedButton(
                         onPressed: () {
-                          // Acción de revisar (podría ir a detalle o cambiar estado)
-                          // Por ahora simular aceptar/rechazar en un dialogo o acción directa
-                          _showReviewDialog(context);
+                          context.push(
+                            '/detalle-solicitud-arrendador',
+                            extra: application,
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF137FEC),
@@ -324,70 +359,25 @@ class _ApplicationCard extends StatelessWidget {
                           ),
                         ),
                         child: const Text('Revisar'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton(
+                      )
+                    : OutlinedButton(
                         onPressed: () {
-                          // Placeholder responder
+                          context.push(
+                            '/detalle-solicitud-arrendador',
+                            extra: application,
+                          );
                         },
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.grey[700],
-                          side: BorderSide(color: Colors.grey[300]!),
+                          foregroundColor: const Color(0xFF137FEC),
+                          side: const BorderSide(color: Color(0xFF137FEC)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text('Responder'),
+                        child: const Text('Ver Detalles'),
                       ),
-                    ),
-                  ],
-                )
-              : Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                        label: const Text('Ver Chat'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.grey[700],
-                          backgroundColor: Colors.grey[100],
-                          side: BorderSide.none,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-        ],
-      ),
-    );
-  }
-
-  void _showReviewDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Gestionar Solicitud'),
-        content: const Text('¿Qué deseas hacer con esta solicitud?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              provider.updateStatus(application.id, 'rechazada');
-            },
-            child: const Text('Rechazar', style: TextStyle(color: Colors.red)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              provider.updateStatus(application.id, 'aceptada');
-            },
-            child: const Text('Aceptar'),
+              ),
+            ],
           ),
         ],
       ),

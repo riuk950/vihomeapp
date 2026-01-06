@@ -32,6 +32,11 @@ class ApplicationProvider extends ChangeNotifier {
           .where((a) => a.estado.toLowerCase() != 'pendiente')
           .toList();
     }
+    if (_currentFilter == 'Aceptadas') {
+      return _applications
+          .where((a) => a.estado.toLowerCase() == 'aceptada')
+          .toList();
+    }
     return _applications;
   }
 

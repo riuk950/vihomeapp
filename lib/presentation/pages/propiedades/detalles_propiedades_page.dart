@@ -61,6 +61,7 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
   }
 
   Future<void> _checkExistingApplication() async {
+    setState(() => _isCheckingApplication = true);
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final applicationProvider = Provider.of<ApplicationProvider>(
@@ -487,8 +488,11 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                       return SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            context.push('/solicitudes-arrendatario');
+                          onPressed: () async {
+                            await context.push('/solicitudes-arrendatario');
+                            if (mounted) {
+                              _checkExistingApplication();
+                            }
                           },
                           icon: const Icon(Icons.list_alt, color: Colors.white),
                           label: const Text(
@@ -534,7 +538,7 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               // Verificar si el arrendatario está verificado
                               if (!tenantProvider.isVerified) {
                                 // Mostrar mensaje y redirigir a completar perfil
@@ -547,10 +551,10 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                                     duration: Duration(seconds: 3),
                                   ),
                                 );
-                                context.push('/complete-profile');
+                                await context.push('/complete-profile');
                               } else {
                                 // Si está verificado, ir a la página de solicitud
-                                context.push(
+                                await context.push(
                                   '/solicitud-arriendo',
                                   extra: {
                                     'propertyId': widget.property.id,
@@ -558,6 +562,9 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                                     'landlordId': widget.property.arrendadorId,
                                   },
                                 );
+                              }
+                              if (mounted) {
+                                _checkExistingApplication();
                               }
                             },
                             style: ElevatedButton.styleFrom(
