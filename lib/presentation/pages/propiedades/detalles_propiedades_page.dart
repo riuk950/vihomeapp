@@ -1,5 +1,10 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:vihomeapp/env/env_def.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/di/injection_container.dart';
@@ -33,9 +38,77 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
   @override
   void initState() {
     super.initState();
+    if (EnvDef.mapboxAccessToken.isNotEmpty) {
+      MapboxOptions.setAccessToken(EnvDef.mapboxAccessToken);
+    }
     _pageController = PageController(viewportFraction: 0.9);
     _loadLandlord();
     _checkExistingApplication();
+  }
+
+  void _onMapCreated(MapboxMap mapboxMap) async {
+    final pointAnnotationManager = await mapboxMap.annotations
+        .createPointAnnotationManager();
+
+    final Uint8List markerImage = await _loadMarkerImage();
+
+    try {
+      await mapboxMap.style.addStyleImage(
+        'custom-marker',
+        2.0,
+        MbxImage(width: 40, height: 40, data: markerImage),
+        false,
+        [],
+        [],
+        null,
+      );
+    } catch (e) {
+      debugPrint('Error adding image to style: $e');
+    }
+
+    final point = Point(
+      coordinates: Position(widget.property.lng, widget.property.lat),
+    );
+
+    final options = PointAnnotationOptions(
+      geometry: point,
+      iconImage: 'custom-marker',
+      iconSize: 1.0,
+    );
+
+    await pointAnnotationManager.create(options);
+  }
+
+  Future<Uint8List> _loadMarkerImage() async {
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+    final paint = Paint()..color = Colors.red;
+    final radius = 20.0;
+
+    canvas.drawCircle(Offset(radius, radius), radius, paint);
+
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+    textPainter.text = TextSpan(
+      text: String.fromCharCode(Icons.location_on.codePoint),
+      style: TextStyle(
+        fontSize: 25.0,
+        fontFamily: Icons.location_on.fontFamily,
+        color: Colors.white,
+      ),
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(radius - textPainter.width / 2, radius - textPainter.height / 2),
+    );
+
+    final picture = pictureRecorder.endRecording();
+    final image = await picture.toImage(
+      (radius * 2).toInt(),
+      (radius * 2).toInt(),
+    );
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
   }
 
   @override
@@ -449,6 +522,60 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                                   ),
                                 ],
                               ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Location Map
+                      const Text(
+                        'Ubicación',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                        onTap: () async {
+                          final url = Uri.parse(
+                            'https://www.google.com/maps/search/?api=1&query=${widget.property.lat},${widget.property.lng}',
+                          );
+                          if (!await launchUrl(url)) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('No se pudo abrir el mapa'),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: Container(
+                          height: 200,
+                          margin: const EdgeInsets.only(bottom: 24),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: IgnorePointer(
+                              child: MapWidget(
+                                onMapCreated: _onMapCreated,
+                                cameraOptions: CameraOptions(
+                                  center: Point(
+                                    coordinates: Position(
+                                      widget.property.lng,
+                                      widget.property.lat,
+                                    ),
+                                  ),
+                                  zoom: 14.0,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: 100), // Space for bottom bar

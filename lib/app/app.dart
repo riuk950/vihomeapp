@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../core/di/injection_container.dart';
 import '../core/router/app_router.dart';
 import '../env/env_def.dart';
@@ -26,6 +27,7 @@ class FlavorApp extends StatelessWidget {
           return MaterialApp.router(
             debugShowCheckedModeBanner: EnvDef.isDebugMode,
             themeMode: ThemeMode.system,
+            theme: AppTheme().getTheme(),
             title: EnvDef.title,
             routerConfig: appRouter,
           );
