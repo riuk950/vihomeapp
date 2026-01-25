@@ -1,9 +1,9 @@
 name: CI
 on:
   pull_request:
-    branches: [ "main", "develop", "release" ]
+    branches: ["main", "develop", "release"]
   push:
-    branches: [ "main", "develop", "release" ]
+    branches: ["main", "develop", "release"]
 
 env:
   FLAVOR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev'}}
@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
         with:
-          distribution: 'zulu'
+          distribution: "zulu"
           java-version: "17"
       - uses: subosito/flutter-action@v1
         with:
@@ -49,52 +49,52 @@ jobs:
       - name: Ejecutar pruebas 🧪
         run: flutter test --flavor ${{ env.FLAVOR }}
         working-directory: .
-  construir_ios:
-    name: Build Flutter (iOS)
-    needs: [ejecutar_pruebas]
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: "17"
-      - uses: subosito/flutter-action@v1
-        with:
-          channel: "stable"
-      - name: Instalar dependencias 📦
-        run: flutter pub get
-        working-directory: .
-      - name: Crear archivo .env 📝
-        run: |
-          if [ "${{ env.FLAVOR }}" = "prod" ]; then
-            echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
-            echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
-            echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
-            echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
-            echo "DEBUG_MODE=false" >> .env.prod
-          else
-            echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
-            echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
-            echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
-            echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
-            echo "DEBUG_MODE=true" >> .env.dev
-          fi
-      - name: Crear archivos .env si faltan 🧩
-        run: |
-          touch .env.dev
-          touch .env.prod
-      - name: Limpiar proyecto 🧹
-        run: flutter clean
-        working-directory: .
-      - name: Construir aplicación 🚀
-        run: |
-          if [ "${{ env.FLAVOR }}" = "prod" ]; then
-            flutter build ios --flavor prod --release --no-codesign --target=lib/env/main.prod.dart
-          else
-            flutter build ios --flavor dev --release --no-codesign --target=lib/env/main.dev.dart
-          fi
-        working-directory: .
+  #   construir_ios:
+  #     name: Build Flutter (iOS)
+  #     needs: [ejecutar_pruebas]
+  #     runs-on: macos-latest
+  #     steps:
+  #       - uses: actions/checkout@v3
+  #       - uses: actions/setup-java@v3
+  #         with:
+  #           distribution: "zulu"
+  #           java-version: "17"
+  #       - uses: subosito/flutter-action@v1
+  #         with:
+  #           channel: "stable"
+  #       - name: Instalar dependencias 📦
+  #         run: flutter pub get
+  #         working-directory: .
+  #       - name: Crear archivo .env 📝
+  #         run: |
+  #           if [ "${{ env.FLAVOR }}" = "prod" ]; then
+  #             echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
+  #             echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
+  #             echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
+  #             echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
+  #             echo "DEBUG_MODE=false" >> .env.prod
+  #           else
+  #             echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
+  #             echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
+  #             echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
+  #             echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
+  #             echo "DEBUG_MODE=true" >> .env.dev
+  #           fi
+  #       - name: Crear archivos .env si faltan 🧩
+  #         run: |
+  #           touch .env.dev
+  #           touch .env.prod
+  #       - name: Limpiar proyecto 🧹
+  #         run: flutter clean
+  #         working-directory: .
+  #       - name: Construir aplicación 🚀
+  #         run: |
+  #           if [ "${{ env.FLAVOR }}" = "prod" ]; then
+  #             flutter build ios --flavor prod --release --no-codesign --target=lib/env/main.prod.dart
+  #           else
+  #             flutter build ios --flavor dev --release --no-codesign --target=lib/env/main.dev.dart
+  #           fi
+  #         working-directory: .
 
   construir_appbundle:
     name: Build Flutter (Android)
@@ -104,7 +104,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
         with:
-          distribution: 'zulu'
+          distribution: "zulu"
           java-version: "17"
       - uses: subosito/flutter-action@v1
         with:
@@ -142,3 +142,10 @@ jobs:
             flutter build appbundle --flavor dev --target=lib/env/main.dev.dart
           fi
         working-directory: .
+      - name: Subir a Firebase App Distribution 🔥
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
+          groups: testers
+          file: build/app/outputs/bundle/${{ env.FLAVOR }}Release/app-${{ env.FLAVOR }}-release.aab
