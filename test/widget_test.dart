@@ -1,54 +1,84 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:vihomeapp/app/app.dart';
+import 'package:vihomeapp/presentation/providers/providers.dart';
+import 'package:vihomeapp/domain/entities/user.dart';
+
+// Mocks
+class MockAuthProvider extends ChangeNotifier implements AuthProvider {
+  @override
+  bool get isAuthenticated => false;
+
+  @override
+  User? get user => null;
+
+  @override
+  bool get isLoading => false;
+
+  @override
+  String? get errorMessage => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockPropertyProvider extends ChangeNotifier implements PropertyProvider {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockTenantProvider extends ChangeNotifier implements TenantProvider {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockLandlordProvider extends ChangeNotifier implements LandlordProvider {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockLandlordPropertiesProvider extends ChangeNotifier
+    implements LandlordPropertiesProvider {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockApplicationProvider extends ChangeNotifier
+    implements ApplicationProvider {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
+  final getIt = GetIt.instance;
+
+  setUpAll(() async {
+    dotenv.testLoad(
+        fileInput: 'DEBUG_MODE=true\nAPI_BASE_URL=https://example.com');
+  });
+
+  setUp(() {
+    getIt.reset();
+    // Register basic mocks
+    getIt.registerFactory<AuthProvider>(() => MockAuthProvider());
+    getIt.registerFactory<PropertyProvider>(() => MockPropertyProvider());
+    getIt.registerFactory<TenantProvider>(() => MockTenantProvider());
+    getIt.registerFactory<LandlordProvider>(() => MockLandlordProvider());
+    getIt.registerFactory<LandlordPropertiesProvider>(
+        () => MockLandlordPropertiesProvider());
+    getIt.registerFactory<ApplicationProvider>(() => MockApplicationProvider());
+  });
+
   group('FlavorApp Widget Tests', () {
-    testWidgets('should render MaterialApp with correct title', (
-      WidgetTester tester,
-    ) async {
-      // Build our app and trigger a frame.
+    testWidgets('should render MaterialApp.router',
+        (WidgetTester tester) async {
       await tester.pumpWidget(const FlavorApp());
+      await tester.pump(const Duration(seconds: 3));
 
-      // Verify that MaterialApp is present
+      // Verify MaterialApp is present
       expect(find.byType(MaterialApp), findsOneWidget);
-
-      // Verify AppBar title is correct
-      expect(find.text('Material App Bar'), findsOneWidget);
-    });
-
-    testWidgets('should display Scaffold with correct body text', (
-      WidgetTester tester,
-    ) async {
-      // Build our app and trigger a frame.
-      await tester.pumpWidget(const FlavorApp());
-
-      // Verify Scaffold is present
-      expect(find.byType(Scaffold), findsOneWidget);
-
-      // Verify body contains text that starts with 'Hello World'
-      expect(find.textContaining('Hello World'), findsOneWidget);
-    });
-
-    testWidgets('should have correct widget tree structure', (
-      WidgetTester tester,
-    ) async {
-      // Build our app and trigger a frame.
-      await tester.pumpWidget(const FlavorApp());
-
-      // Verify the widget tree structure
-      expect(find.byType(MaterialApp), findsOneWidget);
-      expect(find.byType(Scaffold), findsOneWidget);
-      expect(find.byType(AppBar), findsOneWidget);
-      expect(find.byType(Center), findsOneWidget);
-      expect(find.byType(Text), findsNWidgets(2)); // AppBar title and body text
     });
   });
 }
