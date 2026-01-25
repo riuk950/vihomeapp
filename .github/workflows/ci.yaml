@@ -6,7 +6,7 @@ on:
     branches: ["main", "develop", "release"]
 
 env:
-  FLAVOR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev'}}
+  FLAVOR: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
 jobs:
   ejecutar_pruebas:
