@@ -142,10 +142,18 @@ jobs:
             flutter build apk --flavor dev --release --target=lib/env/main.dev.dart
           fi
         working-directory: .
+      - name: Determinar Firebase App ID 🆔
+        id: firebase_app_id
+        run: |
+          if [ "${{ env.FLAVOR }}" = "prod" ]; then
+            echo "app_id=${{ secrets.FIREBASE_ANDROID_APP_ID_PROD }}" >> $GITHUB_OUTPUT
+          else
+            echo "app_id=${{ secrets.FIREBASE_ANDROID_APP_ID_DEV }}" >> $GITHUB_OUTPUT
+          fi
       - name: Subir a Firebase App Distribution 🔥
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-          appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          appId: ${{ steps.firebase_app_id.outputs.app_id }}
           serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
           groups: testers
           file: build/app/outputs/flutter-apk/app-${{ env.FLAVOR }}-release.apk
