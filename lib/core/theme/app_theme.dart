@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const primaryColor = Color.fromRGBO(23, 6, 218, 1);
+const primaryColor = Color.fromRGBO(14, 78, 130, 1);
 const secondaryColor = Color.fromRGBO(0, 93, 255, 1);
 const terceraColor = Color.fromRGBO(0, 134, 255, 1);
 const cuartaColor = Color.fromRGBO(0, 165, 255, 1);
@@ -11,11 +11,29 @@ const textColor = Color.fromRGBO(0, 0, 0, 1);
 const disabledColor = Color.fromRGBO(200, 200, 200, 1);
 
 class AppTheme {
-  ThemeData getTheme() => ThemeData(
-    useMaterial3: true,
-    scaffoldBackgroundColor: backgroundColor,
-    primaryColor: primaryColor,
-    disabledColor: disabledColor,
-    listTileTheme: ListTileThemeData(iconColor: primaryColor),
-  );
+  static ThemeData get ligthTheme => ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: backgroundColor,
+        primaryColor: primaryColor,
+        disabledColor: disabledColor,
+        listTileTheme: ListTileThemeData(iconColor: primaryColor),
+        appBarTheme: AppBarTheme(
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+          ),
+        ),
+      );
+
+  static ThemeData get darkTheme => ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: backgroundColor,
+        primaryColor: primaryColor,
+        disabledColor: disabledColor,
+        listTileTheme: ListTileThemeData(iconColor: primaryColor),
+      );
 }

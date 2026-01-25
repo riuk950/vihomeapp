@@ -360,7 +360,7 @@ class DetalleSolicitudPage extends StatelessWidget {
                           ),
                         ),
                       );
-                    }).toList(),
+                    }),
 
                   const SizedBox(height: 80), // Space for bottom button
                 ],

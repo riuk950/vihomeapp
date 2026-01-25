@@ -8,9 +8,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env.prod");
   EnvDef.title = dotenv.env['APP_NAME'] ?? 'Production';
-  
+  EnvDef.isDebugMode = dotenv.env['APP_DEBUG'] == 'false';
+
   // Configurar inyección de dependencias (incluye inicialización de Supabase)
   await setupDependencyInjection();
-  
+
   runApp(const FlavorApp());
 }

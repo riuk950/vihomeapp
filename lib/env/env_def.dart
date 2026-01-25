@@ -11,7 +11,7 @@ class EnvDef {
   static String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
   static String get mapboxAccessToken =>
       dotenv.env['MAPBOX_ACCESS_TOKEN'] ?? '';
-  static bool get isDebugMode => dotenv.env['DEBUG_MODE'] == 'true';
+  static bool isDebugMode = dotenv.env['DEBUG_MODE'] == 'true';
   static bool get isProduction => dotenv.env['DEBUG_MODE'] == 'false';
   static bool get isDevelopment => !isProduction;
 }

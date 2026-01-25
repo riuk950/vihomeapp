@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/landlord_provider.dart';
 
@@ -26,9 +27,9 @@ class PanelPage extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F8),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: backgroundColor,
         elevation: 0,
         title: const Text(
           'Panel de Control',
@@ -54,7 +55,7 @@ class PanelPage extends StatelessWidget {
             // Welcome Section
             Container(
               width: double.infinity,
-              color: Colors.white,
+              color: backgroundColor,
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

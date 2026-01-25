@@ -81,9 +81,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                 '${DateTime.now().millisecondsSinceEpoch}_${image.path.split('/').last}';
             final path = 'propiedades/$fileName';
 
-            await supabase.storage
-                .from('propiedades-fotos')
-                .upload(
+            await supabase.storage.from('propiedades-fotos').upload(
                   path,
                   image,
                   fileOptions: const FileOptions(
@@ -92,9 +90,8 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                   ),
                 );
 
-            final String publicUrl = supabase.storage
-                .from('propiedades-fotos')
-                .getPublicUrl(path);
+            final String publicUrl =
+                supabase.storage.from('propiedades-fotos').getPublicUrl(path);
 
             photoUrls.add(publicUrl);
           }
@@ -611,8 +608,8 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: const Color(0xFF137FEC),
-                style: BorderStyle
-                    .values[1], // dashed emulation? No, solid is fine for now or use library for dashed
+                style: BorderStyle.values[
+                    1], // dashed emulation? No, solid is fine for now or use library for dashed
               ),
             ),
             child: Column(
@@ -661,9 +658,11 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
       }
     } catch (e) {
       debugPrint('Error picking images: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al seleccionar imágenes')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al seleccionar imágenes')),
+        );
+      }
     }
   }
 }

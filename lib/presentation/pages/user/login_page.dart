@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -42,7 +43,11 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Iniciar Sesión'), centerTitle: true),
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+          title: const Text('Iniciar Sesión'),
+          backgroundColor: backgroundColor,
+          centerTitle: true),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -57,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
                     const Icon(
                       Icons.lock_outline,
                       size: 80,
-                      color: Colors.green,
+                      color: primaryColor,
                     ),
                     const SizedBox(height: 24),
                     const Text(
@@ -132,13 +137,20 @@ class _LoginPageState extends State<LoginPage> {
                           // TODO: Implementar recuperación de contraseña
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
+                              backgroundColor: terceraColor,
                               content: Text(
                                 'Funcionalidad próximamente disponible',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    textBaseline: TextBaseline.alphabetic),
                               ),
                             ),
                           );
                         },
-                        child: const Text('¿Olvidaste tu contraseña?'),
+                        child: const Text(
+                          '¿Olvidaste tu contraseña?',
+                          style: TextStyle(color: secondaryColor),
+                        ),
                       ),
                     ),
                     if (authProvider.errorMessage != null) ...[
@@ -168,7 +180,7 @@ class _LoginPageState extends State<LoginPage> {
                     ElevatedButton(
                       onPressed: authProvider.isLoading ? null : _handleLogin,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: primaryColor,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -203,7 +215,9 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: () => context.go('/register'),
                           child: const Text(
                             'Regístrate',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: secondaryColor),
                           ),
                         ),
                       ],

@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.favorite),
-                label: 'Favoritos',
+                label: 'Proyectos',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.edit_document),

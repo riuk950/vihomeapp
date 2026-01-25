@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../../providers/property_provider.dart';
 import '../../../domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
@@ -24,13 +25,13 @@ class _BuscarPageState extends State<BuscarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: const Text(
           'Explorar',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: backgroundColor,
         elevation: 0,
         centerTitle: false,
         actions: [

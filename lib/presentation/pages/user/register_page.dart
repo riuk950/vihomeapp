@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -63,7 +64,7 @@ class _RegisterPageState extends State<RegisterPage> {
           content: Text(
             'Cuenta creada exitosamente. Revisa tu email para verificar tu cuenta.',
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: primaryColor,
         ),
       );
 
@@ -79,7 +80,14 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear Cuenta'), centerTitle: true),
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: backgroundColor,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: textColor),
+          onPressed: () => context.go('/login'),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -94,7 +102,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     const Icon(
                       Icons.person_add_outlined,
                       size: 80,
-                      color: Colors.green,
+                      color: primaryColor,
                     ),
                     const SizedBox(height: 24),
                     const Text(
@@ -128,35 +136,35 @@ class _RegisterPageState extends State<RegisterPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: const Text('Arrendatario'),
-                            value: 'arrendatario',
-                            groupValue: _role,
-                            onChanged: (value) {
-                              setState(() {
-                                _role = value!;
-                              });
-                            },
-                            contentPadding: EdgeInsets.zero,
+                    RadioGroup<String>(
+                      groupValue: _role,
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _role = value;
+                          });
+                        }
+                      },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: RadioListTile<String>(
+                              activeColor: secondaryColor,
+                              title: const Text('Arrendatario'),
+                              value: 'arrendatario',
+                              contentPadding: EdgeInsets.zero,
+                            ),
                           ),
-                        ),
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: const Text('Arrendador'),
-                            value: 'arrendador',
-                            groupValue: _role,
-                            onChanged: (value) {
-                              setState(() {
-                                _role = value!;
-                              });
-                            },
-                            contentPadding: EdgeInsets.zero,
+                          Expanded(
+                            child: RadioListTile<String>(
+                              activeColor: secondaryColor,
+                              title: const Text('Arrendador'),
+                              value: 'arrendador',
+                              contentPadding: EdgeInsets.zero,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -265,12 +273,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     ],
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: authProvider.isLoading
-                          ? null
-                          : _handleRegister,
+                      onPressed:
+                          authProvider.isLoading ? null : _handleRegister,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
+                        backgroundColor: secondaryColor,
+                        foregroundColor: backgroundColor,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -304,7 +311,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           onPressed: () => context.go('/login'),
                           child: const Text(
                             'Inicia sesión',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: secondaryColor),
                           ),
                         ),
                       ],
