@@ -137,9 +137,9 @@ jobs:
       - name: Construir aplicación 🚀
         run: |
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
-            flutter build appbundle --flavor prod --target=lib/env/main.prod.dart
+            flutter build apk --flavor prod --release --target=lib/env/main.prod.dart
           else
-            flutter build appbundle --flavor dev --target=lib/env/main.dev.dart
+            flutter build apk --flavor dev --release --target=lib/env/main.dev.dart
           fi
         working-directory: .
       - name: Subir a Firebase App Distribution 🔥
@@ -148,4 +148,4 @@ jobs:
           appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
           groups: testers
-          file: build/app/outputs/bundle/${{ env.FLAVOR }}Release/app-${{ env.FLAVOR }}-release.aab
+          file: build/app/outputs/flutter-apk/app-${{ env.FLAVOR }}-release.apk
