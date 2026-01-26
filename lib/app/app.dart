@@ -1,16 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:vihomeapp/env/env_def.dart';
+import 'package:provider/provider.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
+import '../core/di/injection_container.dart';
+import '../core/router/app_router.dart';
+import '../env/env_def.dart';
+import '../presentation/providers/providers.dart';
 
 class FlavorApp extends StatelessWidget {
   const FlavorApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Material App',
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Material App Bar')),
-        body: Center(child: Text('Hello World ${EnvDef.title}')),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => getIt<AuthProvider>()),
+        ChangeNotifierProvider(create: (_) => getIt<PropertyProvider>()),
+        ChangeNotifierProvider(create: (_) => getIt<TenantProvider>()),
+        ChangeNotifierProvider(create: (_) => getIt<LandlordProvider>()),
+        ChangeNotifierProvider(
+          create: (_) => getIt<LandlordPropertiesProvider>(),
+        ),
+        ChangeNotifierProvider(create: (_) => getIt<ApplicationProvider>()),
+      ],
+      child: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          return MaterialApp.router(
+            debugShowCheckedModeBanner: EnvDef.isDebugMode,
+            theme: AppTheme.ligthTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.system,
+            title: EnvDef.title,
+            routerConfig: appRouter,
+          );
+        },
       ),
     );
   }

@@ -1,0 +1,14 @@
+export 'navegation/home_page.dart';
+export 'splash_screen.dart';
+export 'navegation/buscar_page.dart';
+export 'navegation/favoritos_page.dart';
+export 'navegation/consultas_page.dart';
+export 'user/perfil_page.dart';
+export 'user/login_page.dart';
+export 'user/register_page.dart';
+export 'propiedades/mis_propiedades_page.dart';
+export 'propiedades/crear_propiedad_page.dart';
+export 'navegation/mapa_page.dart';
+export 'landlord/solicitudes_arrendador_page.dart';
+export 'tenant/solicitudes_arrendatario_page.dart';
+export 'tenant/solicitud_de_arriendo_page.dart';
