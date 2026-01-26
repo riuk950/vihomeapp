@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'buscar_page.dart';
 import 'favoritos_page.dart';
 import 'consultas_page.dart';
@@ -44,6 +45,7 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           child: BottomNavigationBar(
+            backgroundColor: backgroundColor,
             currentIndex: _currentIndex,
             onTap: (index) {
               setState(() {
@@ -51,17 +53,23 @@ class _HomePageState extends State<HomePage> {
               });
             },
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: Theme.of(context).colorScheme.primary,
-            unselectedItemColor: Colors.grey,
+            selectedItemColor: primaryColor,
+            selectedIconTheme: const IconThemeData(size: 24),
+            unselectedItemColor: disabledColor,
             selectedFontSize: 12,
             unselectedFontSize: 12,
             items: [
               const BottomNavigationBarItem(
-                icon: Icon(Icons.search),
+                backgroundColor: primaryColor,
+                icon: Icon(
+                  Icons.search,
+                ),
                 label: 'Buscar',
               ),
               const BottomNavigationBarItem(
-                icon: Icon(Icons.favorite),
+                icon: Icon(
+                  Icons.home_work,
+                ),
                 label: 'Proyectos',
               ),
               const BottomNavigationBarItem(

@@ -13,14 +13,27 @@ const disabledColor = Color.fromRGBO(200, 200, 200, 1);
 class AppTheme {
   static ThemeData get ligthTheme => ThemeData(
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
         scaffoldBackgroundColor: backgroundColor,
+        brightness: Brightness.light,
         primaryColor: primaryColor,
-        disabledColor: disabledColor,
+        //dialog theme
+        dialogTheme: DialogThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: backgroundColor,
+          titleTextStyle: const TextStyle(color: primaryColor, fontSize: 20),
+          contentTextStyle: const TextStyle(color: textColor, fontSize: 16),
+        ),
+        //list tile theme
         listTileTheme: ListTileThemeData(iconColor: primaryColor),
+        //app bar theme
         appBarTheme: AppBarTheme(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
         ),
+        //elevated button theme
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: primaryColor,

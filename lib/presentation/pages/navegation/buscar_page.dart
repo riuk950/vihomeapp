@@ -26,13 +26,14 @@ class _BuscarPageState extends State<BuscarPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
+      drawerScrimColor: backgroundColor,
       appBar: AppBar(
         title: const Text(
           'Explorar',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         backgroundColor: backgroundColor,
-        elevation: 0,
+        shadowColor: backgroundColor,
         centerTitle: false,
         actions: [
           IconButton(
@@ -50,7 +51,7 @@ class _BuscarPageState extends State<BuscarPage> {
       body: Column(
         children: [
           // Search Bar
-          Padding(
+          /* Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               decoration: InputDecoration(
@@ -66,10 +67,10 @@ class _BuscarPageState extends State<BuscarPage> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
             ),
-          ),
+          ), */
 
           // Filters
-          SizedBox(
+          /* SizedBox(
             height: 50,
             child: ListView(
               scrollDirection: Axis.horizontal,
@@ -81,16 +82,19 @@ class _BuscarPageState extends State<BuscarPage> {
                 _buildFilterChip('Oficina', false),
               ],
             ),
-          ),
+          ), */
 
-          const SizedBox(height: 10),
+          //const SizedBox(height: 10),
 
           // Property List
           Expanded(
             child: Consumer<PropertyProvider>(
               builder: (context, propertyProvider, child) {
                 if (propertyProvider.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                      child: CircularProgressIndicator(
+                    color: primaryColor,
+                  ));
                 }
 
                 if (propertyProvider.errorMessage != null) {
@@ -104,6 +108,8 @@ class _BuscarPageState extends State<BuscarPage> {
                 }
 
                 return RefreshIndicator(
+                  color: primaryColor,
+                  backgroundColor: backgroundColor,
                   onRefresh: () => propertyProvider.fetchProperties(),
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
@@ -122,7 +128,7 @@ class _BuscarPageState extends State<BuscarPage> {
     );
   }
 
-  Widget _buildFilterChip(String label, bool isSelected) {
+  /* Widget _buildFilterChip(String label, bool isSelected) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: Chip(
@@ -140,7 +146,7 @@ class _BuscarPageState extends State<BuscarPage> {
         ),
       ),
     );
-  }
+  } */
 
   Widget _buildPropertyCard(BuildContext context, Property property) {
     // Updated signature
@@ -179,8 +185,10 @@ class _BuscarPageState extends State<BuscarPage> {
                           height: 180,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) =>
-                              const Center(child: CircularProgressIndicator()),
+                          placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator(
+                            color: primaryColor,
+                          )),
                           errorWidget: (context, url, error) => Container(
                             color: Colors.grey[300],
                             child: const Icon(

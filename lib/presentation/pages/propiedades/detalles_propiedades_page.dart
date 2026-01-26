@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/env/env_def.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -47,8 +48,8 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
   }
 
   void _onMapCreated(MapboxMap mapboxMap) async {
-    final pointAnnotationManager = await mapboxMap.annotations
-        .createPointAnnotationManager();
+    final pointAnnotationManager =
+        await mapboxMap.annotations.createPointAnnotationManager();
 
     final Uint8List markerImage = await _loadMarkerImage();
 
@@ -154,11 +155,11 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
       );
 
       if (authProvider.user != null) {
-        final hasApplication = await applicationProvider
-            .hasApplicationForProperty(
-              authProvider.user!.id,
-              widget.property.id,
-            );
+        final hasApplication =
+            await applicationProvider.hasApplicationForProperty(
+          authProvider.user!.id,
+          widget.property.id,
+        );
 
         if (mounted) {
           setState(() {
@@ -190,6 +191,7 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: backgroundColor,
         title: const Text('Detalles de la Propiedad'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -298,23 +300,22 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                                   .asMap()
                                   .entries
                                   .map((entry) {
-                                    return Container(
-                                      width: 8.0,
-                                      height: 8.0,
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 4.0,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.white.withValues(
-                                          alpha: _currentImageIndex == entry.key
-                                              ? 0.9
-                                              : 0.4,
-                                        ),
-                                      ),
-                                    );
-                                  })
-                                  .toList(),
+                                return Container(
+                                  width: 8.0,
+                                  height: 8.0,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 4.0,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withValues(
+                                      alpha: _currentImageIndex == entry.key
+                                          ? 0.9
+                                          : 0.4,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             ),
                           ),
                         // Favorite Button
@@ -613,9 +614,9 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                                 : () async {
                                     final success = await provider
                                         .togglePropertyPublication(
-                                          widget.property.id,
-                                          widget.property.publicado,
-                                        );
+                                      widget.property.id,
+                                      widget.property.publicado,
+                                    );
                                     if (success && context.mounted) {
                                       ScaffoldMessenger.of(
                                         context,

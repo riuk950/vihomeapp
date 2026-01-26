@@ -45,7 +45,8 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-          title: const Text('Iniciar Sesión'),
+          title:
+              const Text('Iniciar Sesión', style: TextStyle(color: textColor)),
           backgroundColor: backgroundColor,
           centerTitle: true),
       body: SafeArea(
