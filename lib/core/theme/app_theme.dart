@@ -8,7 +8,7 @@ const quintaColor = Color.fromRGBO(0, 191, 227, 1);
 const sextaColor = Color.fromRGBO(0, 255, 168, 1);
 const backgroundColor = Color.fromRGBO(242, 242, 242, 1);
 const textColor = Color.fromRGBO(0, 0, 0, 1);
-const disabledColor = Color.fromRGBO(200, 200, 200, 1);
+const disabledColor = Color.fromRGBO(143, 143, 143, 1);
 
 class AppTheme {
   static ThemeData get ligthTheme => ThemeData(
@@ -30,8 +30,8 @@ class AppTheme {
         listTileTheme: ListTileThemeData(iconColor: primaryColor),
         //app bar theme
         appBarTheme: AppBarTheme(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
+          backgroundColor: backgroundColor,
+          titleTextStyle: const TextStyle(color: textColor, fontSize: 20),
         ),
         //elevated button theme
         elevatedButtonTheme: ElevatedButtonThemeData(

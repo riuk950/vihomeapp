@@ -129,7 +129,7 @@ class PerfilPage extends StatelessWidget {
                         const SizedBox(height: 16),
                         const SizedBox(height: 16),
                         Text(
-                          user?.email ?? 'usuario@email.com', // Mock Name
+                          user?.name ?? 'usuario@email.com', // Mock Name
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -235,32 +235,6 @@ class PerfilPage extends StatelessWidget {
                           ),
                         ],
                         const SizedBox(height: 16),
-                        if (user?.role != 'arrendatario' ||
-                            (Provider.of<TenantProvider>(
-                              context,
-                              listen: false,
-                            ).isVerified))
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey[200],
-                                foregroundColor: const Color(0xFF0F172A),
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'Editar Perfil',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                   ),
@@ -296,12 +270,12 @@ class PerfilPage extends StatelessWidget {
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   Container(
-                                    height: 180,
-                                    color: Colors.grey[300],
-                                    child: const Icon(
-                                      Icons.image_not_supported,
-                                    ),
-                                  ),
+                                height: 180,
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.image_not_supported,
+                                ),
+                              ),
                             ),
                           ),
                           Padding(

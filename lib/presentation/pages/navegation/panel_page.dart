@@ -39,14 +39,7 @@ class PanelPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Color(0xFF111418)),
-            onPressed: () => _handleLogout(context),
-            tooltip: 'Cerrar sesión',
-          ),
-        ],
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -65,7 +58,7 @@ class PanelPage extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF111418),
+                      color: textColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -282,10 +275,6 @@ class PanelPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Properties Card
-            _buildPropertyCard(context),
-            const SizedBox(height: 16),
-
             // Application Status Card
             _buildApplicationStatusCard(context),
             const SizedBox(height: 16),
@@ -325,144 +314,25 @@ class PanelPage extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: const Color(0xFF137FEC)),
+            Icon(icon, size: 32, color: primaryColor),
             const SizedBox(height: 12),
             Text(
               title,
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF111418),
+                color: textColor,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF617589)),
+              style: const TextStyle(fontSize: 12, color: disabledColor),
               textAlign: TextAlign.center,
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildPropertyCard(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Container(
-              height: 180,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                image: const DecorationImage(
-                  image: NetworkImage(
-                    'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
-                  ),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Para Arrendadores',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF617589)),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Mis Propiedades',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF111418),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                RichText(
-                  text: const TextSpan(
-                    style: TextStyle(fontSize: 14, color: Color(0xFF617589)),
-                    children: [
-                      TextSpan(text: 'Tienes '),
-                      TextSpan(
-                        text: '3 propiedades activas',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF10B981),
-                        ),
-                      ),
-                      TextSpan(text: ' y 1 inactiva. ¡Gestiona tus listados!'),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          context.push('/mis-propiedades');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF137FEC),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Ver todas',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF137FEC),
-                          side: const BorderSide(color: Color(0xFF137FEC)),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Listar nueva',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -490,7 +360,7 @@ class PanelPage extends StatelessWidget {
         children: [
           const Text(
             'Para Arrendatarios y Arrendadores',
-            style: TextStyle(fontSize: 12, color: Color(0xFF617589)),
+            style: TextStyle(fontSize: 12, color: disabledColor),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -498,13 +368,13 @@ class PanelPage extends StatelessWidget {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111418),
+              color: textColor,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
             'Revisa las últimas actualizaciones de tus postulaciones.',
-            style: TextStyle(fontSize: 14, color: Color(0xFF617589)),
+            style: TextStyle(fontSize: 14, color: disabledColor),
           ),
           const SizedBox(height: 16),
           Row(
@@ -613,8 +483,6 @@ class PanelPage extends StatelessWidget {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF137FEC),
-                foregroundColor: Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -693,7 +561,7 @@ class PanelPage extends StatelessWidget {
                         text: '1 contrato activo',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF137FEC),
+                          color: secondaryColor,
                         ),
                       ),
                       TextSpan(
@@ -736,8 +604,6 @@ class PanelPage extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF137FEC),
-                      foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -756,36 +622,5 @@ class PanelPage extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _handleLogout(BuildContext context) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cerrar Sesión'),
-        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Cerrar Sesión',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true && context.mounted) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.signOut();
-      if (context.mounted) {
-        context.go('/login');
-      }
-    }
   }
 }

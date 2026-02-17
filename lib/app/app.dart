@@ -27,8 +27,6 @@ class FlavorApp extends StatelessWidget {
           return MaterialApp.router(
             debugShowCheckedModeBanner: EnvDef.isDebugMode,
             theme: AppTheme.ligthTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.system,
             title: EnvDef.title,
             routerConfig: appRouter,
           );

@@ -12,7 +12,7 @@ import 'package:vihomeapp/presentation/pages/pages.dart';
 import 'package:vihomeapp/presentation/pages/propiedades/detalles_propiedades_page.dart';
 import 'package:vihomeapp/presentation/pages/tenant/complete_tenant_profile_page.dart';
 import 'package:vihomeapp/presentation/pages/tenant/detalle_solicitud_page.dart';
-import 'package:vihomeapp/presentation/pages/user/informacion_personal_page.dart';
+import 'package:vihomeapp/presentation/pages/tenant/informacion_personal_tenant_page.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/pages/landlord/detalle_solicitud_arrendador_page.dart';
 
@@ -131,7 +131,7 @@ GoRouter createAppRouter() {
       GoRoute(
         path: '/personal-info',
         name: 'personal-info',
-        builder: (context, state) => const InformacionPersonalPage(),
+        builder: (context, state) => const InformacionPersonalTenantPage(),
       ),
       GoRoute(
         path: '/personal-info-landlord',
