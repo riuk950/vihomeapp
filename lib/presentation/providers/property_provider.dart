@@ -57,7 +57,7 @@ class PropertyProvider with ChangeNotifier {
   Future<void> fetchPropertyTypes() async {
     final result = await getPropertyTypesUseCase();
     result.fold(
-      (failure) => print('Error fetching types: ${failure.message}'),
+      (failure) => _setError(failure.message),
       (types) {
         _propertyTypes = types;
         notifyListeners();
