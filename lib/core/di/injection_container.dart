@@ -14,7 +14,9 @@ import '../../domain/repositories/repositories.dart';
 import '../../domain/repositories/application_repository.dart';
 
 //Casos de uso
+//Casos de uso
 import '../../domain/usecases/usecases.dart';
+import '../../domain/usecases/property/get_property_types_usecase.dart';
 
 //Servicios
 import '../../infrastructure/services/supabase_service.dart';
@@ -118,6 +120,10 @@ Future<void> setupDependencyInjection() async {
     () => SaveLandlordProfileUseCase(getIt<LandlordRepository>()),
   );
 
+  getIt.registerLazySingleton(
+    () => GetPropertyTypesUseCase(getIt<PropertyRepository>()),
+  );
+
   // Providers
   getIt.registerFactory(
     () => AuthProvider(
@@ -129,7 +135,10 @@ Future<void> setupDependencyInjection() async {
     ),
   );
   getIt.registerFactory(
-    () => PropertyProvider(getPropertiesUseCase: getIt<GetPropertiesUseCase>()),
+    () => PropertyProvider(
+      getPropertiesUseCase: getIt<GetPropertiesUseCase>(),
+      getPropertyTypesUseCase: getIt<GetPropertyTypesUseCase>(),
+    ),
   );
   getIt.registerFactory(
     () => LandlordPropertiesProvider(

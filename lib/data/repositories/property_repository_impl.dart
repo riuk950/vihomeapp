@@ -3,6 +3,7 @@ import '../../core/errors/exceptions.dart';
 import '../../core/utils/either.dart';
 import '../../core/network/network_info.dart';
 import '../../domain/entities/property.dart';
+import '../../domain/entities/property_type.dart';
 import '../../domain/repositories/property_repository.dart';
 import '../datasources/property_remote_datasource.dart';
 import '../datasources/property_local_datasource.dart';
@@ -98,6 +99,23 @@ class PropertyRepositoryImpl implements PropertyRepository {
         return Left(ServerFailure(e.toString()));
       }
     } else {
+      return Left(NetworkFailure('No internet connection'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<PropertyType>>> getPropertyTypes() async {
+    if (await networkInfo.isConnected) {
+      try {
+        final types = await remoteDataSource.getPropertyTypes();
+        return Right(types);
+      } on ServerFailure catch (e) {
+        return Left(e);
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    } else {
+      // Could implement caching for types as well
       return Left(NetworkFailure('No internet connection'));
     }
   }

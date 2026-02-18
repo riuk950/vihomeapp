@@ -68,33 +68,44 @@ class _BuscarPageState extends State<BuscarPage> {
               ),
             ),
           ), */
+          const SizedBox(height: 10),
 
           // Filters
-          /* SizedBox(
+          SizedBox(
             height: 50,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildFilterChip('Todos', true),
-                _buildFilterChip('Casa', false),
-                _buildFilterChip('Apartamento', false),
-                _buildFilterChip('Oficina', false),
-              ],
+            child: Consumer<PropertyProvider>(
+              builder: (context, provider, child) {
+                return ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _buildFilterChip(
+                      'Todas',
+                      provider.selectedType == null,
+                      () => provider.selectType(null),
+                    ),
+                    ...provider.propertyTypes.map(
+                      (type) => _buildFilterChip(
+                        type.nombre,
+                        provider.selectedType == type,
+                        () => provider.selectType(type),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
-          ), */
-
-          //const SizedBox(height: 10),
+          ),
 
           // Property List
           Expanded(
             child: Consumer<PropertyProvider>(
               builder: (context, propertyProvider, child) {
-                if (propertyProvider.isLoading) {
+                if (propertyProvider.isLoading &&
+                    propertyProvider.propertyTypes.isEmpty) {
                   return const Center(
-                      child: CircularProgressIndicator(
-                    color: primaryColor,
-                  ));
+                    child: CircularProgressIndicator(color: primaryColor),
+                  );
                 }
 
                 if (propertyProvider.errorMessage != null) {
@@ -103,14 +114,16 @@ class _BuscarPageState extends State<BuscarPage> {
 
                 if (propertyProvider.properties.isEmpty) {
                   return const Center(
-                    child: Text('No se encontraron propiedades'),
-                  );
+                      child: Text('No se encontraron propiedades'));
                 }
 
                 return RefreshIndicator(
                   color: primaryColor,
                   backgroundColor: backgroundColor,
-                  onRefresh: () => propertyProvider.fetchProperties(),
+                  onRefresh: () async {
+                    propertyProvider.fetchProperties();
+                    propertyProvider.fetchPropertyTypes();
+                  },
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: propertyProvider.properties.length,
@@ -128,25 +141,32 @@ class _BuscarPageState extends State<BuscarPage> {
     );
   }
 
-  /* Widget _buildFilterChip(String label, bool isSelected) {
+  Widget _buildFilterChip(
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
-      child: Chip(
-        label: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Chip(
+          label: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
-        ),
-        backgroundColor: isSelected ? Colors.blue : Colors.grey[200],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide.none,
+          backgroundColor: isSelected ? primaryColor : Colors.grey[200],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide.none,
+          ),
         ),
       ),
     );
-  } */
+  }
 
   Widget _buildPropertyCard(BuildContext context, Property property) {
     // Updated signature

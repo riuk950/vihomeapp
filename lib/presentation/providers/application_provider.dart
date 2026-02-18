@@ -51,7 +51,8 @@ class ApplicationProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _applications = await repository.getLandlordApplications(landlordId);
+      final apps = await repository.getLandlordApplications(landlordId);
+      _applications = List<Application>.from(apps);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -66,7 +67,8 @@ class ApplicationProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _applications = await repository.getTenantApplications(tenantId);
+      final apps = await repository.getTenantApplications(tenantId);
+      _applications = List<Application>.from(apps);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -84,18 +86,16 @@ class ApplicationProvider extends ChangeNotifier {
       if (success) {
         final index = _applications.indexWhere((a) => a.id == applicationId);
         if (index != -1) {
-          // Actualizar localmente para reflejar cambio inmediato
-          // Creamos una copia 'modificada' (aunque entity es inmutable, aquí simulamos update)
-          // Lo ideal es recargar, pero por UX rápido:
-          // Como Application es const (equatable), no podemos modificar sus campos.
-          // Deberíamos tener copyWith o recargar. Recargaremos por simplicidad o haremos un hack manual.
-          // Mejor recargar o implementar copyWith en Entity.
-          // Por ahora recargaré para asegurar consistencia.
-          // O mejor, modificaré la lista si implemento copyWith.
+          _applications[index] = _applications[index].copyWith(
+            estado: newStatus,
+          );
+          notifyListeners();
         }
       }
       return success;
     } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
       return false;
     }
   }
