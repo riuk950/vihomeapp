@@ -101,6 +101,10 @@ class _ArriendosPageState extends State<ArriendosPage> {
           Expanded(
             child: Consumer<PropertyProvider>(
               builder: (context, propertyProvider, child) {
+                final arriendosProperties = propertyProvider.properties
+                    .where((p) => p.estado == 'arriendo')
+                    .toList();
+
                 if (propertyProvider.isLoading &&
                     propertyProvider.propertyTypes.isEmpty) {
                   return const Center(
@@ -112,7 +116,7 @@ class _ArriendosPageState extends State<ArriendosPage> {
                   return Center(child: Text(propertyProvider.errorMessage!));
                 }
 
-                if (propertyProvider.properties.isEmpty) {
+                if (arriendosProperties.isEmpty) {
                   return const Center(
                       child: Text('No se encontraron propiedades'));
                 }
@@ -126,9 +130,9 @@ class _ArriendosPageState extends State<ArriendosPage> {
                   },
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: propertyProvider.properties.length,
+                    itemCount: arriendosProperties.length,
                     itemBuilder: (context, index) {
-                      final property = propertyProvider.properties[index];
+                      final property = arriendosProperties[index];
                       return _buildPropertyCard(context, property);
                     },
                   ),
