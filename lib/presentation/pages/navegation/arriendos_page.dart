@@ -6,14 +6,14 @@ import '../../../domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class BuscarPage extends StatefulWidget {
-  const BuscarPage({super.key});
+class ArriendosPage extends StatefulWidget {
+  const ArriendosPage({super.key});
 
   @override
-  State<BuscarPage> createState() => _BuscarPageState();
+  State<ArriendosPage> createState() => _ArriendosPageState();
 }
 
-class _BuscarPageState extends State<BuscarPage> {
+class _ArriendosPageState extends State<ArriendosPage> {
   @override
   void initState() {
     super.initState();
@@ -29,7 +29,7 @@ class _BuscarPageState extends State<BuscarPage> {
       drawerScrimColor: backgroundColor,
       appBar: AppBar(
         title: const Text(
-          'Explorar',
+          'Arriendos',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         backgroundColor: backgroundColor,

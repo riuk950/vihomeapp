@@ -17,6 +17,7 @@ class PropertyModel extends Property {
     required super.lat,
     required super.lng,
     required super.publicado,
+    required super.estado,
     required super.createdAt,
     required super.updatedAt,
     super.fotos,
@@ -39,6 +40,7 @@ class PropertyModel extends Property {
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
       publicado: json['publicado'],
+      estado: json['estado'] ?? 'Disponible', // Default if missing
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
       fotos: json['fotos'] != null ? List<String>.from(json['fotos']) : [],
@@ -62,6 +64,7 @@ class PropertyModel extends Property {
       'lat': lat,
       'lng': lng,
       'publicado': publicado,
+      'estado': estado,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'fotos': fotos,

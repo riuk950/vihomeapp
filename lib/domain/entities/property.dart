@@ -14,6 +14,7 @@ class Property {
   final double lat;
   final double lng;
   final bool publicado;
+  final String estado;
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<String> fotos;
@@ -34,6 +35,7 @@ class Property {
     required this.lat,
     required this.lng,
     required this.publicado,
+    required this.estado,
     required this.createdAt,
     required this.updatedAt,
     this.fotos = const [],

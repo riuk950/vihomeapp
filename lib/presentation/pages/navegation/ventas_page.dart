@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
 
-class FavoritosPage extends StatelessWidget {
-  const FavoritosPage({super.key});
+class VentasPage extends StatelessWidget {
+  const VentasPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Ventas',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.favorite,
+              Icons.sell,
               size: 64,
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(height: 16),
             Text(
-              'Favoritos',
+              'Ventas',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],

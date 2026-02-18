@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
-import 'buscar_page.dart';
-import 'favoritos_page.dart';
-import 'consultas_page.dart';
+import 'arriendos_page.dart';
+import 'ventas_page.dart';
+import 'proyectos_page.dart';
 import '../user/perfil_page.dart';
 import 'panel_page.dart';
 import '../../providers/auth_provider.dart';
@@ -25,9 +25,9 @@ class _HomePageState extends State<HomePage> {
     final isLandlord = user?.role == 'arrendador';
 
     final List<Widget> pages = [
-      const BuscarPage(),
-      const FavoritosPage(),
-      const ConsultasPage(),
+      const ArriendosPage(),
+      const VentasPage(),
+      const ProyectosPage(),
       isLandlord ? const PanelPage() : const PerfilPage(),
     ];
 
@@ -62,19 +62,19 @@ class _HomePageState extends State<HomePage> {
               const BottomNavigationBarItem(
                 backgroundColor: primaryColor,
                 icon: Icon(
-                  Icons.search,
+                  Icons.home,
                 ),
-                label: 'Buscar',
+                label: 'Arriendos',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(
-                  Icons.home_work,
+                  Icons.sell,
                 ),
-                label: 'Proyectos',
+                label: 'Ventas',
               ),
               const BottomNavigationBarItem(
-                icon: Icon(Icons.edit_document),
-                label: 'Contratos',
+                icon: Icon(Icons.home_work),
+                label: 'Proyectos',
               ),
               BottomNavigationBarItem(
                 icon: Icon(isLandlord ? Icons.dashboard : Icons.person),

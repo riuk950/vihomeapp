@@ -21,7 +21,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
   // Controllers
   final _tituloController = TextEditingController();
   final _direccionController = TextEditingController();
-  final _ciudadController = TextEditingController();
+  final _ciudadController = TextEditingController(text: 'Sogamoso');
   final _descripcionController = TextEditingController();
   final _precioRentaController = TextEditingController();
   final _habitacionesController = TextEditingController();
@@ -29,6 +29,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
   final _metrosCuadradosController = TextEditingController();
 
   String _tipoPropiedad = 'Casa';
+  String _estado = 'arriendo'; // Added state variable
   bool _publicado = true;
   double? _lat;
   double? _lng;
@@ -122,6 +123,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         'lat': _lat ?? 0.0,
         'lng': _lng ?? 0.0,
         'publicado': _publicado,
+        'estado': _estado,
         'fotos': photoUrls,
       };
 
@@ -205,11 +207,19 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                               controller: _ciudadController,
                               label: 'Ciudad',
                               hint: 'Ej: Bogotá',
+                              enabled: false,
                               validator: (v) =>
                                   v?.isEmpty ?? true ? 'Requerido' : null,
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildDropdown(
+                        label: 'Estado',
+                        value: _estado,
+                        items: ['arriendo', 'venta'],
+                        onChanged: (v) => setState(() => _estado = v!),
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
@@ -388,6 +398,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
     String? Function(String?)? validator,
     String? prefixText,
     String? suffixText,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,6 +414,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
+          enabled: enabled,
           keyboardType: keyboardType,
           maxLines: maxLines,
           validator: validator,
