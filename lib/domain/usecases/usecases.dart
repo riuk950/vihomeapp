@@ -11,3 +11,4 @@ export './tenant/get_tenant_profile_usecase.dart';
 export './tenant/save_tenant_profile_usecase.dart';
 export './landlord/get_landlord_profile_usecase.dart';
 export './landlord/save_landlord_profile_usecase.dart';
+export './project/get_projects_usecase.dart';

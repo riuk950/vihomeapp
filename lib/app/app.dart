@@ -21,6 +21,7 @@ class FlavorApp extends StatelessWidget {
           create: (_) => getIt<LandlordPropertiesProvider>(),
         ),
         ChangeNotifierProvider(create: (_) => getIt<ApplicationProvider>()),
+        ChangeNotifierProvider(create: (_) => getIt<ProjectProvider>()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {

@@ -63,6 +63,9 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton<ApplicationDatasource>(
     () => ApplicationDatasourceImpl(getIt<SupabaseService>().client),
   );
+  getIt.registerLazySingleton<ProjectRemoteDataSource>(
+    () => ProjectRemoteDataSourceImpl(getIt<SupabaseService>()),
+  );
 
   // Repositories
   getIt.registerLazySingleton<AuthRepository>(
@@ -83,6 +86,9 @@ Future<void> setupDependencyInjection() async {
   );
   getIt.registerLazySingleton<ApplicationRepository>(
     () => ApplicationRepositoryImpl(getIt<ApplicationDatasource>()),
+  );
+  getIt.registerLazySingleton<ProjectRepository>(
+    () => ProjectRepositoryImpl(getIt<ProjectRemoteDataSource>()),
   );
 
   // Use cases
@@ -123,6 +129,9 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton(
     () => GetPropertyTypesUseCase(getIt<PropertyRepository>()),
   );
+  getIt.registerLazySingleton(
+    () => GetProjectsUseCase(getIt<ProjectRepository>()),
+  );
 
   // Providers
   getIt.registerFactory(
@@ -161,5 +170,8 @@ Future<void> setupDependencyInjection() async {
   );
   getIt.registerFactory(
     () => ApplicationProvider(getIt<ApplicationRepository>()),
+  );
+  getIt.registerFactory(
+    () => ProjectProvider(getProjectsUseCase: getIt<GetProjectsUseCase>()),
   );
 }
