@@ -15,6 +15,8 @@ import 'package:vihomeapp/presentation/pages/tenant/detalle_solicitud_page.dart'
 import 'package:vihomeapp/presentation/pages/tenant/informacion_personal_tenant_page.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/pages/landlord/detalle_solicitud_arrendador_page.dart';
+import 'package:vihomeapp/presentation/pages/propiedades/detalles_proyecto_page.dart';
+import 'package:vihomeapp/domain/entities/project.dart';
 
 GoRouter createAppRouter() {
   return GoRouter(
@@ -212,6 +214,20 @@ GoRouter createAppRouter() {
             );
           }
           return DetalleSolicitudPage(application: application);
+        },
+      ),
+      GoRoute(
+        path: '/proyecto-detalle',
+        name: 'proyecto-detalle',
+        builder: (context, state) {
+          final project = state.extra as Project?;
+          if (project == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Error')),
+              body: const Center(child: Text('Error: Proyecto no válido')),
+            );
+          }
+          return DetallesProyectoPage(project: project);
         },
       ),
     ],

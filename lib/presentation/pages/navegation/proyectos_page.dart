@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../../providers/project_provider.dart';
 import '../../../domain/entities/project.dart';
+import 'package:go_router/go_router.dart';
 
 class ProyectosPage extends StatefulWidget {
   const ProyectosPage({super.key});
@@ -315,7 +316,7 @@ class _ProyectosPageState extends State<ProyectosPage> {
                     ),
                     TextButton(
                       onPressed: () {
-                        // TODO: navegar al detalle del proyecto
+                        context.push('/proyecto-detalle', extra: project);
                       },
                       style: TextButton.styleFrom(
                         backgroundColor: primaryColor,
