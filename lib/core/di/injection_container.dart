@@ -14,7 +14,6 @@ import '../../domain/repositories/repositories.dart';
 import '../../domain/repositories/application_repository.dart';
 
 //Casos de uso
-//Casos de uso
 import '../../domain/usecases/usecases.dart';
 import '../../domain/usecases/property/get_property_types_usecase.dart';
 
@@ -131,6 +130,9 @@ Future<void> setupDependencyInjection() async {
   );
   getIt.registerLazySingleton(
     () => GetProjectsUseCase(getIt<ProjectRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetConstructoraUseCase(getIt<ProjectRepository>()),
   );
 
   // Providers

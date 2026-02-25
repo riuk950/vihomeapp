@@ -1,4 +1,5 @@
 import '../../domain/entities/project.dart';
+import '../../domain/entities/constructora.dart';
 import '../../domain/repositories/project_repository.dart';
 import '../datasources/project_remote_datasource.dart';
 
@@ -10,5 +11,10 @@ class ProjectRepositoryImpl implements ProjectRepository {
   @override
   Future<List<Project>> getProjects() async {
     return await remoteDataSource.getProjects();
+  }
+
+  @override
+  Future<Constructora> getConstructora(String id) async {
+    return await remoteDataSource.getConstructora(id);
   }
 }

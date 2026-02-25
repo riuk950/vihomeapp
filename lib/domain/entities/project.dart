@@ -21,6 +21,8 @@ class Project {
   final bool aplicaSubsidio;
   final DateTime? fechaFinalizacion;
   final Map<String, dynamic>? caracteristicas;
+  final List<String> fotos;
+  final Map<String, dynamic>? amenidades;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -47,6 +49,8 @@ class Project {
     required this.aplicaSubsidio,
     this.fechaFinalizacion,
     this.caracteristicas,
+    required this.fotos,
+    this.amenidades,
     required this.createdAt,
     required this.updatedAt,
   });

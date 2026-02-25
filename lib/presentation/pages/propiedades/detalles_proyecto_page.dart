@@ -1,14 +1,135 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:vihomeapp/env/env_def.dart';
+import 'package:vihomeapp/core/di/injection_container.dart';
 import '../../../domain/entities/project.dart';
+import '../../../domain/entities/constructora.dart';
+import '../../../domain/usecases/usecases.dart';
 
-class DetallesProyectoPage extends StatelessWidget {
+class DetallesProyectoPage extends StatefulWidget {
   final Project project;
   const DetallesProyectoPage({super.key, required this.project});
 
   @override
+  State<DetallesProyectoPage> createState() => _DetallesProyectoPageState();
+}
+
+class _DetallesProyectoPageState extends State<DetallesProyectoPage> {
+  late PageController _pageController;
+  int _currentPage = 0;
+  Constructora? _constructora;
+  bool _isLoadingConstructora = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (EnvDef.mapboxAccessToken.isNotEmpty) {
+      MapboxOptions.setAccessToken(EnvDef.mapboxAccessToken);
+    }
+    _pageController = PageController();
+    _loadConstructora();
+  }
+
+  Future<void> _loadConstructora() async {
+    try {
+      final useCase = getIt<GetConstructoraUseCase>();
+      final constructora = await useCase(widget.project.constructoraId);
+      if (mounted) {
+        setState(() {
+          _constructora = constructora;
+          _isLoadingConstructora = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading constructora: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingConstructora = false;
+        });
+      }
+    }
+  }
+
+  void _onMapCreated(MapboxMap mapboxMap) async {
+    final pointAnnotationManager =
+        await mapboxMap.annotations.createPointAnnotationManager();
+
+    final Uint8List markerImage = await _loadMarkerImage();
+
+    try {
+      await mapboxMap.style.addStyleImage(
+        'custom-marker',
+        2.0,
+        MbxImage(width: 40, height: 40, data: markerImage),
+        false,
+        [],
+        [],
+        null,
+      );
+    } catch (e) {
+      debugPrint('Error adding image to style: $e');
+    }
+
+    final point = Point(
+      coordinates: Position(widget.project.lng, widget.project.lat),
+    );
+
+    final options = PointAnnotationOptions(
+      geometry: point,
+      iconImage: 'custom-marker',
+      iconSize: 1.0,
+    );
+
+    await pointAnnotationManager.create(options);
+  }
+
+  Future<Uint8List> _loadMarkerImage() async {
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+    final paint = Paint()..color = Colors.red;
+    final radius = 20.0;
+
+    canvas.drawCircle(Offset(radius, radius), radius, paint);
+
+    final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
+    textPainter.text = TextSpan(
+      text: String.fromCharCode(Icons.location_on.codePoint),
+      style: TextStyle(
+        fontSize: 25.0,
+        fontFamily: Icons.location_on.fontFamily,
+        color: Colors.white,
+      ),
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(radius - textPainter.width / 2, radius - textPainter.height / 2),
+    );
+
+    final picture = pictureRecorder.endRecording();
+    final image = await picture.toImage(
+      (radius * 2).toInt(),
+      (radius * 2).toInt(),
+    );
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final project = widget.project;
     return Scaffold(
       backgroundColor: backgroundColor,
       body: Stack(
@@ -56,7 +177,7 @@ class DetallesProyectoPage extends StatelessWidget {
                   const SizedBox(width: 4),
                 ],
                 title: const Text(
-                  'Proyecto',
+                  'Detalles del proyecto',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -66,14 +187,87 @@ class DetallesProyectoPage extends StatelessWidget {
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // Imagen placeholder
-                      Container(
-                        color: const Color(0xFFE2E8F0),
-                        child: const Center(
-                          child: Icon(
-                            Icons.apartment,
-                            size: 80,
-                            color: Color(0xFF94A3B8),
+                      // Carrusel de imágenes
+                      if (project.fotos.isNotEmpty)
+                        Stack(
+                          children: [
+                            PageView.builder(
+                              controller: _pageController,
+                              onPageChanged: (index) {
+                                setState(() {
+                                  _currentPage = index;
+                                });
+                              },
+                              itemCount: project.fotos.length,
+                              itemBuilder: (context, index) {
+                                return CachedNetworkImage(
+                                  imageUrl: project.fotos[index],
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      const Center(
+                                    child: Icon(Icons.error),
+                                  ),
+                                );
+                              },
+                            ),
+                            // Indicador de página
+                            if (project.fotos.length > 1)
+                              Positioned(
+                                bottom: 20,
+                                right: 16,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.5),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '${_currentPage + 1}/${project.fotos.length}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        )
+                      else
+                        // Imagen placeholder si no hay fotos
+                        Container(
+                          color: const Color(0xFFE2E8F0),
+                          child: const Center(
+                            child: Icon(
+                              Icons.apartment,
+                              size: 80,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ),
+                      // Gradient Overlay para mejorar legibilidad
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black.withValues(alpha: 0.3),
+                                  Colors.transparent,
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.4),
+                                ],
+                                stops: const [0.0, 0.2, 0.7, 1.0],
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -81,21 +275,23 @@ class DetallesProyectoPage extends StatelessWidget {
                       Positioned(
                         bottom: 16,
                         left: 16,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getEstadoColor(project.estado),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            project.estado,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                        child: IgnorePointer(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getEstadoColor(project.estado),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              project.estado,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -252,65 +448,162 @@ class DetallesProyectoPage extends StatelessWidget {
                       child: _buildInfoGrid(project),
                     ),
 
-                    // Amenidades (derivadas de características si existen)
-                    _buildSection(
-                      context,
-                      title: 'Amenidades',
-                      headerAction: TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Ver todas',
-                          style: TextStyle(
-                            color: primaryColor,
-                            fontWeight: FontWeight.bold,
+                    // Constructora
+                    if (_isLoadingConstructora)
+                      _buildSection(
+                        context,
+                        title: 'Constructora',
+                        child: const Center(child: CircularProgressIndicator()),
+                      )
+                    else if (_constructora != null)
+                      _buildSection(
+                        context,
+                        title: 'Constructora',
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  if (_constructora!.logoUrl != null &&
+                                      _constructora!.logoUrl!.isNotEmpty)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: CachedNetworkImage(
+                                        imageUrl: _constructora!.logoUrl!,
+                                        width: 50,
+                                        height: 50,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) =>
+                                            const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(Icons.business),
+                                      ),
+                                    )
+                                  else
+                                    const Icon(Icons.business,
+                                        size: 40, color: Colors.grey),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _constructora!.nombre,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          'NIT: ${_constructora!.nit}',
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (_constructora!.direccion != null ||
+                                  _constructora!.ciudad != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 12),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.location_on_outlined,
+                                          size: 16, color: Colors.grey),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          '${_constructora!.direccion ?? ''}${_constructora!.direccion != null && _constructora!.ciudad != null ? ', ' : ''}${_constructora!.ciudad ?? ''}${_constructora!.ciudad != null && _constructora!.departamento != null ? ' - ' : ''}${_constructora!.departamento ?? ''}',
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              const SizedBox(height: 12)
+                            ],
                           ),
                         ),
                       ),
-                      child: SizedBox(
-                        height: 110,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: _buildAmenities(project),
+
+                    if (project.amenidades != null &&
+                        project.amenidades!['items'] != null)
+                      _buildSection(
+                        context,
+                        title: 'Amenidades',
+                        child: SizedBox(
+                          height: 110,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount:
+                                (project.amenidades!['items'] as List).length,
+                            itemBuilder: (context, index) {
+                              final name =
+                                  project.amenidades!['items'][index] as String;
+                              return _buildAmenityItem(name);
+                            },
+                          ),
                         ),
                       ),
-                    ),
 
                     // Sección de mapa / ubicación
                     _buildSection(
                       context,
                       title: 'Ubicación',
-                      child: Container(
-                        height: 180,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE2E8F0),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.location_on,
-                                size: 40,
-                                color: primaryColor,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                project.ubicacionPrincipal,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
+                      child: GestureDetector(
+                        onTap: () async {
+                          final url = Uri.parse(
+                            'https://www.google.com/maps/search/?api=1&query=${project.lat},${project.lng}',
+                          );
+                          if (!await launchUrl(url)) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('No se pudo abrir el mapa'),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: IgnorePointer(
+                              child: MapWidget(
+                                onMapCreated: _onMapCreated,
+                                cameraOptions: CameraOptions(
+                                  center: Point(
+                                    coordinates: Position(
+                                      project.lng,
+                                      project.lat,
+                                    ),
+                                  ),
+                                  zoom: 14.0,
                                 ),
                               ),
-                              Text(
-                                'Lat: ${project.lat.toStringAsFixed(4)}, Lng: ${project.lng.toStringAsFixed(4)}',
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
@@ -377,7 +670,16 @@ class DetallesProyectoPage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final text = Uri.encodeComponent(
+                            'Hola, estoy interesado en el proyecto ${_constructora!.nombre} - ${widget.project.tipoPropiedad}');
+                        final url = Uri.parse(
+                            'https://wa.me/${_constructora!.whatsapp}?text=$text');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url,
+                              mode: LaunchMode.externalApplication);
+                        }
+                      },
                       icon: const Icon(Icons.chat_outlined, size: 18),
                       label: const Text(
                         'Contactar',
@@ -397,7 +699,12 @@ class DetallesProyectoPage extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final url = Uri.parse(_constructora!.sitioWeb!);
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         foregroundColor: Colors.white,
@@ -492,7 +799,7 @@ class DetallesProyectoPage extends StatelessWidget {
 
   Widget _buildInfoGrid(Project project) {
     final items = [
-      (Icons.layers_outlined, 'Pisos', '${project.cantidadPisos}'),
+      (Icons.layers_outlined, 'Pisos del proyecto', '${project.cantidadPisos}'),
       (Icons.bathtub_outlined, 'Baños', '${project.banos}'),
       (
         Icons.attach_money,
@@ -556,43 +863,84 @@ class DetallesProyectoPage extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildAmenities(Project project) {
-    // Amenidades estándar de proyectos inmobiliarios
-    final amenities = [
-      (Icons.pool_outlined, 'Piscina'),
-      (Icons.fitness_center, 'Gimnasio'),
-      (Icons.security_outlined, 'Seguridad 24/7'),
-      (Icons.park_outlined, 'Zonas Verdes'),
-      (Icons.local_parking_outlined, 'Parqueadero'),
-      (Icons.elevator_outlined, 'Ascensor'),
-    ];
-
-    return amenities.map((item) {
-      return Container(
-        width: 100,
-        margin: const EdgeInsets.only(right: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(item.$1, color: primaryColor, size: 28),
-            const SizedBox(height: 6),
-            Text(
-              item.$2,
+  Widget _buildAmenityItem(String name) {
+    return Container(
+      width: 100,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(_getAmenityIcon(name), color: primaryColor, size: 28),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              name,
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-          ],
-        ),
-      );
-    }).toList();
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getAmenityIcon(String name) {
+    switch (name.toLowerCase()) {
+      case 'piscina':
+        return Icons.pool;
+      case 'gimnasio':
+        return Icons.fitness_center;
+      case 'seguridad 24/7':
+      case 'portería':
+      case 'porteria':
+        return Icons.security_outlined;
+      case 'zonas verdes':
+      case 'sendero peatonal':
+        return Icons.park_outlined;
+      case 'parqueadero':
+        return Icons.local_parking_outlined;
+      case 'ascensor':
+        return Icons.elevator_outlined;
+      case 'cancha múltiple':
+      case 'cancha multiple':
+        return Icons.sports_basketball_outlined;
+      case 'salón social':
+      case 'salon social':
+        return Icons.groups_outlined;
+      case 'juegos infantiles':
+        return Icons.child_care_outlined;
+      case 'zona bbq':
+      case 'bbq':
+        return Icons.outdoor_grill_outlined;
+      case 'turco':
+        return Icons.hot_tub_outlined;
+      case 'sauna':
+        return Icons.spa_outlined;
+      case 'coworking':
+        return Icons.laptop_mac_outlined;
+      case 'pet friendly':
+        return Icons.pets_outlined;
+      case 'shut de basuras':
+        return Icons.delete_outline;
+      case 'circuito cerrado':
+        return Icons.videocam_outlined;
+      case 'citofonía':
+      case 'citofonia':
+        return Icons.phone_in_talk_outlined;
+      default:
+        return Icons.check_circle_outline;
+    }
   }
 
   Color _getEstadoColor(String estado) {
@@ -611,7 +959,7 @@ class DetallesProyectoPage extends StatelessWidget {
   String _formatCurrency(double amount) {
     final formatter = NumberFormat.currency(
       locale: 'es_CO',
-      symbol: '\$',
+      customPattern: '\$ #,##0',
       decimalDigits: 0,
     );
     return formatter.format(amount);

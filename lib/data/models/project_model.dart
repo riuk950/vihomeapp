@@ -24,6 +24,8 @@ class ProjectModel extends Project {
     required super.aplicaSubsidio,
     super.fechaFinalizacion,
     super.caracteristicas,
+    required super.fotos,
+    super.amenidades,
     required super.createdAt,
     required super.updatedAt,
   });
@@ -54,6 +56,10 @@ class ProjectModel extends Project {
           ? DateTime.tryParse(json['fecha_finalizacion'] as String)
           : null,
       caracteristicas: json['caracteristicas'] as Map<String, dynamic>?,
+      fotos:
+          (json['fotos'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+              [],
+      amenidades: json['amenidades'] as Map<String, dynamic>?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );

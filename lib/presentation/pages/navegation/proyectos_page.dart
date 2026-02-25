@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/project_provider.dart';
 import '../../../domain/entities/project.dart';
 import 'package:go_router/go_router.dart';
@@ -170,14 +171,33 @@ class _ProyectosPageState extends State<ProyectosPage> {
               Container(
                 height: 180,
                 width: double.infinity,
-                color: Colors.grey[200],
-                child: const Center(
-                  child: Icon(
-                    Icons.apartment,
-                    size: 60,
-                    color: Colors.grey,
-                  ),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
                 ),
+                child: project.fotos.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: project.fotos.first,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const Center(
+                          child: CircularProgressIndicator(
+                            color: primaryColor,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => const Center(
+                          child: Icon(
+                            Icons.error_outline,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      )
+                    : const Center(
+                        child: Icon(
+                          Icons.apartment,
+                          size: 60,
+                          color: Colors.grey,
+                        ),
+                      ),
               ),
               // Badge de estado
               Positioned(
@@ -378,7 +398,7 @@ class _ProyectosPageState extends State<ProyectosPage> {
   String _formatCurrency(double amount) {
     final formatter = NumberFormat.currency(
       locale: 'es_CO',
-      symbol: '\$',
+      customPattern: '\$ #,##0',
       decimalDigits: 0,
     );
     return formatter.format(amount);
