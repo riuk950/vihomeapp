@@ -312,7 +312,9 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '\$${property.precioRenta.toStringAsFixed(0)} COP/mes',
+                    property.estado == 'arriendo'
+                        ? '\$${(property.precioRenta ?? property.precio).toStringAsFixed(0)} COP/mes'
+                        : '\$${(property.precioVenta ?? property.precio).toStringAsFixed(0)} COP',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

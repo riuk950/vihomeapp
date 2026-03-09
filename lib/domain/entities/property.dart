@@ -7,7 +7,8 @@ class Property {
   final String ciudad;
   final String descripcion;
   final double precio;
-  final double precioRenta;
+  final double? precioRenta;
+  final double? precioVenta;
   final int habitaciones;
   final int banos;
   final double metrosCuadrados;
@@ -28,7 +29,8 @@ class Property {
     required this.ciudad,
     required this.descripcion,
     required this.precio,
-    required this.precioRenta,
+    this.precioRenta,
+    this.precioVenta,
     required this.habitaciones,
     required this.banos,
     required this.metrosCuadrados,

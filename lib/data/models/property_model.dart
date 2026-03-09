@@ -10,7 +10,8 @@ class PropertyModel extends Property {
     required super.ciudad,
     required super.descripcion,
     required super.precio,
-    required super.precioRenta,
+    super.precioRenta,
+    super.precioVenta,
     required super.habitaciones,
     required super.banos,
     required super.metrosCuadrados,
@@ -33,7 +34,12 @@ class PropertyModel extends Property {
       ciudad: json['ciudad'],
       descripcion: json['descripcion'],
       precio: (json['precio'] as num).toDouble(),
-      precioRenta: (json['precio_renta'] as num).toDouble(),
+      precioRenta: json['precio_renta'] != null
+          ? (json['precio_renta'] as num).toDouble()
+          : null,
+      precioVenta: json['precio_venta'] != null
+          ? (json['precio_venta'] as num).toDouble()
+          : null,
       habitaciones: json['habitaciones'],
       banos: json['banos'],
       metrosCuadrados: (json['metros_cuadrados'] as num).toDouble(),
@@ -58,6 +64,7 @@ class PropertyModel extends Property {
       'descripcion': descripcion,
       'precio': precio,
       'precio_renta': precioRenta,
+      'precio_venta': precioVenta,
       'habitaciones': habitaciones,
       'banos': banos,
       'metros_cuadrados': metrosCuadrados,

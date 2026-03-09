@@ -24,6 +24,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
   final _ciudadController = TextEditingController(text: 'Sogamoso');
   final _descripcionController = TextEditingController();
   final _precioRentaController = TextEditingController();
+  final _precioVentaController = TextEditingController();
   final _habitacionesController = TextEditingController();
   final _banosController = TextEditingController();
   final _metrosCuadradosController = TextEditingController();
@@ -50,6 +51,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
     _ciudadController.dispose();
     _descripcionController.dispose();
     _precioRentaController.dispose();
+    _precioVentaController.dispose();
     _habitacionesController.dispose();
     _banosController.dispose();
     _metrosCuadradosController.dispose();
@@ -114,8 +116,13 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         'direccion': _direccionController.text,
         'ciudad': _ciudadController.text,
         'descripcion': _descripcionController.text,
-        'precio': 0, // Por defecto si es solo renta
-        'precio_renta': double.tryParse(_precioRentaController.text) ?? 0,
+        'precio': 0,
+        'precio_renta': _precioRentaController.text.isNotEmpty
+            ? double.tryParse(_precioRentaController.text)
+            : null,
+        'precio_venta': _precioVentaController.text.isNotEmpty
+            ? double.tryParse(_precioVentaController.text)
+            : null,
         'habitaciones': int.tryParse(_habitacionesController.text) ?? 0,
         'banos': int.tryParse(_banosController.text) ?? 0,
         'metros_cuadrados':
@@ -251,15 +258,22 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                       _buildSectionTitle('Detalles y Precio'),
                       const SizedBox(height: 16),
 
-                      _buildTextField(
-                        controller: _precioRentaController,
-                        label: 'Precio de Renta (COP)',
-                        hint: '0',
-                        keyboardType: TextInputType.number,
-                        prefixText: '\$ ',
-                        validator: (v) =>
-                            v?.isEmpty ?? true ? 'Requerido' : null,
-                      ),
+                      if (_estado == 'arriendo')
+                        _buildTextField(
+                          controller: _precioRentaController,
+                          label: 'Precio de Renta (COP)',
+                          hint: '0',
+                          keyboardType: TextInputType.number,
+                          prefixText: '\$ ',
+                        )
+                      else
+                        _buildTextField(
+                          controller: _precioVentaController,
+                          label: 'Precio de Venta (COP)',
+                          hint: '0',
+                          keyboardType: TextInputType.number,
+                          prefixText: '\$ ',
+                        ),
                       const SizedBox(height: 16),
                       Row(
                         children: [

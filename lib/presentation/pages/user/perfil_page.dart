@@ -1,42 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/tenant_provider.dart';
 
 class PerfilPage extends StatelessWidget {
   const PerfilPage({super.key});
-
-  Future<void> _handleLogout(BuildContext context) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cerrar Sesión'),
-        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Cerrar Sesión',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true && context.mounted) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.signOut();
-      if (context.mounted) {
-        context.go('/login');
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +80,7 @@ class PerfilPage extends StatelessWidget {
                                 width: 36,
                                 height: 36,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF137FEC), // primary
+                                  color: primaryColor, // primary
                                   shape: BoxShape.circle,
                                   border: Border.all(
                                     color: const Color(0xFFF6F7F8),
@@ -187,9 +157,7 @@ class PerfilPage extends StatelessWidget {
                                           context.push('/complete-profile');
                                         },
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(
-                                            0xFF137FEC,
-                                          ),
+                                          backgroundColor: primaryColor,
                                           foregroundColor: Colors.white,
                                           elevation: 0,
                                           padding: const EdgeInsets.symmetric(
@@ -317,9 +285,7 @@ class PerfilPage extends StatelessWidget {
                                     ElevatedButton(
                                       onPressed: () {},
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(
-                                          0xFF137FEC,
-                                        ),
+                                        backgroundColor: primaryColor,
                                         foregroundColor: Colors.white,
                                         elevation: 0,
                                         padding: const EdgeInsets.symmetric(
@@ -353,7 +319,7 @@ class PerfilPage extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF137FEC).withValues(alpha: 0.1),
+                        color: primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -362,7 +328,7 @@ class PerfilPage extends StatelessWidget {
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF137FEC),
+                              color: primaryColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -442,42 +408,6 @@ class PerfilPage extends StatelessWidget {
                     Icons.help_outline,
                     'Ayuda y Soporte',
                   ),
-
-                  // Logout Option
-                  InkWell(
-                    onTap: () => _handleLogout(context),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 12.0,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(Icons.logout, color: Colors.red),
-                          ),
-                          const SizedBox(width: 16),
-                          const Expanded(
-                            child: Text(
-                              'Cerrar Sesión',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.red,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
                   const SizedBox(height: 32),
                 ],
               ),

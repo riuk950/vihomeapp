@@ -3,8 +3,15 @@ import 'package:vihomeapp/core/theme/app_theme.dart';
 
 class BtnPrimary extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
-  const BtnPrimary({super.key, required this.text, required this.onPressed});
+  final VoidCallback? onPressed;
+  final double? elevation;
+
+  const BtnPrimary({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.elevation,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +23,7 @@ class BtnPrimary extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
-        elevation: 4,
+        elevation: elevation ?? 4,
         shadowColor: primaryColor.withValues(alpha: 0.4),
       ),
       onPressed: onPressed,
