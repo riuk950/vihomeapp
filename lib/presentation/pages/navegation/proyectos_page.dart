@@ -17,7 +17,7 @@ class ProyectosPage extends StatefulWidget {
 class _ProyectosPageState extends State<ProyectosPage> {
   static const List<String?> _filters = [
     null,
-    'Sobre planos',
+    'Sobre Planos',
     'En Construcción',
     'Entrega Inmediata',
   ];
@@ -383,16 +383,18 @@ class _ProyectosPageState extends State<ProyectosPage> {
   }
 
   Color _getEstadoColor(String estado) {
-    switch (estado.toLowerCase()) {
-      case 'en construcción':
-      case 'en construccion':
-        return primaryColor;
-      case 'entrega inmediata':
-        return const Color(0xFF10B981); // emerald-500
-      case 'sobre planos':
-      default:
-        return const Color(0xFF6366F1); // indigo
+    final normEstado = estado.toLowerCase().trim();
+    if (normEstado.contains('construccion') ||
+        normEstado.contains('construcción')) {
+      return primaryColor;
     }
+    if (normEstado.contains('entrega inmediata')) {
+      return const Color(0xFF10B981); // emerald-500
+    }
+    if (normEstado.contains('sobre planos')) {
+      return const Color(0xFF6366F1); // indigo
+    }
+    return const Color(0xFF6366F1); // default indigo
   }
 
   String _formatCurrency(double amount) {

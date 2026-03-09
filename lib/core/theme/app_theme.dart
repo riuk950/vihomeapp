@@ -12,6 +12,7 @@ const disabledColor = Color.fromRGBO(143, 143, 143, 1);
 
 class AppTheme {
   static ThemeData get ligthTheme => ThemeData(
+        fontFamily: 'Lato',
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
         scaffoldBackgroundColor: backgroundColor,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
@@ -315,7 +316,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF137FEC),
+                      color: secondaryColor,
                     ),
                   ),
                   const SizedBox(height: 12),

@@ -16,6 +16,7 @@ import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
 import 'package:vihomeapp/presentation/providers/tenant_provider.dart';
+import 'package:vihomeapp/presentation/widgets/btn_primary.dart';
 
 class DetallesPropiedadesPage extends StatefulWidget {
   final Property property;
@@ -736,27 +737,8 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                     return Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {},
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              side: const BorderSide(color: Color(0xFF137FEC)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Contactar',
-                              style: TextStyle(
-                                color: Color(0xFF137FEC),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
+                          child: BtnPrimary(
+                            text: "Solicitar Arriendo",
                             onPressed: () async {
                               // Verificar si el arrendatario está verificado
                               if (!tenantProvider.isVerified) {
@@ -786,20 +768,6 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                                 _checkExistingApplication();
                               }
                             },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF137FEC),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Solicitar Arriendo',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                           ),
                         ),
                       ],

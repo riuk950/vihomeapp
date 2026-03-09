@@ -176,13 +176,6 @@ class _DetallesProyectoPageState extends State<DetallesProyectoPage> {
                   ),
                   const SizedBox(width: 4),
                 ],
-                title: const Text(
-                  'Detalles del proyecto',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     fit: StackFit.expand,

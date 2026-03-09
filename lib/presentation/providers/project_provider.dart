@@ -19,7 +19,21 @@ class ProjectProvider extends ChangeNotifier {
 
   List<Project> get filteredProjects {
     if (_selectedFilter == null) return _projects;
-    return _projects.where((p) => p.estado == _selectedFilter).toList();
+    final normalizedFilter = _normalize(_selectedFilter!);
+    return _projects
+        .where((p) => _normalize(p.estado) == normalizedFilter)
+        .toList();
+  }
+
+  String _normalize(String input) {
+    return input
+        .toLowerCase()
+        .trim()
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u');
   }
 
   Future<void> fetchProjects() async {
