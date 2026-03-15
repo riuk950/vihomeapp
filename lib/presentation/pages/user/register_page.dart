@@ -49,7 +49,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final metadata = <String, dynamic>{'role': _role};
 
     if (_nameController.text.isNotEmpty) {
-      metadata['name'] = _nameController.text;
+      metadata['full_name'] = _nameController.text;
     }
 
     final success = await authProvider.signUp(
@@ -116,7 +116,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(
-                        labelText: 'Nombre (opcional)',
+                        labelText: 'Nombre',
                         prefixIcon: Icon(Icons.person_outlined),
                         border: OutlineInputBorder(),
                       ),
@@ -142,7 +142,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         children: [
                           Expanded(
                             child: RadioListTile<String>(
-                              activeColor: secondaryColor,
+                              activeColor: primaryColor,
                               title: const Text('Arrendatario'),
                               value: 'arrendatario',
                               contentPadding: EdgeInsets.zero,
@@ -150,7 +150,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           Expanded(
                             child: RadioListTile<String>(
-                              activeColor: secondaryColor,
+                              activeColor: primaryColor,
                               title: const Text('Arrendador'),
                               value: 'arrendador',
                               contentPadding: EdgeInsets.zero,
@@ -269,7 +269,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       onPressed:
                           authProvider.isLoading ? null : _handleRegister,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: secondaryColor,
+                        backgroundColor: primaryColor,
                         foregroundColor: backgroundColor,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(

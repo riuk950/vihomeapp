@@ -125,4 +125,11 @@ class LandlordPropertiesProvider with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
+
+  void clear() {
+    _properties = [];
+    _errorMessage = null;
+    _isLoading = false;
+    notifyListeners();
+  }
 }

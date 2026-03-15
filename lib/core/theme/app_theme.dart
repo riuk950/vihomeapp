@@ -6,7 +6,7 @@ const terceraColor = Color.fromRGBO(0, 134, 255, 1);
 const cuartaColor = Color.fromRGBO(0, 165, 255, 1);
 const quintaColor = Color.fromRGBO(0, 191, 227, 1);
 const sextaColor = Color.fromRGBO(0, 255, 168, 1);
-const backgroundColor = Color.fromRGBO(242, 242, 242, 1);
+const backgroundColor = Color(0xFFF6F7F8);
 const textColor = Color.fromRGBO(0, 0, 0, 1);
 const disabledColor = Color.fromRGBO(143, 143, 143, 1);
 

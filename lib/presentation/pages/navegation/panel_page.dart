@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
+import 'package:vihomeapp/presentation/widgets/msn_user_complete.dart';
+import 'package:vihomeapp/presentation/widgets/msn_user_verificado.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/tenant_provider.dart';
 import '../../providers/landlord_provider.dart';
+import '../../providers/application_provider.dart';
 
 class PanelPage extends StatelessWidget {
   const PanelPage({super.key});
@@ -22,6 +27,18 @@ class PanelPage extends StatelessWidget {
         );
         if (landlordProvider.landlord == null && !landlordProvider.isLoading) {
           landlordProvider.loadLandlordProfile(user.id);
+        }
+
+        final appProvider = Provider.of<ApplicationProvider>(
+          context,
+          listen: false,
+        );
+        if (appProvider.applications.isEmpty && !appProvider.isLoading) {
+          if (user.role == 'arrendador') {
+            appProvider.fetchLandlordApplications(user.id);
+          } else {
+            appProvider.fetchTenantApplications(user.id);
+          }
         }
       });
     }
@@ -49,12 +66,12 @@ class PanelPage extends StatelessWidget {
             Container(
               width: double.infinity,
               color: backgroundColor,
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Bienvenido, ${user?.name ?? 'Usuario'}',
+                    'Bienvenido ${user?.role == 'arrendador' ? 'Arrendador' : 'Arrendatario'}',
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -62,6 +79,14 @@ class PanelPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
+                  Text(
+                    user?.email ?? 'Usuario',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
                   const Text(
                     'Gestiona tus propiedades y solicitudes',
                     style: TextStyle(fontSize: 16, color: Color(0xFF617589)),
@@ -69,7 +94,7 @@ class PanelPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
             // Verification Status Banner
             Consumer<LandlordProvider>(
@@ -81,115 +106,12 @@ class PanelPage extends StatelessWidget {
                 final isVerified = landlordProvider.isVerified;
 
                 if (isVerified) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD1FAE5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF10B981)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.verified_user,
-                          color: Color(0xFF10B981),
-                          size: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Perfil Verificado',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF065F46),
-                                ),
-                              ),
-                              Text(
-                                'Tu perfil está completo y verificado',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+                  return MsnUserVerificado();
                 } else {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3C7),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFD97706)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.warning_amber_rounded,
-                              color: Color(0xFFD97706),
-                              size: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Perfil Incompleto',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF92400E),
-                                    ),
-                                  ),
-                                  Text(
-                                    'Completa tu perfil para acceder a todas las funcionalidades',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[700],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              context.push('/complete-landlord-profile');
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF137FEC),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Completar Perfil',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  return MsnUserComplete(
+                    onPressed: () {
+                      context.push('/complete-landlord-profile');
+                    },
                   );
                 }
               },
@@ -280,8 +202,11 @@ class PanelPage extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Contracts Card
-            _buildContractsCard(context),
-            const SizedBox(height: 80),
+            //_buildContractsCard(context),
+            //const SizedBox(height: 16),
+
+            _buildMenuConfig(context),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -341,135 +266,145 @@ class PanelPage extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.user;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Para Arrendatarios y Arrendadores',
-            style: TextStyle(fontSize: 12, color: disabledColor),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Estado de Solicitudes',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Revisa las últimas actualizaciones de tus postulaciones.',
-            style: TextStyle(fontSize: 14, color: disabledColor),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF3C7),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Column(
-                    children: [
-                      Text(
-                        '2',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFD97706),
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Pendientes',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF92400E),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD1FAE5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Column(
-                    children: [
-                      Text(
-                        '1',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF10B981),
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Aprobada',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF065F46),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEE2E2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Column(
-                    children: [
-                      Text(
-                        '0',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFEF4444),
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Rechazadas',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF991B1B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+    return Consumer<ApplicationProvider>(
+      builder: (context, appProvider, child) {
+        final apps = appProvider.applications;
+        final pendientes = apps.where((a) => a.estado.toLowerCase() == 'pendiente').length;
+        final aprobadas = apps.where((a) => a.estado.toLowerCase() == 'aceptada' || a.estado.toLowerCase() == 'aprobada').length;
+        final rechazadas = apps.where((a) => a.estado.toLowerCase() == 'rechazada').length;
+
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Para Arrendatarios y Arrendadores',
+                style: TextStyle(fontSize: 12, color: disabledColor),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Estado de Solicitudes',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Revisa las últimas actualizaciones de tus postulaciones.',
+                style: TextStyle(fontSize: 14, color: disabledColor),
+              ),
+              const SizedBox(height: 16),
+              if (appProvider.isLoading)
+                const Center(child: CircularProgressIndicator())
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              pendientes.toString(),
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFD97706),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Pendientes',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF92400E),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD1FAE5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              aprobadas.toString(),
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF10B981),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Aprobada',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF065F46),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEE2E2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              rechazadas.toString(),
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFEF4444),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Rechazadas',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF991B1B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -498,9 +433,68 @@ class PanelPage extends StatelessWidget {
         ],
       ),
     );
+  },
+);
+}
+
+  Widget _buildMenuConfig(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text('Administrar notificaciones'),
+            leading: Icon(Icons.notifications),
+            trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () {},
+          ),
+          Divider(),
+          ListTile(
+            title: Text('Terminos y condiciones'),
+            leading: Icon(Icons.description),
+            trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () {},
+          ),
+          Divider(),
+          ListTile(
+            title: Text('Politicas de tratamiento de datos'),
+            leading: Icon(Icons.description),
+            trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () {},
+          ),
+          Divider(),
+          ListTile(
+            title: Text('Preguntas frecuentes'),
+            leading: Icon(Icons.question_mark),
+            trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () {},
+          ),
+          Divider(),
+          ListTile(
+            title: Text('Cerrar Sesión'),
+            leading: Icon(Icons.logout),
+            trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              _handleLogout(context);
+            },
+          ),
+        ],
+      ),
+    );
   }
 
-  Widget _buildContractsCard(BuildContext context) {
+  /* Widget _buildContractsCard(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -622,5 +616,54 @@ class PanelPage extends StatelessWidget {
         ],
       ),
     );
+  } */
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cerrar Sesión'),
+        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Cerrar Sesión',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && context.mounted) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final tenantProvider = Provider.of<TenantProvider>(context, listen: false);
+      final landlordProvider = Provider.of<LandlordProvider>(context, listen: false);
+      final appProvider = Provider.of<ApplicationProvider>(context, listen: false);
+      
+      try {
+        // Aseguramos que la sesión se cierre a nivel de Supabase
+        await Supabase.instance.client.auth.signOut();
+      } catch (e) {
+        debugPrint('Error al cerrar sesión en Supabase: $e');
+      }
+      
+      // Limpiar el estado local de los demás Providers para la próxima sesión
+      tenantProvider.clear();
+      landlordProvider.clear();
+      appProvider.clear();
+      
+      // Cerramos sesión a nivel de aplicación (Provider)
+      await authProvider.signOut();
+      
+      if (context.mounted) {
+        context.go('/login');
+      }
+    }
   }
 }

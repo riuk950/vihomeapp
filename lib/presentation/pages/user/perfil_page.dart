@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
+import 'package:vihomeapp/presentation/widgets/msn_user_complete.dart';
+import 'package:vihomeapp/presentation/widgets/msn_user_verificado.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/tenant_provider.dart';
+import '../../providers/landlord_provider.dart';
+import '../../providers/application_provider.dart';
 
 class PerfilPage extends StatelessWidget {
   const PerfilPage({super.key});
@@ -48,65 +53,45 @@ class PerfilPage extends StatelessWidget {
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(height: 16),
-
                   // Profile Section
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 0.0),
                     child: Column(
                       children: [
-                        Stack(
-                          children: [
-                            Container(
-                              width: 128,
-                              height: 128,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                image: const DecorationImage(
-                                  image: NetworkImage(
-                                    'https://lh3.googleusercontent.com/aida-public/AB6AXuCa994hCGiSvSBlNhl3T38mNipsWwcEtz22gbTJiZ5uiVt2_-u4sku5W9Pc4orSXyGqvbfoBfoUTEdJ1ZunY4Wbp0GrzlyQ8TVJj9F6KcaZKCa3NPNw8U-OuH-CPzLtAf-4Gskjcw_Jpe0t16jPc1YLMCnyhZKpbQRkY0RsEsb2NVDXn_3oWx-AAFX_hl5rBngn7Ry7vb02aBxbrTtnXvX4jYVLWJ89xj86r-dCANtOwFY9ileA-OSQDNMY6I8o-PSxh6eIbrcL3kc',
-                                  ),
-                                  fit: BoxFit.cover,
-                                ),
-                                color: Colors.grey[300],
-                              ),
-                              // Fallback if image fails (though NetworkImage doesn't have simple fallback param,
-                              // in real app we'd use CachedNetworkImage or handle error)
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: primaryColor, // primary
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: const Color(0xFFF6F7F8),
-                                    width: 2,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.edit,
-                                  color: Colors.white,
-                                  size: 20,
+                        Container(
+                          width: double.infinity,
+                          color: Color(0xFFF6F7F8),
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Bienvenido ${user?.role == 'arrendatario' ? 'Arrendatario' : 'Propietario'}',
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: textColor,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        const SizedBox(height: 16),
-                        Text(
-                          user?.name ?? 'usuario@email.com', // Mock Name
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
+                              const SizedBox(height: 8),
+                              Text(
+                                user?.email ?? 'Usuario',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: textColor,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Gestiona tus propiedades y solicitudes',
+                                style: TextStyle(
+                                    fontSize: 16, color: Color(0xFF617589)),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 8),
                         if (user?.role == 'arrendatario') ...[
                           Consumer<TenantProvider>(
                             builder: (context, tenantProvider, child) {
@@ -122,87 +107,17 @@ class PerfilPage extends StatelessWidget {
 
                               final isVerified = tenantProvider.isVerified;
 
-                              return Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        isVerified
-                                            ? Icons.verified_user
-                                            : Icons.warning_amber_rounded,
-                                        color: isVerified
-                                            ? Colors.green
-                                            : Colors.orange,
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        isVerified
-                                            ? 'Arrendatario Verificado'
-                                            : 'Arrendatario no verificado',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (!isVerified) ...[
-                                    const SizedBox(height: 16),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          context.push('/complete-profile');
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: primaryColor,
-                                          foregroundColor: Colors.white,
-                                          elevation: 0,
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 12,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          'Completar Perfil',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
+                              if (isVerified) {
+                                return MsnUserVerificado();
+                              } else {}
+                              return MsnUserComplete(
+                                onPressed: () {
+                                  context.push('/complete-profile');
+                                },
                               );
                             },
                           ),
-                        ] else ...[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.verified_user,
-                                color: Colors.green,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Usuario Verificado',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                        const SizedBox(height: 16),
+                        ]
                       ],
                     ),
                   ),
@@ -210,7 +125,7 @@ class PerfilPage extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Last Activity Card
-                  Padding(
+                  /*  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Container(
                       decoration: BoxDecoration(
@@ -311,7 +226,7 @@ class PerfilPage extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 24), */
 
                   // Become Landlord Banner
                   Padding(
@@ -394,7 +309,6 @@ class PerfilPage extends StatelessWidget {
                     Icons.notifications_none,
                     'Notificaciones',
                   ),
-
                   const Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: 16.0,
@@ -402,13 +316,56 @@ class PerfilPage extends StatelessWidget {
                     ),
                     child: Divider(),
                   ),
-
                   _buildMenuOption(
                     context,
                     Icons.help_outline,
-                    'Ayuda y Soporte',
+                    'Preguntas Frecuentes',
                   ),
-                  const SizedBox(height: 32),
+                  _buildMenuOption(
+                    context,
+                    Icons.description_outlined,
+                    'Terminos y Condiciones',
+                  ),
+                  _buildMenuOption(
+                    context,
+                    Icons.description_outlined,
+                    'Politicas de tratamiento de datos',
+                  ),
+                  // Logout Option
+                  InkWell(
+                    onTap: () => _handleLogout(context),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 12.0,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.logout, color: Colors.red),
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Text(
+                              'Cerrar sesión',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.red,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
             );
@@ -416,6 +373,55 @@ class PerfilPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Cerrar sesión',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && context.mounted) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final tenantProvider = Provider.of<TenantProvider>(context, listen: false);
+      final landlordProvider = Provider.of<LandlordProvider>(context, listen: false);
+      final appProvider = Provider.of<ApplicationProvider>(context, listen: false);
+      
+      try {
+        // Aseguramos que la sesión se cierre a nivel de Supabase
+        await Supabase.instance.client.auth.signOut();
+      } catch (e) {
+        debugPrint('Error al cerrar sesión en Supabase: $e');
+      }
+      
+      // Limpiar el estado local de los demás Providers para la próxima sesión
+      tenantProvider.clear();
+      landlordProvider.clear();
+      appProvider.clear();
+      
+      // Cerramos sesión a nivel de aplicación (Provider)
+      await authProvider.signOut();
+      
+      if (context.mounted) {
+        context.go('/login');
+      }
+    }
   }
 
   Widget _buildMenuOption(

@@ -129,4 +129,12 @@ class ApplicationProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  void clear() {
+    _applications = [];
+    _errorMessage = null;
+    _isLoading = false;
+    _currentFilter = 'Todas';
+    notifyListeners();
+  }
 }

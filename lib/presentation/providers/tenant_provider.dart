@@ -79,4 +79,11 @@ class TenantProvider with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
+
+  void clear() {
+    _tenant = null;
+    _errorMessage = null;
+    _isLoading = false;
+    notifyListeners();
+  }
 }

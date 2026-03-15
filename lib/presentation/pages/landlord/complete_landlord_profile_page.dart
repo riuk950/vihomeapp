@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/presentation/widgets/widgets.dart';
 import '../../../domain/entities/landlord.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/landlord_provider.dart';
@@ -233,37 +234,10 @@ class _CompleteLandlordProfilePageState
                       ),
                     ],
                     const SizedBox(height: 32),
-                    ElevatedButton(
-                      onPressed: landlordProvider.isLoading
-                          ? null
-                          : _handleSave,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF137FEC),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: landlordProvider.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : const Text(
-                              'Guardar Información',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
+                    BtnPrimary(
+                        text: 'Guardar',
+                        onPressed:
+                            landlordProvider.isLoading ? null : _handleSave),
                   ],
                 );
               },

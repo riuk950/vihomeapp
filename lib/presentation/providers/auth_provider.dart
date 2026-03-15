@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/auth/get_current_user_usecase.dart';
 import '../../domain/usecases/auth/sign_in_usecase.dart';
@@ -119,16 +120,22 @@ class AuthProvider with ChangeNotifier {
       result.fold(
         (failure) {
           _setError(failure.message);
-          _setLoading(false);
         },
-        (_) {
-          _user = null;
-          _setLoading(false);
-        },
+        (_) {},
       );
     } catch (e) {
       _setError(e.toString());
+    } finally {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+      } catch (e) {
+        debugPrint('Error al limpiar caché: $e');
+      }
+      
+      _user = null;
       _setLoading(false);
+      notifyListeners();
     }
   }
 

@@ -73,4 +73,11 @@ class LandlordProvider with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
+
+  void clear() {
+    _landlord = null;
+    _errorMessage = null;
+    _isLoading = false;
+    notifyListeners();
+  }
 }
