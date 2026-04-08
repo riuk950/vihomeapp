@@ -410,6 +410,12 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
   }
 
   Widget _buildAmenities() {
+    final amenidades = widget.property.amenidades;
+
+    if (amenidades == null || amenidades.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -420,23 +426,45 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
               fontWeight: FontWeight.bold,
               color: Color(0xFF1E293B)),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 12),
         GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: 2,
           childAspectRatio: 3.5,
-          children: [
-            _buildAmenityItem(Icons.pool, 'Alberca'),
-            _buildAmenityItem(Icons.fitness_center, 'Gimnasio'),
-            _buildAmenityItem(Icons.local_parking, 'Estacionamiento'),
-            _buildAmenityItem(Icons.pets, 'Mascotas'),
-            _buildAmenityItem(Icons.balcony, 'Balcón'),
-            _buildAmenityItem(Icons.security, 'Seguridad 24/7'),
-          ],
+          children: amenidades.map<Widget>((amenidad) {
+            String label = 'Amenidad';
+            String logoString = '';
+
+            if (amenidad is Map) {
+              label = amenidad['id_amenidad']?.toString() ?? 'Amenidad';
+              logoString = amenidad['logo']?.toString() ?? '';
+            } else if (amenidad is String) {
+              label = amenidad;
+            }
+
+            return _buildAmenityItem(_getAmenityIcon(logoString), label);
+          }).toList(),
         ),
       ],
     );
+  }
+
+  IconData _getAmenityIcon(String name) {
+    switch (name.trim().toLowerCase()) {
+      case 'pool':
+        return Icons.pool;
+      case 'fitness_center':
+        return Icons.fitness_center;
+      case 'security_outlined':
+        return Icons.security_outlined;
+      case 'park_outlined':
+        return Icons.park_outlined;
+      case 'local_parking_outlined':
+        return Icons.local_parking_outlined;
+      default:
+        return Icons.check_circle_outline;
+    }
   }
 
   Widget _buildLandlordProfile() {
@@ -709,9 +737,13 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
     return Row(
       children: [
         Icon(icon, size: 20, color: const Color(0xFF64748B)),
-        const SizedBox(width: 12),
-        Text(label,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF475569))),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(label,
+              style: const TextStyle(fontSize: 14, color: Color(0xFF475569)),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis),
+        ),
       ],
     );
   }

@@ -15,7 +15,7 @@ import 'package:vihomeapp/presentation/pages/tenant/detalle_solicitud_page.dart'
 import 'package:vihomeapp/presentation/pages/tenant/informacion_personal_tenant_page.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/pages/landlord/detalle_solicitud_arrendador_page.dart';
-import 'package:vihomeapp/presentation/pages/propiedades/detalles_proyecto_page.dart';
+import 'package:vihomeapp/presentation/pages/proyectos/detalles_proyecto_page.dart';
 import 'package:vihomeapp/domain/entities/project.dart';
 
 GoRouter createAppRouter() {

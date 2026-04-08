@@ -3,3 +3,4 @@ export './property.dart';
 export './tenant.dart';
 export './user.dart';
 export './constructora.dart';
+export './amenidad.dart';

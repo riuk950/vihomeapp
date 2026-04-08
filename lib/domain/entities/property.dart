@@ -19,6 +19,7 @@ class Property {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<String> fotos;
+  final List<dynamic>? amenidades;
 
   const Property({
     required this.id,
@@ -41,5 +42,6 @@ class Property {
     required this.createdAt,
     required this.updatedAt,
     this.fotos = const [],
+    this.amenidades,
   });
 }

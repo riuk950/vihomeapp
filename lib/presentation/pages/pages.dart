@@ -2,7 +2,7 @@ export 'navegation/home_page.dart';
 export 'splash_screen.dart';
 export 'navegation/arriendos_page.dart';
 export 'navegation/ventas_page.dart';
-export 'navegation/proyectos_page.dart';
+export 'proyectos/proyectos_page.dart';
 export 'user/perfil_page.dart';
 export 'user/login_page.dart';
 export 'user/register_page.dart';

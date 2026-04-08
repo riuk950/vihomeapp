@@ -52,7 +52,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
         centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add, color: Color(0xFF137FEC)),
+            icon: const Icon(Icons.add, color: primaryColor),
             onPressed: () {
               context.push('/crear-propiedad');
             },
@@ -103,7 +103,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.home_outlined, size: 80, color: Colors.grey[400]),
+                  Icon(Icons.home_outlined, size: 80, color: primaryColor),
                   const SizedBox(height: 16),
                   Text(
                     'No tienes propiedades registradas',
@@ -116,7 +116,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                   const SizedBox(height: 8),
                   Text(
                     'Agrega tu primera propiedad para comenzar',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 14, color: secondaryColor),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
@@ -126,7 +126,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                     icon: const Icon(Icons.add),
                     label: const Text('Agregar Propiedad'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF137FEC),
+                      backgroundColor: primaryColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,

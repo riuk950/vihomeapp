@@ -22,6 +22,7 @@ class PropertyModel extends Property {
     required super.createdAt,
     required super.updatedAt,
     super.fotos,
+    super.amenidades,
   });
 
   factory PropertyModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +51,7 @@ class PropertyModel extends Property {
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
       fotos: json['fotos'] != null ? List<String>.from(json['fotos']) : [],
+      amenidades: json['amenidades'] as List<dynamic>?,
     );
   }
 
@@ -75,6 +77,7 @@ class PropertyModel extends Property {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'fotos': fotos,
+      'amenidades': amenidades,
     };
   }
 }

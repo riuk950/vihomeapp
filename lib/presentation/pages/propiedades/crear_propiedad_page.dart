@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vihomeapp/data/models/amenidad_model.dart';
 
 class CrearPropiedadPage extends StatefulWidget {
   const CrearPropiedadPage({super.key});
@@ -29,7 +31,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
   final _banosController = TextEditingController();
   final _metrosCuadradosController = TextEditingController();
 
-  String _tipoPropiedad = 'Casa';
+  String? _tipoPropiedad;
   String _estado = 'arriendo'; // Added state variable
   bool _publicado = true;
   double? _lat;
@@ -37,12 +39,68 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
   final List<File> _selectedImages = [];
   bool _isUploadingImages = false;
 
-  final List<String> _tiposPropiedad = [
-    'Casa',
-    'Apartamento',
-    'Oficina',
-    'Local',
-  ];
+  List<String> _tiposPropiedad = [];
+  bool _isLoadingTipos = true;
+
+  List<AmenidadModel> _amenidades = [];
+  bool _isLoadingAmenidades = true;
+  final List<String> _amenidadesSeleccionadas = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarTiposPropiedad();
+    _cargarAmenidades();
+  }
+
+  Future<void> _cargarAmenidades() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final response = await supabase.from('amenidades').select('*');
+      if (mounted) {
+        setState(() {
+          _amenidades = (response as List)
+              .map((e) => AmenidadModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+          _isLoadingAmenidades = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading amenidades: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingAmenidades = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _cargarTiposPropiedad() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final response =
+          await supabase.from('tipos_propiedad').select('propiedad');
+      if (mounted) {
+        setState(() {
+          _tiposPropiedad = (response as List)
+              .map((e) => e['propiedad']?.toString() ?? '')
+              .where((e) => e.isNotEmpty)
+              .toList();
+          if (_tiposPropiedad.isNotEmpty) {
+            _tipoPropiedad = _tiposPropiedad.first;
+          }
+          _isLoadingTipos = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading property types: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingTipos = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -111,7 +169,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
 
       final propertyData = {
         'arrendador_id': authProvider.user!.id,
-        'tipo_propiedad': _tipoPropiedad,
+        'tipo_propiedad': _tipoPropiedad ?? '',
         'titulo': _tituloController.text,
         'direccion': _direccionController.text,
         'ciudad': _ciudadController.text,
@@ -132,6 +190,10 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         'publicado': _publicado,
         'estado': _estado,
         'fotos': photoUrls,
+        'amenidades': _amenidades
+            .where((a) => _amenidadesSeleccionadas.contains(a.idAmenidad))
+            .map((a) => a.toJson())
+            .toList(),
       };
 
       final success = await landlordProvider.createProperty(propertyData);
@@ -159,18 +221,18 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F8),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111418)),
+          icon: const Icon(Icons.arrow_back, color: primaryColor),
           onPressed: () => context.pop(),
         ),
         title: const Text(
           'Nueva Propiedad',
           style: TextStyle(
-            color: Color(0xFF111418),
+            color: textColor,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -200,13 +262,20 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildDropdown(
-                              label: 'Tipo de Propiedad',
-                              value: _tipoPropiedad,
-                              items: _tiposPropiedad,
-                              onChanged: (v) =>
-                                  setState(() => _tipoPropiedad = v!),
-                            ),
+                            child: _isLoadingTipos
+                                ? const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
+                                : _buildDropdown(
+                                    label: 'Tipo de Propiedad',
+                                    value: _tipoPropiedad,
+                                    items: _tiposPropiedad,
+                                    onChanged: (v) =>
+                                        setState(() => _tipoPropiedad = v),
+                                  ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -312,6 +381,11 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                       ),
 
                       const SizedBox(height: 24),
+                      _buildSectionTitle('Amenidades'),
+                      const SizedBox(height: 16),
+                      _buildAmenidadesSelector(),
+
+                      const SizedBox(height: 24),
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -344,7 +418,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                             Switch(
                               value: _publicado,
                               onChanged: (v) => setState(() => _publicado = v),
-                              activeTrackColor: const Color(0xFF137FEC),
+                              activeTrackColor: primaryColor,
                             ),
                           ],
                         ),
@@ -359,8 +433,8 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                               ? null
                               : _submitForm,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF137FEC),
-                            foregroundColor: Colors.white,
+                            backgroundColor: primaryColor,
+                            foregroundColor: backgroundColor,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -398,7 +472,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
       style: const TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF111418),
+        color: textColor,
       ),
     );
   }
@@ -422,7 +496,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF111418),
+            color: textColor,
           ),
         ),
         const SizedBox(height: 8),
@@ -453,7 +527,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF137FEC)),
+              borderSide: const BorderSide(color: primaryColor),
             ),
           ),
         ),
@@ -463,7 +537,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
 
   Widget _buildDropdown({
     required String label,
-    required String value,
+    String? value,
     required List<String> items,
     required void Function(String?) onChanged,
   }) {
@@ -475,12 +549,12 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF111418),
+            color: textColor,
           ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          initialValue: value,
+          initialValue: items.contains(value) ? value : null,
           items: items.map((item) {
             return DropdownMenuItem(value: item, child: Text(item));
           }).toList(),
@@ -502,7 +576,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF137FEC)),
+              borderSide: const BorderSide(color: primaryColor),
             ),
           ),
         ),
@@ -519,7 +593,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF111418),
+            color: textColor,
           ),
         ),
         const SizedBox(height: 8),
@@ -545,7 +619,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.map, color: Color(0xFF137FEC)),
+                const Icon(Icons.map, color: primaryColor),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -633,7 +707,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: const Color(0xFF137FEC),
+                color: primaryColor,
                 style: BorderStyle.values[
                     1], // dashed emulation? No, solid is fine for now or use library for dashed
               ),
@@ -643,13 +717,13 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                 const Icon(
                   Icons.add_photo_alternate_outlined,
                   size: 48,
-                  color: Color(0xFF137FEC),
+                  color: primaryColor,
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Agregar Fotos',
                   style: TextStyle(
-                    color: Color(0xFF137FEC),
+                    color: primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -689,6 +763,60 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
           const SnackBar(content: Text('Error al seleccionar imágenes')),
         );
       }
+    }
+  }
+
+  Widget _buildAmenidadesSelector() {
+    if (_isLoadingAmenidades) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_amenidades.isEmpty) {
+      return const Text('No hay amenidades disponibles',
+          style: TextStyle(color: Colors.grey));
+    }
+
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 8.0,
+      children: _amenidades.map((amenidad) {
+        final isSelected =
+            _amenidadesSeleccionadas.contains(amenidad.idAmenidad);
+        IconData? iconData = _getAmenityIcon(amenidad.logo);
+
+        return FilterChip(
+          label: Text(amenidad.idAmenidad.trim()),
+          avatar: Icon(iconData,
+              size: 18,
+              color: isSelected ? Colors.white : primaryColor),
+          selected: isSelected,
+          selectedColor: primaryColor,
+          checkmarkColor: Colors.white,
+          labelStyle: TextStyle(
+            color: isSelected ? Colors.white : textColor,
+          ),
+          onSelected: (bool selected) {
+            setState(() {
+              if (selected) {
+                _amenidadesSeleccionadas.add(amenidad.idAmenidad);
+              } else {
+                _amenidadesSeleccionadas.remove(amenidad.idAmenidad);
+              }
+            });
+          },
+        );
+      }).toList(),
+    );
+  }
+
+  IconData _getAmenityIcon(String name) {
+    switch (name.trim().toLowerCase()) {
+      case 'pool': return Icons.pool;
+      case 'fitness_center': return Icons.fitness_center;
+      case 'security_outlined': return Icons.security_outlined;
+      case 'park_outlined': return Icons.park_outlined;
+      case 'local_parking_outlined': return Icons.local_parking_outlined;
+      default: return Icons.check_circle_outline;
     }
   }
 }

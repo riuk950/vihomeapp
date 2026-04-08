@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'arriendos_page.dart';
 import 'ventas_page.dart';
-import 'proyectos_page.dart';
+import '../proyectos/proyectos_page.dart';
 import '../user/perfil_page.dart';
 import 'panel_page.dart';
 import '../../providers/auth_provider.dart';
