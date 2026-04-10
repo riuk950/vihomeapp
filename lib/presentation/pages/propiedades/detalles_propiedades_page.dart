@@ -687,14 +687,26 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
               text: "Solicitar Arriendo",
               onPressed: () async {
                 if (!tenantProvider.isVerified) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                          'Debes completar tu perfil antes de solicitar un arriendo'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                  await context.push('/complete-profile');
+                  showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                            title: const Text('Perfil incompleto'),
+                            content: const Text(
+                                'Debes completar tu perfil antes de solicitar un arriendo'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancelar'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  context.push('/complete-profile');
+                                },
+                                child: const Text('Completar perfil'),
+                              ),
+                            ],
+                          ));
                 } else {
                   await context.push(
                     '/solicitud-arriendo',
@@ -721,7 +733,7 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
               color: Colors.grey[100], borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: const Color(0xFF137FEC)),
+          child: Icon(icon, color: primaryColor),
         ),
         const SizedBox(height: 8),
         Text(text,
@@ -736,12 +748,12 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
   Widget _buildAmenityItem(IconData icon, String label) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: const Color(0xFF64748B)),
-        const SizedBox(width: 8),
+        Icon(icon, size: 24, color: primaryColor),
+        const SizedBox(width: 10),
         Expanded(
           child: Text(label,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF475569)),
-              maxLines: 2,
+              style: const TextStyle(fontSize: 14, color: disabledColor),
+              maxLines: 1,
               overflow: TextOverflow.ellipsis),
         ),
       ],

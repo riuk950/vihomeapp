@@ -446,6 +446,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                 });
               },
               children: [
+                const SizedBox(height: 16),
                 _buildTextField(
                   controller: _empresaController,
                   label: 'Empresa donde trabaja',

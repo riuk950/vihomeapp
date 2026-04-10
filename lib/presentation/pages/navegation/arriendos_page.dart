@@ -37,7 +37,7 @@ class _ArriendosPageState extends State<ArriendosPage> {
         centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.map_outlined, color: Colors.black),
+            icon: const Icon(Icons.location_on, color: Colors.black),
             onPressed: () {
               context.push('/mapa');
             },
