@@ -14,4 +14,5 @@ abstract class PropertyRepository {
   Future<Either<Failure, Property>> updateProperty(
       String id, Map<String, dynamic> data);
   Future<Either<Failure, List<PropertyType>>> getPropertyTypes();
+  Future<Either<Failure, void>> deleteProperty(String id);
 }

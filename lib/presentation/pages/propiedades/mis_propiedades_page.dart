@@ -240,14 +240,21 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
             // Image
             Stack(
               children: [
-                Container(
-                  height: 180,
-                  width: double.infinity,
-                  color: Colors.grey[300],
-                  child: const Center(
-                    child: Icon(Icons.home, size: 50, color: Colors.grey),
-                  ),
-                ),
+                property.fotos.isNotEmpty
+                    ? Image.network(
+                        property.fotos.first,
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                    : Container(
+                        height: 180,
+                        width: double.infinity,
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: Icon(Icons.home, size: 50, color: Colors.grey),
+                        ),
+                      ),
                 // Status Badge
                 Positioned(
                   top: 12,
@@ -282,14 +289,43 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    property.titulo,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          property.titulo,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue, size: 22),
+                            constraints: const BoxConstraints(),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            onPressed: () {
+                              // TODO: Navegar a vista de edición
+                              // context.push('/editar-propiedad', extra: property);
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red, size: 22),
+                            constraints: const BoxConstraints(),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            onPressed: () {
+                              _confirmDeleteProperty(context, property);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -346,6 +382,53 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _confirmDeleteProperty(BuildContext context, Property property) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: const Text('Eliminar propiedad'),
+          content: Text(
+            '¿Estás seguro de que deseas eliminar "${property.titulo}"? Esta acción no se puede deshacer.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(ctx);
+                final provider = Provider.of<LandlordPropertiesProvider>(
+                  context,
+                  listen: false,
+                );
+                final success = await provider.deleteProperty(property.id);
+                if (success && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Propiedad eliminada exitosamente'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(provider.errorMessage ?? 'Error al eliminar la propiedad'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
     );
   }
 

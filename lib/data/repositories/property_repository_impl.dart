@@ -104,6 +104,22 @@ class PropertyRepositoryImpl implements PropertyRepository {
   }
 
   @override
+  Future<Either<Failure, void>> deleteProperty(String id) async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.deleteProperty(id);
+        return const Right(null);
+      } on ServerFailure catch (e) {
+        return Left(e);
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    } else {
+      return Left(NetworkFailure('No internet connection'));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<PropertyType>>> getPropertyTypes() async {
     if (await networkInfo.isConnected) {
       try {

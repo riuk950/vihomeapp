@@ -191,6 +191,9 @@ class _CompleteTenantProfilePageState extends State<CompleteTenantProfilePage> {
                         if (int.tryParse(value) == null) {
                           return 'Debe ser un número válido';
                         }
+                        if (value.length != 10) {
+                          return 'El número debe tener exactamente 10 dígitos';
+                        }
                         return null;
                       },
                     ),

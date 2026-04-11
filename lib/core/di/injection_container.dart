@@ -16,6 +16,7 @@ import '../../domain/repositories/application_repository.dart';
 //Casos de uso
 import '../../domain/usecases/usecases.dart';
 import '../../domain/usecases/property/get_property_types_usecase.dart';
+import '../../domain/usecases/property/delete_property_usecase.dart';
 
 //Servicios
 import '../../infrastructure/services/supabase_service.dart';
@@ -113,6 +114,9 @@ Future<void> setupDependencyInjection() async {
     () => UpdatePropertyUseCase(getIt<PropertyRepository>()),
   );
   getIt.registerLazySingleton(
+    () => DeletePropertyUseCase(getIt<PropertyRepository>()),
+  );
+  getIt.registerLazySingleton(
     () => GetTenantProfileUseCase(getIt<TenantRepository>()),
   );
   getIt.registerLazySingleton(
@@ -156,6 +160,7 @@ Future<void> setupDependencyInjection() async {
       getPropertiesByLandlordUseCase: getIt<GetPropertiesByLandlordUseCase>(),
       createPropertyUseCase: getIt<CreatePropertyUseCase>(),
       updatePropertyUseCase: getIt<UpdatePropertyUseCase>(),
+      deletePropertyUseCase: getIt<DeletePropertyUseCase>(),
     ),
   );
   getIt.registerFactory(

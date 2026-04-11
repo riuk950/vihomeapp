@@ -3,11 +3,13 @@ import '../../domain/entities/property.dart';
 import '../../domain/usecases/property/get_properties_by_landlord_usecase.dart';
 import '../../domain/usecases/property/create_property_usecase.dart';
 import '../../domain/usecases/property/update_property_usecase.dart';
+import '../../domain/usecases/property/delete_property_usecase.dart';
 
 class LandlordPropertiesProvider with ChangeNotifier {
   final GetPropertiesByLandlordUseCase getPropertiesByLandlordUseCase;
   final CreatePropertyUseCase createPropertyUseCase;
   final UpdatePropertyUseCase updatePropertyUseCase;
+  final DeletePropertyUseCase deletePropertyUseCase;
 
   List<Property> _properties = [];
   bool _isLoading = false;
@@ -25,6 +27,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
     required this.getPropertiesByLandlordUseCase,
     required this.createPropertyUseCase,
     required this.updatePropertyUseCase,
+    required this.deletePropertyUseCase,
   });
 
   Future<void> fetchPropertiesByLandlord(String landlordId) async {
@@ -99,6 +102,33 @@ class LandlordPropertiesProvider with ChangeNotifier {
           if (index != -1) {
             _properties[index] = updatedProperty;
           }
+          _setLoading(false);
+          notifyListeners();
+          return true;
+        },
+      );
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> deleteProperty(String id) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final result = await deletePropertyUseCase(id);
+
+      return result.fold(
+        (failure) {
+          _setError(failure.message);
+          _setLoading(false);
+          return false;
+        },
+        (_) {
+          _properties.removeWhere((p) => p.id == id);
           _setLoading(false);
           notifyListeners();
           return true;

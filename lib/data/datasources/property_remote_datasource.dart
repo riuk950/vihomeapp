@@ -10,6 +10,7 @@ abstract class PropertyRemoteDataSource {
   Future<PropertyModel> createProperty(Map<String, dynamic> propertyData);
   Future<PropertyModel> updateProperty(String id, Map<String, dynamic> data);
   Future<List<PropertyTypeModel>> getPropertyTypes();
+  Future<void> deleteProperty(String id);
 }
 
 class PropertyRemoteDataSourceImpl implements PropertyRemoteDataSource {
@@ -76,6 +77,18 @@ class PropertyRemoteDataSourceImpl implements PropertyRemoteDataSource {
           .select()
           .single();
       return PropertyModel.fromJson(response);
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
+  }
+
+  @override
+  Future<void> deleteProperty(String id) async {
+    try {
+      await supabaseService.client
+          .from('propiedades')
+          .delete()
+          .eq('id', id);
     } catch (e) {
       throw ServerFailure(e.toString());
     }
