@@ -407,14 +407,17 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                   listen: false,
                 );
                 final success = await provider.deleteProperty(property.id);
-                if (success && mounted) {
+                
+                if (!context.mounted) return;
+
+                if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Propiedad eliminada exitosamente'),
                       backgroundColor: Colors.green,
                     ),
                   );
-                } else if (mounted) {
+                } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(provider.errorMessage ?? 'Error al eliminar la propiedad'),
