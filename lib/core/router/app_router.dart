@@ -151,6 +151,11 @@ GoRouter createAppRouter() {
         builder: (context, state) => const SolicitudesArrendadorPage(),
       ),
       GoRoute(
+        path: '/notifications_landlord',
+        name: 'notifications_landlord',
+        builder: (context, state) => const NotificationsLandlordPage(),
+      ),
+      GoRoute(
         path: '/detalle-solicitud-arrendador',
         name: 'detalle-solicitud-arrendador',
         builder: (context, state) {

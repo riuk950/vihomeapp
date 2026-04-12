@@ -6,6 +6,8 @@ import '../../domain/usecases/auth/sign_in_usecase.dart';
 import '../../domain/usecases/auth/sign_out_usecase.dart';
 import '../../domain/usecases/auth/sign_up_usecase.dart';
 import '../../domain/usecases/auth/reset_password_usecase.dart';
+import '../../infrastructure/services/push_notification_service.dart';
+import '../../infrastructure/services/supabase_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final GetCurrentUserUseCase getCurrentUserUseCase;
@@ -39,6 +41,9 @@ class AuthProvider with ChangeNotifier {
       (failure) => _setError(failure.message),
       (user) {
         _user = user;
+        if (user != null) {
+          _syncToken(user);
+        }
         notifyListeners();
       },
     );
@@ -65,6 +70,7 @@ class AuthProvider with ChangeNotifier {
         },
         (user) {
           _user = user;
+          _syncToken(user);
           _setLoading(false);
           return true;
         },
@@ -99,6 +105,7 @@ class AuthProvider with ChangeNotifier {
         },
         (user) {
           _user = user;
+          _syncToken(user);
           _setLoading(false);
           return true;
         },
@@ -132,7 +139,7 @@ class AuthProvider with ChangeNotifier {
       } catch (e) {
         debugPrint('Error al limpiar caché: $e');
       }
-      
+
       _user = null;
       _setLoading(false);
       notifyListeners();
@@ -182,5 +189,21 @@ class AuthProvider with ChangeNotifier {
   void clearError() {
     _clearError();
   }
-}
 
+  Future<void> _syncToken(User user) async {
+    try {
+      final token = await PushNotificationService.getToken();
+      final client = SupabaseService.instance.client;
+      final userId = user.id;
+
+      // Actualizar tabla general 'profiles' con el fcm_token
+      // Se usa upsert para crear o actualizar el registro del token
+      await client.from('profiles').upsert({
+        'id': userId,
+        'fcm_token': token,
+      });
+    } catch (e) {
+      debugPrint("Error al sincronizar datos de usuario y fcm_token: $e");
+    }
+  }
+}

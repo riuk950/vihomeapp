@@ -8,6 +8,7 @@ class Landlord {
   final String direccionContacto;
   final String tipoDocumento;
   final String telefonoContacto;
+  final String? fcmToken;
 
   const Landlord({
     required this.id,
@@ -19,6 +20,7 @@ class Landlord {
     required this.direccionContacto,
     required this.tipoDocumento,
     required this.telefonoContacto,
+    this.fcmToken,
   });
 
   List<Object?> get props => [
@@ -31,5 +33,6 @@ class Landlord {
     direccionContacto,
     tipoDocumento,
     telefonoContacto,
+    fcmToken,
   ];
 }

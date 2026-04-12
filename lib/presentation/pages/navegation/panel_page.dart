@@ -457,7 +457,9 @@ class PanelPage extends StatelessWidget {
             title: Text('Administrar notificaciones'),
             leading: Icon(Icons.notifications),
             trailing: Icon(Icons.arrow_forward_ios),
-            onTap: () {},
+            onTap: () {
+              context.push('/notifications_landlord');
+            },
           ),
           Divider(),
           ListTile(

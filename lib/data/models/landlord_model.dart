@@ -11,6 +11,7 @@ class LandlordModel extends Landlord {
     required super.direccionContacto,
     required super.tipoDocumento,
     required super.telefonoContacto,
+    super.fcmToken,
   });
 
   factory LandlordModel.fromJson(Map<String, dynamic> json) {
@@ -24,6 +25,7 @@ class LandlordModel extends Landlord {
       direccionContacto: json['direccion_contacto'],
       tipoDocumento: json['tipo_documento'],
       telefonoContacto: json['telefono_contacto'],
+      fcmToken: json['fcm_token'],
     );
   }
 
@@ -38,6 +40,7 @@ class LandlordModel extends Landlord {
       'direccion_contacto': direccionContacto,
       'tipo_documento': tipoDocumento,
       'telefono_contacto': telefonoContacto,
+      'fcm_token': fcmToken,
     };
   }
 
@@ -52,6 +55,7 @@ class LandlordModel extends Landlord {
       direccionContacto: landlord.direccionContacto,
       tipoDocumento: landlord.tipoDocumento,
       telefonoContacto: landlord.telefonoContacto,
+      fcmToken: landlord.fcmToken,
     );
   }
 }
