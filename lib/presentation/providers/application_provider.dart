@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/domain/repositories/application_repository.dart';
+import 'package:vihomeapp/infrastructure/services/supabase_service.dart';
 
 class ApplicationProvider extends ChangeNotifier {
   final ApplicationRepository repository;
+  RealtimeChannel? _subscription;
 
   ApplicationProvider(this.repository);
 
@@ -53,12 +56,43 @@ class ApplicationProvider extends ChangeNotifier {
     try {
       final apps = await repository.getLandlordApplications(landlordId);
       _applications = List<Application>.from(apps);
+      
+      // Iniciar escucha en tiempo real después de la carga inicial
+      _subscribeToLandlordApplications(landlordId);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void _subscribeToLandlordApplications(String landlordId) {
+    // Cancelar suscripción previa si existe
+    _subscription?.unsubscribe();
+
+    final client = SupabaseService.instance.client;
+    
+    _subscription = client
+        .channel('public:solicitudes:arrendador:$landlordId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'solicitudes',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'arrendador_id',
+            value: landlordId,
+          ),
+          callback: (payload) async {
+            debugPrint('🔔 Nueva solicitud recibida en tiempo real!');
+            // Al recibir una inserción, volvemos a cargar para traer datos relacionados
+            final apps = await repository.getLandlordApplications(landlordId);
+            _applications = List<Application>.from(apps);
+            notifyListeners();
+          },
+        )
+        .subscribe();
   }
 
   Future<void> fetchTenantApplications(String tenantId) async {
@@ -131,6 +165,8 @@ class ApplicationProvider extends ChangeNotifier {
   }
 
   void clear() {
+    _subscription?.unsubscribe();
+    _subscription = null;
     _applications = [];
     _errorMessage = null;
     _isLoading = false;

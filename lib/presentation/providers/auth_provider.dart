@@ -193,11 +193,12 @@ class AuthProvider with ChangeNotifier {
   Future<void> _syncToken(User user) async {
     try {
       final token = await PushNotificationService.getToken();
+      if (token == null) return;
+
       final client = SupabaseService.instance.client;
       final userId = user.id;
 
-      // Actualizar tabla general 'profiles' con el fcm_token
-      // Se usa upsert para crear o actualizar el registro del token
+      // Sincronizar únicamente en la tabla general 'profiles' con los campos correctos
       await client.from('profiles').upsert({
         'id': userId,
         'fcm_token': token,

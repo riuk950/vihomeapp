@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'supabase_service.dart';
 
 // Esta función debe estar FUERA de cualquier clase para manejar notificaciones
 // en segundo plano o cuando la app está cerrada completamente.
@@ -11,9 +12,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class PushNotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
+  /// Callback opcional para manejar la navegación cuando el usuario toca una notificación.
+  /// Se puede configurar desde la capa de presentación.
+  static void Function(RemoteMessage message)? onNotificationTapped;
+
   static Future<void> initializeApp() async {
     if (Firebase.apps.isEmpty) {
-      debugPrint('ℹ️ FCM no instanciado: faltan credenciales (flutterfire configure)');
+      debugPrint(
+          'ℹ️ FCM no instanciado: faltan credenciales (flutterfire configure)');
       return;
     }
 
@@ -31,7 +37,8 @@ class PushNotificationService {
       sound: true,
     );
 
-    debugPrint('ℹ️ FCM Permisos otorgados status: ${settings.authorizationStatus}');
+    debugPrint(
+        'ℹ️ FCM Permisos otorgados status: ${settings.authorizationStatus}');
 
     // 3. Escuchar los mensajes en Foreground (cuando la app está abierta en pantalla)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -45,10 +52,23 @@ class PushNotificationService {
       }
     });
 
-    // 4. (Opcional) Detectar cuando el token se refresque para actualizarlo en Supabase
-    _messaging.onTokenRefresh.listen((newToken) {
+    // 4. Manejar cuando el usuario toca una notificación (app en background/minimizada)
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('📲 Notificación tocada (app en background): ${message.data}');
+      onNotificationTapped?.call(message);
+    });
+
+    // 5. Manejar cuando la app se abre desde una notificación (app completamente cerrada)
+    RemoteMessage? initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      debugPrint('📲 App abierta desde notificación: ${initialMessage.data}');
+      onNotificationTapped?.call(initialMessage);
+    }
+
+    // 6. Detectar cuando el token se refresque para actualizarlo en Supabase
+    _messaging.onTokenRefresh.listen((newToken) async {
       debugPrint("🔄 FCM Token ha sido refrescado: $newToken");
-      // Aquí se podría guardar nuevamente el token en bd.
+      await _syncRefreshedToken(newToken);
     });
   }
 
@@ -62,6 +82,27 @@ class PushNotificationService {
     } catch (e) {
       debugPrint('❌ Error obteniendo FCM token: $e');
       return null;
+    }
+  }
+
+  /// Sincroniza un token refrescado con la tabla profiles en Supabase.
+  static Future<void> _syncRefreshedToken(String newToken) async {
+    try {
+      final client = SupabaseService.instance.client;
+      final user = client.auth.currentUser;
+      if (user != null) {
+        final userId = user.id;
+
+        // Sincronizar únicamente en la tabla general 'profiles'
+        await client.from('profiles').upsert({
+          'id': userId,
+          'fcm_token': newToken,
+        });
+
+        debugPrint("✅ Token refrescado sincronizado únicamente en profiles");
+      }
+    } catch (e) {
+      debugPrint("❌ Error al sincronizar token refrescado: $e");
     }
   }
 }
