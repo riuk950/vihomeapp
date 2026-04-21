@@ -122,6 +122,13 @@ jobs:
       - name: Limpiar proyecto 🧹
         run: flutter clean
         working-directory: .
+      - name: Configurar firma de Android 🔑
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "storeFile=upload-keystore.jks" > android/key.properties
+          echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
       - name: Construir aplicación 🚀
         run: |
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
