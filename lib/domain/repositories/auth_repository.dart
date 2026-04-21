@@ -23,6 +23,9 @@ abstract class AuthRepository {
   /// Cierra sesión
   Future<Either<Failure, void>> signOut();
   
+  /// Inicia sesión con Google
+  Future<Either<Failure, User>> signInWithGoogle();
+  
   /// Solicita restablecimiento de contraseña
   Future<Either<Failure, void>> resetPassword(String email);
   

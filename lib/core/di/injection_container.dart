@@ -96,6 +96,9 @@ Future<void> setupDependencyInjection() async {
     () => GetCurrentUserUseCase(getIt<AuthRepository>()),
   );
   getIt.registerLazySingleton(() => SignInUseCase(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(
+    () => SignInWithGoogleUseCase(getIt<AuthRepository>()),
+  );
   getIt.registerLazySingleton(() => SignUpUseCase(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => SignOutUseCase(getIt<AuthRepository>()));
   getIt.registerLazySingleton(
@@ -144,6 +147,7 @@ Future<void> setupDependencyInjection() async {
     () => AuthProvider(
       getCurrentUserUseCase: getIt<GetCurrentUserUseCase>(),
       signInUseCase: getIt<SignInUseCase>(),
+      signInWithGoogleUseCase: getIt<SignInWithGoogleUseCase>(),
       signUpUseCase: getIt<SignUpUseCase>(),
       signOutUseCase: getIt<SignOutUseCase>(),
       resetPasswordUseCase: getIt<ResetPasswordUseCase>(),
