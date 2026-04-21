@@ -237,6 +237,10 @@ class _LoginPageState extends State<LoginPage> {
                       icon: Image.network(
                         'https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png',
                         height: 24,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Fallback para cuando no hay internet o en tests de widgets
+                          return const Icon(Icons.g_mobiledata, size: 30, color: Colors.blue);
+                        },
                       ),
                       label: const Text(
                         'Continuar con Google',
