@@ -129,6 +129,12 @@ jobs:
           echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
           echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
+      - name: Verificar archivos de firma (Debug) 🔍
+        run: |
+          echo "Contenido de android/:"
+          ls -l android/key.properties || echo "key.properties no encontrado"
+          echo "Contenido de android/app/:"
+          ls -l android/app/upload-keystore.jks || echo "keystore no encontrado"
       - name: Construir aplicación 🚀
         run: |
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
@@ -152,3 +158,19 @@ jobs:
           serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
           groups: testers
           file: build/app/outputs/flutter-apk/app-${{ env.FLAVOR }}-release.apk
+
+      - name: Construir App Bundle para Google Play 📦
+        if: env.FLAVOR == 'prod'
+        run: flutter build appbundle --flavor prod --release --target=lib/env/main.prod.dart
+        working-directory: .
+
+      - name: Subir a Google Play (Vía Interna) 🚀
+        if: env.FLAVOR == 'prod'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonRaw: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.vihomeapp.vihomeapp
+          releaseFiles: build/app/outputs/bundle/prodRelease/app-prod-release.aab
+          track: internal
+          status: completed
+
