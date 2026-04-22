@@ -171,6 +171,5 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.vihomeapp.vihomeapp
           releaseFiles: build/app/outputs/bundle/prodRelease/app-prod-release.aab
-          track: internal
+          tracks: internal
           status: completed
-
