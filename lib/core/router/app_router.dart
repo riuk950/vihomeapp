@@ -12,9 +12,11 @@ import 'package:vihomeapp/presentation/pages/pages.dart';
 import 'package:vihomeapp/presentation/pages/propiedades/detalles_propiedades_page.dart';
 import 'package:vihomeapp/presentation/pages/tenant/complete_tenant_profile_page.dart';
 import 'package:vihomeapp/presentation/pages/tenant/detalle_solicitud_page.dart';
-import 'package:vihomeapp/presentation/pages/user/informacion_personal_page.dart';
+import 'package:vihomeapp/presentation/pages/tenant/informacion_personal_tenant_page.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/pages/landlord/detalle_solicitud_arrendador_page.dart';
+import 'package:vihomeapp/presentation/pages/proyectos/detalles_proyecto_page.dart';
+import 'package:vihomeapp/domain/entities/project.dart';
 
 GoRouter createAppRouter() {
   return GoRouter(
@@ -131,7 +133,7 @@ GoRouter createAppRouter() {
       GoRoute(
         path: '/personal-info',
         name: 'personal-info',
-        builder: (context, state) => const InformacionPersonalPage(),
+        builder: (context, state) => const InformacionPersonalTenantPage(),
       ),
       GoRoute(
         path: '/personal-info-landlord',
@@ -147,6 +149,11 @@ GoRouter createAppRouter() {
         path: '/solicitudes-arrendador',
         name: 'solicitudes-arrendador',
         builder: (context, state) => const SolicitudesArrendadorPage(),
+      ),
+      GoRoute(
+        path: '/notifications_landlord',
+        name: 'notifications_landlord',
+        builder: (context, state) => const NotificationsLandlordPage(),
       ),
       GoRoute(
         path: '/detalle-solicitud-arrendador',
@@ -212,6 +219,20 @@ GoRouter createAppRouter() {
             );
           }
           return DetalleSolicitudPage(application: application);
+        },
+      ),
+      GoRoute(
+        path: '/proyecto-detalle',
+        name: 'proyecto-detalle',
+        builder: (context, state) {
+          final project = state.extra as Project?;
+          if (project == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Error')),
+              body: const Center(child: Text('Error: Proyecto no válido')),
+            );
+          }
+          return DetallesProyectoPage(project: project);
         },
       ),
     ],

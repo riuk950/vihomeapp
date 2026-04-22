@@ -65,16 +65,17 @@ class _DetalleSolicitudArrendadorPageState
               content: Text(
                 'Solicitud ${newStatus.toLowerCase()} exitosamente',
               ),
-              backgroundColor: newStatus == 'aceptada'
-                  ? Colors.green
-                  : Colors.red,
+              backgroundColor:
+                  newStatus == 'aceptada' ? Colors.green : Colors.red,
             ),
           );
           Navigator.pop(context); // Go back to list
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error al actualizar la solicitud'),
+            SnackBar(
+              content: Text(
+                'Error al actualizar: ${provider.errorMessage}',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -176,7 +177,6 @@ class _DetalleSolicitudArrendadorPageState
                                   color: Color(0xFF1E293B),
                                 ),
                               ),
-
                               Text(
                                 _tenant!.telefonoContacto,
                                 style: const TextStyle(

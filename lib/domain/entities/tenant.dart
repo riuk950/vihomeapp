@@ -8,6 +8,7 @@ class Tenant {
   final String direccionContacto;
   final String tipoDocumento;
   final String telefonoContacto;
+  final String? fcmToken;
 
   const Tenant({
     required this.id,
@@ -19,6 +20,7 @@ class Tenant {
     required this.direccionContacto,
     required this.tipoDocumento,
     required this.telefonoContacto,
+    this.fcmToken,
   });
 
   String get nombre => '$primerNombre $primerApellido';
@@ -33,5 +35,6 @@ class Tenant {
     direccionContacto,
     tipoDocumento,
     telefonoContacto,
+    fcmToken,
   ];
 }

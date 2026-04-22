@@ -1,6 +1,7 @@
 import '../../core/errors/failures.dart';
 import '../../core/utils/either.dart';
 import '../entities/property.dart';
+import '../../domain/entities/property_type.dart';
 
 abstract class PropertyRepository {
   Future<Either<Failure, List<Property>>> getProperties();
@@ -11,7 +12,7 @@ abstract class PropertyRepository {
     Map<String, dynamic> propertyData,
   );
   Future<Either<Failure, Property>> updateProperty(
-    String id,
-    Map<String, dynamic> data,
-  );
+      String id, Map<String, dynamic> data);
+  Future<Either<Failure, List<PropertyType>>> getPropertyTypes();
+  Future<Either<Failure, void>> deleteProperty(String id);
 }

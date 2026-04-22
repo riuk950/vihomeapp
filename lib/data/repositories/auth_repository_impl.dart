@@ -73,6 +73,18 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, User>> signInWithGoogle() async {
+    try {
+      final user = await remoteDataSource.signInWithGoogle();
+      return Right(user);
+    } on AuthFailure catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(AuthFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> resetPassword(String email) async {
     try {
       await remoteDataSource.resetPassword(email);
@@ -109,4 +121,3 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 }
-

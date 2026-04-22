@@ -6,14 +6,14 @@ import '../../../domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class BuscarPage extends StatefulWidget {
-  const BuscarPage({super.key});
+class ArriendosPage extends StatefulWidget {
+  const ArriendosPage({super.key});
 
   @override
-  State<BuscarPage> createState() => _BuscarPageState();
+  State<ArriendosPage> createState() => _ArriendosPageState();
 }
 
-class _BuscarPageState extends State<BuscarPage> {
+class _ArriendosPageState extends State<ArriendosPage> {
   @override
   void initState() {
     super.initState();
@@ -26,17 +26,18 @@ class _BuscarPageState extends State<BuscarPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
+      drawerScrimColor: backgroundColor,
       appBar: AppBar(
         title: const Text(
-          'Explorar',
+          'Arriendos',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         backgroundColor: backgroundColor,
-        elevation: 0,
+        shadowColor: backgroundColor,
         centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.map_outlined, color: Colors.black),
+            icon: const Icon(Icons.location_on, color: Colors.black),
             onPressed: () {
               context.push('/mapa');
             },
@@ -50,7 +51,7 @@ class _BuscarPageState extends State<BuscarPage> {
       body: Column(
         children: [
           // Search Bar
-          Padding(
+          /* Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               decoration: InputDecoration(
@@ -66,50 +67,72 @@ class _BuscarPageState extends State<BuscarPage> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
             ),
-          ),
+          ), */
+          const SizedBox(height: 10),
 
           // Filters
           SizedBox(
             height: 50,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildFilterChip('Todos', true),
-                _buildFilterChip('Casa', false),
-                _buildFilterChip('Apartamento', false),
-                _buildFilterChip('Oficina', false),
-              ],
+            child: Consumer<PropertyProvider>(
+              builder: (context, provider, child) {
+                return ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _buildFilterChip(
+                      'Todas',
+                      provider.selectedType == null,
+                      () => provider.selectType(null),
+                    ),
+                    ...provider.propertyTypes.map(
+                      (type) => _buildFilterChip(
+                        type.nombre,
+                        provider.selectedType == type,
+                        () => provider.selectType(type),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
-
-          const SizedBox(height: 10),
 
           // Property List
           Expanded(
             child: Consumer<PropertyProvider>(
               builder: (context, propertyProvider, child) {
-                if (propertyProvider.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                final arriendosProperties = propertyProvider.properties
+                    .where((p) => p.estado == 'arriendo')
+                    .toList();
+
+                if (propertyProvider.isLoading &&
+                    propertyProvider.propertyTypes.isEmpty) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: primaryColor),
+                  );
                 }
 
                 if (propertyProvider.errorMessage != null) {
                   return Center(child: Text(propertyProvider.errorMessage!));
                 }
 
-                if (propertyProvider.properties.isEmpty) {
+                if (arriendosProperties.isEmpty) {
                   return const Center(
-                    child: Text('No se encontraron propiedades'),
-                  );
+                      child: Text('No se encontraron propiedades'));
                 }
 
                 return RefreshIndicator(
-                  onRefresh: () => propertyProvider.fetchProperties(),
+                  color: primaryColor,
+                  backgroundColor: backgroundColor,
+                  onRefresh: () async {
+                    propertyProvider.fetchProperties();
+                    propertyProvider.fetchPropertyTypes();
+                  },
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: propertyProvider.properties.length,
+                    itemCount: arriendosProperties.length,
                     itemBuilder: (context, index) {
-                      final property = propertyProvider.properties[index];
+                      final property = arriendosProperties[index];
                       return _buildPropertyCard(context, property);
                     },
                   ),
@@ -122,21 +145,28 @@ class _BuscarPageState extends State<BuscarPage> {
     );
   }
 
-  Widget _buildFilterChip(String label, bool isSelected) {
+  Widget _buildFilterChip(
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
-      child: Chip(
-        label: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Chip(
+          label: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
-        ),
-        backgroundColor: isSelected ? Colors.blue : Colors.grey[200],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide.none,
+          backgroundColor: isSelected ? primaryColor : Colors.grey[200],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide.none,
+          ),
         ),
       ),
     );
@@ -179,8 +209,10 @@ class _BuscarPageState extends State<BuscarPage> {
                           height: 180,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) =>
-                              const Center(child: CircularProgressIndicator()),
+                          placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator(
+                            color: primaryColor,
+                          )),
                           errorWidget: (context, url, error) => Container(
                             color: Colors.grey[300],
                             child: const Icon(

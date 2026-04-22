@@ -1,14 +1,19 @@
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/auth/get_current_user_usecase.dart';
 import '../../domain/usecases/auth/sign_in_usecase.dart';
+import '../../domain/usecases/auth/sign_in_with_google_usecase.dart';
 import '../../domain/usecases/auth/sign_out_usecase.dart';
 import '../../domain/usecases/auth/sign_up_usecase.dart';
 import '../../domain/usecases/auth/reset_password_usecase.dart';
+import '../../infrastructure/services/push_notification_service.dart';
+import '../../infrastructure/services/supabase_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final GetCurrentUserUseCase getCurrentUserUseCase;
   final SignInUseCase signInUseCase;
+  final SignInWithGoogleUseCase signInWithGoogleUseCase;
   final SignUpUseCase signUpUseCase;
   final SignOutUseCase signOutUseCase;
   final ResetPasswordUseCase resetPasswordUseCase;
@@ -25,6 +30,7 @@ class AuthProvider with ChangeNotifier {
   AuthProvider({
     required this.getCurrentUserUseCase,
     required this.signInUseCase,
+    required this.signInWithGoogleUseCase,
     required this.signUpUseCase,
     required this.signOutUseCase,
     required this.resetPasswordUseCase,
@@ -38,6 +44,9 @@ class AuthProvider with ChangeNotifier {
       (failure) => _setError(failure.message),
       (user) {
         _user = user;
+        if (user != null) {
+          _syncToken(user);
+        }
         notifyListeners();
       },
     );
@@ -64,6 +73,34 @@ class AuthProvider with ChangeNotifier {
         },
         (user) {
           _user = user;
+          _syncToken(user);
+          _setLoading(false);
+          return true;
+        },
+      );
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> signInWithGoogle() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final result = await signInWithGoogleUseCase();
+
+      return result.fold(
+        (failure) {
+          _setError(failure.message);
+          _setLoading(false);
+          return false;
+        },
+        (user) {
+          _user = user;
+          _syncToken(user);
           _setLoading(false);
           return true;
         },
@@ -98,6 +135,7 @@ class AuthProvider with ChangeNotifier {
         },
         (user) {
           _user = user;
+          _syncToken(user);
           _setLoading(false);
           return true;
         },
@@ -119,16 +157,22 @@ class AuthProvider with ChangeNotifier {
       result.fold(
         (failure) {
           _setError(failure.message);
-          _setLoading(false);
         },
-        (_) {
-          _user = null;
-          _setLoading(false);
-        },
+        (_) {},
       );
     } catch (e) {
       _setError(e.toString());
+    } finally {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+      } catch (e) {
+        debugPrint('Error al limpiar caché: $e');
+      }
+
+      _user = null;
       _setLoading(false);
+      notifyListeners();
     }
   }
 
@@ -175,5 +219,24 @@ class AuthProvider with ChangeNotifier {
   void clearError() {
     _clearError();
   }
-}
 
+  Future<void> _syncToken(User user) async {
+    try {
+      final token = await PushNotificationService.getToken();
+      if (token == null) return;
+
+      final client = SupabaseService.instance.client;
+      final userId = user.id;
+
+      // Sincronizar únicamente en la tabla general 'profiles' con los campos correctos
+      await client.from('profiles').upsert({
+        'id': userId,
+        'fcm_token': token,
+        'email': user.email,
+        'full_name': user.name,
+      });
+    } catch (e) {
+      debugPrint("Error al sincronizar datos de usuario y fcm_token: $e");
+    }
+  }
+}

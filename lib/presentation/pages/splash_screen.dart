@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../providers/auth_provider.dart';
@@ -49,26 +50,13 @@ class _SplashScreenState extends State<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Logo o icono de la app
-              Icon(
-                Icons.home,
-                size: 100,
-                color: Colors.white,
-              ),
-              const SizedBox(height: 24),
-              // Nombre de la app
-              Text(
-                'Vihome',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 48),
-              // Indicador de carga
-              CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              SizedBox(
+                width: 300,
+                height: 300,
+                child: Center(
+                    widthFactor: 0.5,
+                    heightFactor: 0.5,
+                    child: Lottie.asset('assets/lottie/lottievihome.json')),
               ),
             ],
           ),

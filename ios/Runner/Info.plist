@@ -53,5 +53,15 @@
 		<string>Esta aplicación necesita acceso a tu ubicación para mostrarte propiedades cercanas.</string>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>remote-notification</string>
+		</array>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>whatsapp</string>
+			<string>https</string>
+		</array>
 	</dict>
 </plist>

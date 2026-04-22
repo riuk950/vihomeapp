@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
+import 'package:vihomeapp/core/di/injection_container.dart';
+import 'package:vihomeapp/domain/usecases/landlord/get_landlord_profile_usecase.dart';
 
 class DetalleSolicitudPage extends StatelessWidget {
   final Application application;
@@ -19,10 +21,11 @@ class DetalleSolicitudPage extends StatelessWidget {
 
     switch (application.estado.toLowerCase()) {
       case 'aprobada':
+      case 'aceptada':
         statusColor = Colors.green;
         statusBgColor = Colors.green.withValues(alpha: 0.1);
         statusIcon = Icons.check_circle;
-        statusTitle = 'Solicitud Aprobada';
+        statusTitle = 'Solicitud Aceptada';
         statusDesc =
             '¡Felicidades! Tu solicitud ha sido aprobada. El arrendador se pondrá en contacto pronto.';
         break;
@@ -234,6 +237,13 @@ class DetalleSolicitudPage extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
+                  if (application.estado.toLowerCase() == 'aceptada' ||
+                      application.estado.toLowerCase() == 'aprobada')
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 24.0),
+                      child: _ContactWhatsAppButton(application: application),
+                    ),
+
                   // Application Info
                   const Text(
                     'Información de la postulación',
@@ -355,7 +365,10 @@ class DetalleSolicitudPage extends StatelessWidget {
                           trailing: IconButton(
                             icon: const Icon(Icons.remove_red_eye_outlined),
                             onPressed: () {
-                              launchUrl(Uri.parse(url));
+                              launchUrl(
+                                Uri.parse(url),
+                                mode: LaunchMode.externalApplication,
+                              );
                             },
                           ),
                         ),
@@ -404,6 +417,116 @@ class DetalleSolicitudPage extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ContactWhatsAppButton extends StatefulWidget {
+  final Application application;
+
+  const _ContactWhatsAppButton({required this.application});
+
+  @override
+  State<_ContactWhatsAppButton> createState() => _ContactWhatsAppButtonState();
+}
+
+class _ContactWhatsAppButtonState extends State<_ContactWhatsAppButton> {
+  String? _phone;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLandlordPhone();
+  }
+
+  Future<void> _fetchLandlordPhone() async {
+    try {
+      final useCase = getIt<GetLandlordProfileUseCase>();
+      final result = await useCase(widget.application.arrendadorId);
+      result.fold(
+        (failure) {
+          debugPrint(
+              'Error obteniendo perfil del arrendador: \${failure.message}');
+          if (mounted) setState(() => _isLoading = false);
+        },
+        (landlord) {
+          if (mounted) {
+            setState(() {
+              // Extraer solo dígitos del teléfono obtenido
+              String phoneRaw =
+                  landlord.telefonoContacto.replaceAll(RegExp(r'\D'), '');
+              // Si no tiene el código de país (57), agregarlo por precaución
+              if (phoneRaw.isNotEmpty &&
+                  !phoneRaw.startsWith('57') &&
+                  phoneRaw.length == 10) {
+                phoneRaw = '57\$phoneRaw';
+              }
+              _phone = phoneRaw;
+              _isLoading = false;
+              debugPrint('Teléfono del arrendador obtenido: \$_phone');
+            });
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint('Excepción al obtener teléfono del arrendador: \$e');
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () async {
+          if (_phone == null || _phone!.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Número de contacto no disponible')),
+            );
+            return;
+          }
+          final message =
+              "Hola, mi solicitud en VIHOME para la propiedad ${widget.application.tituloPropiedad} ha sido aceptada.";
+          final whatsappUrl = Uri.parse(
+              "https://wa.me/$_phone?text=${Uri.encodeComponent(message)}");
+
+          if (await canLaunchUrl(whatsappUrl)) {
+            await launchUrl(
+              whatsappUrl,
+              mode: LaunchMode.externalApplication,
+            );
+          } else {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('No se pudo abrir WhatsApp')),
+              );
+            }
+          }
+        },
+        icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+        label: const Text(
+          'Contactar al Arrendador',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF25D366), // WhatsApp Green
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+      ),
     );
   }
 }

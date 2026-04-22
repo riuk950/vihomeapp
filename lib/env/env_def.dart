@@ -12,6 +12,8 @@ class EnvDef {
   static String get mapboxAccessToken =>
       dotenv.env['MAPBOX_ACCESS_TOKEN'] ?? '';
   static bool isDebugMode = dotenv.env['DEBUG_MODE'] == 'true';
+  static String get googleWebClientId =>
+      dotenv.env['GOOGLE_WEB_CLIENT_ID'] ?? '';
   static bool get isProduction => dotenv.env['DEBUG_MODE'] == 'false';
   static bool get isDevelopment => !isProduction;
 }

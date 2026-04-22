@@ -15,6 +15,8 @@ import '../../domain/repositories/application_repository.dart';
 
 //Casos de uso
 import '../../domain/usecases/usecases.dart';
+import '../../domain/usecases/property/get_property_types_usecase.dart';
+import '../../domain/usecases/property/delete_property_usecase.dart';
 
 //Servicios
 import '../../infrastructure/services/supabase_service.dart';
@@ -61,6 +63,9 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton<ApplicationDatasource>(
     () => ApplicationDatasourceImpl(getIt<SupabaseService>().client),
   );
+  getIt.registerLazySingleton<ProjectRemoteDataSource>(
+    () => ProjectRemoteDataSourceImpl(getIt<SupabaseService>()),
+  );
 
   // Repositories
   getIt.registerLazySingleton<AuthRepository>(
@@ -82,12 +87,18 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton<ApplicationRepository>(
     () => ApplicationRepositoryImpl(getIt<ApplicationDatasource>()),
   );
+  getIt.registerLazySingleton<ProjectRepository>(
+    () => ProjectRepositoryImpl(getIt<ProjectRemoteDataSource>()),
+  );
 
   // Use cases
   getIt.registerLazySingleton(
     () => GetCurrentUserUseCase(getIt<AuthRepository>()),
   );
   getIt.registerLazySingleton(() => SignInUseCase(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(
+    () => SignInWithGoogleUseCase(getIt<AuthRepository>()),
+  );
   getIt.registerLazySingleton(() => SignUpUseCase(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => SignOutUseCase(getIt<AuthRepository>()));
   getIt.registerLazySingleton(
@@ -106,6 +117,9 @@ Future<void> setupDependencyInjection() async {
     () => UpdatePropertyUseCase(getIt<PropertyRepository>()),
   );
   getIt.registerLazySingleton(
+    () => DeletePropertyUseCase(getIt<PropertyRepository>()),
+  );
+  getIt.registerLazySingleton(
     () => GetTenantProfileUseCase(getIt<TenantRepository>()),
   );
   getIt.registerLazySingleton(
@@ -118,24 +132,39 @@ Future<void> setupDependencyInjection() async {
     () => SaveLandlordProfileUseCase(getIt<LandlordRepository>()),
   );
 
+  getIt.registerLazySingleton(
+    () => GetPropertyTypesUseCase(getIt<PropertyRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetProjectsUseCase(getIt<ProjectRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => GetConstructoraUseCase(getIt<ProjectRepository>()),
+  );
+
   // Providers
   getIt.registerFactory(
     () => AuthProvider(
       getCurrentUserUseCase: getIt<GetCurrentUserUseCase>(),
       signInUseCase: getIt<SignInUseCase>(),
+      signInWithGoogleUseCase: getIt<SignInWithGoogleUseCase>(),
       signUpUseCase: getIt<SignUpUseCase>(),
       signOutUseCase: getIt<SignOutUseCase>(),
       resetPasswordUseCase: getIt<ResetPasswordUseCase>(),
     ),
   );
   getIt.registerFactory(
-    () => PropertyProvider(getPropertiesUseCase: getIt<GetPropertiesUseCase>()),
+    () => PropertyProvider(
+      getPropertiesUseCase: getIt<GetPropertiesUseCase>(),
+      getPropertyTypesUseCase: getIt<GetPropertyTypesUseCase>(),
+    ),
   );
   getIt.registerFactory(
     () => LandlordPropertiesProvider(
       getPropertiesByLandlordUseCase: getIt<GetPropertiesByLandlordUseCase>(),
       createPropertyUseCase: getIt<CreatePropertyUseCase>(),
       updatePropertyUseCase: getIt<UpdatePropertyUseCase>(),
+      deletePropertyUseCase: getIt<DeletePropertyUseCase>(),
     ),
   );
   getIt.registerFactory(
@@ -152,5 +181,8 @@ Future<void> setupDependencyInjection() async {
   );
   getIt.registerFactory(
     () => ApplicationProvider(getIt<ApplicationRepository>()),
+  );
+  getIt.registerFactory(
+    () => ProjectProvider(getProjectsUseCase: getIt<GetProjectsUseCase>()),
   );
 }

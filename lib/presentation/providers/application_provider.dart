@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/domain/repositories/application_repository.dart';
+import 'package:vihomeapp/infrastructure/services/supabase_service.dart';
 
 class ApplicationProvider extends ChangeNotifier {
   final ApplicationRepository repository;
+  RealtimeChannel? _subscription;
 
   ApplicationProvider(this.repository);
 
@@ -51,7 +54,11 @@ class ApplicationProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _applications = await repository.getLandlordApplications(landlordId);
+      final apps = await repository.getLandlordApplications(landlordId);
+      _applications = List<Application>.from(apps);
+      
+      // Iniciar escucha en tiempo real después de la carga inicial
+      _subscribeToLandlordApplications(landlordId);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -60,13 +67,42 @@ class ApplicationProvider extends ChangeNotifier {
     }
   }
 
+  void _subscribeToLandlordApplications(String landlordId) {
+    // Cancelar suscripción previa si existe
+    _subscription?.unsubscribe();
+
+    final client = SupabaseService.instance.client;
+    
+    _subscription = client
+        .channel('public:solicitudes:arrendador:$landlordId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'solicitudes',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'arrendador_id',
+            value: landlordId,
+          ),
+          callback: (payload) async {
+            debugPrint('🔔 Nueva solicitud recibida en tiempo real!');
+            // Al recibir una inserción, volvemos a cargar para traer datos relacionados
+            final apps = await repository.getLandlordApplications(landlordId);
+            _applications = List<Application>.from(apps);
+            notifyListeners();
+          },
+        )
+        .subscribe();
+  }
+
   Future<void> fetchTenantApplications(String tenantId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _applications = await repository.getTenantApplications(tenantId);
+      final apps = await repository.getTenantApplications(tenantId);
+      _applications = List<Application>.from(apps);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -84,18 +120,16 @@ class ApplicationProvider extends ChangeNotifier {
       if (success) {
         final index = _applications.indexWhere((a) => a.id == applicationId);
         if (index != -1) {
-          // Actualizar localmente para reflejar cambio inmediato
-          // Creamos una copia 'modificada' (aunque entity es inmutable, aquí simulamos update)
-          // Lo ideal es recargar, pero por UX rápido:
-          // Como Application es const (equatable), no podemos modificar sus campos.
-          // Deberíamos tener copyWith o recargar. Recargaremos por simplicidad o haremos un hack manual.
-          // Mejor recargar o implementar copyWith en Entity.
-          // Por ahora recargaré para asegurar consistencia.
-          // O mejor, modificaré la lista si implemento copyWith.
+          _applications[index] = _applications[index].copyWith(
+            estado: newStatus,
+          );
+          notifyListeners();
         }
       }
       return success;
     } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
       return false;
     }
   }
@@ -128,5 +162,15 @@ class ApplicationProvider extends ChangeNotifier {
     } catch (e) {
       return false;
     }
+  }
+
+  void clear() {
+    _subscription?.unsubscribe();
+    _subscription = null;
+    _applications = [];
+    _errorMessage = null;
+    _isLoading = false;
+    _currentFilter = 'Todas';
+    notifyListeners();
   }
 }

@@ -27,17 +27,11 @@ jobs:
       - name: Crear archivo .env 📝
         run: |
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
-            echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
-            echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
-            echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
-            echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
-            echo "DEBUG_MODE=false" >> .env.prod
+            echo "${{ secrets.ENV_PROD }}" > .env.prod
+            echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_PROD }}" >> .env.prod
           else
-            echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
-            echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
-            echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
-            echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
-            echo "DEBUG_MODE=true" >> .env.dev
+            echo "${{ secrets.ENV_DEV }}" > .env.dev
+            echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_DEV }}" >> .env.dev
           fi
       - name: Crear archivos .env si faltan 🧩
         run: |
@@ -115,17 +109,11 @@ jobs:
       - name: Crear archivo .env 📝
         run: |
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
-            echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
-            echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
-            echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
-            echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
-            echo "DEBUG_MODE=false" >> .env.prod
+            echo "${{ secrets.ENV_PROD }}" > .env.prod
+            echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_PROD }}" >> .env.prod
           else
-            echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
-            echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
-            echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
-            echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
-            echo "DEBUG_MODE=true" >> .env.dev
+            echo "${{ secrets.ENV_DEV }}" > .env.dev
+            echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_DEV }}" >> .env.dev
           fi
       - name: Crear archivos .env si faltan 🧩
         run: |
@@ -134,6 +122,19 @@ jobs:
       - name: Limpiar proyecto 🧹
         run: flutter clean
         working-directory: .
+      - name: Configurar firma de Android 🔑
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "storeFile=upload-keystore.jks" > android/key.properties
+          echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
+      - name: Verificar archivos de firma (Debug) 🔍
+        run: |
+          echo "Contenido de android/:"
+          ls -l android/key.properties || echo "key.properties no encontrado"
+          echo "Contenido de android/app/:"
+          ls -l android/app/upload-keystore.jks || echo "keystore no encontrado"
       - name: Construir aplicación 🚀
         run: |
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
@@ -157,3 +158,19 @@ jobs:
           serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
           groups: testers
           file: build/app/outputs/flutter-apk/app-${{ env.FLAVOR }}-release.apk
+
+      - name: Construir App Bundle para Google Play 📦
+        if: env.FLAVOR == 'prod'
+        run: flutter build appbundle --flavor prod --release --target=lib/env/main.prod.dart
+        working-directory: .
+
+      - name: Subir a Google Play (Vía Interna) 🚀
+        if: env.FLAVOR == 'prod'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonRaw: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.vihomeapp.vihomeapp
+          releaseFiles: build/app/outputs/bundle/prodRelease/app-prod-release.aab
+          track: internal
+          status: completed
+

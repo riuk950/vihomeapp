@@ -7,6 +7,7 @@ import 'package:vihomeapp/env/env_def.dart';
 import 'package:vihomeapp/presentation/providers/property_provider.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 
 class MapaPage extends StatefulWidget {
   const MapaPage({super.key});
@@ -36,8 +37,8 @@ class _MapaPageState extends State<MapaPage> {
   _onMapCreated(MapboxMap mapboxMap) async {
     this.mapboxMap = mapboxMap;
     // Crear el gestor de anotaciones
-    pointAnnotationManager = await mapboxMap.annotations
-        .createPointAnnotationManager();
+    pointAnnotationManager =
+        await mapboxMap.annotations.createPointAnnotationManager();
 
     // Configurar listener de eventos (tapEvents)
     pointAnnotationManager?.tapEvents(onTap: _handleAnnotationClick);
@@ -234,7 +235,7 @@ class _MapaPageState extends State<MapaPage> {
               const SizedBox(height: 16),
               const Text(
                 'Precio de Venta',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                style: TextStyle(color: disabledColor, fontSize: 12),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -244,7 +245,7 @@ class _MapaPageState extends State<MapaPage> {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: primaryColor,
                     ),
                   ),
                   ElevatedButton(
@@ -253,8 +254,8 @@ class _MapaPageState extends State<MapaPage> {
                       context.push('/property-details', extra: property);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: primaryColor,
+                      foregroundColor: backgroundColor,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,

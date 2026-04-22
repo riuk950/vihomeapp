@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/presentation/widgets/widgets.dart';
 import '../../../domain/entities/landlord.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/landlord_provider.dart';
+import 'package:flutter/services.dart';
 
 class CompleteLandlordProfilePage extends StatefulWidget {
   const CompleteLandlordProfilePage({super.key});
@@ -62,7 +64,8 @@ class _CompleteLandlordProfilePageState
       documento: int.parse(_documentoController.text.trim()),
       direccionContacto: _direccionContactoController.text.trim(),
       tipoDocumento: _tipoDocumento,
-      telefonoContacto: _telefonoContactoController.text.trim(),
+      telefonoContacto:
+          _telefonoContactoController.text.replaceAll(RegExp(r'\D'), ''),
     );
 
     final success = await landlordProvider.saveLandlordProfile(landlord);
@@ -192,6 +195,9 @@ class _CompleteLandlordProfilePageState
                         if (int.tryParse(value) == null) {
                           return 'Debe ser un número válido';
                         }
+                        if (value.length != 10) {
+                          return 'El número debe tener exactamente 10 dígitos';
+                        }
                         return null;
                       },
                     ),
@@ -213,57 +219,34 @@ class _CompleteLandlordProfilePageState
                     TextFormField(
                       controller: _telefonoContactoController,
                       keyboardType: TextInputType.phone,
+                      inputFormatters: [
+                        _PhoneInputFormatter(),
+                        LengthLimitingTextInputFormatter(15),
+                      ],
                       decoration: const InputDecoration(
                         labelText: 'Teléfono de Contacto',
+                        hintText: 'Ej: 57 300 123 4567',
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo requerido';
                         }
+                        final cleanValue = value.replaceAll(RegExp(r'\D'), '');
+                        if (!cleanValue.startsWith('57')) {
+                          return 'El número debe comenzar por 57';
+                        }
+                        if (cleanValue.length < 12) {
+                          return 'Número inválido (debe tener 12 dígitos)';
+                        }
                         return null;
                       },
                     ),
-                    if (landlordProvider.errorMessage != null) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        landlordProvider.errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
                     const SizedBox(height: 32),
-                    ElevatedButton(
-                      onPressed: landlordProvider.isLoading
-                          ? null
-                          : _handleSave,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF137FEC),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: landlordProvider.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : const Text(
-                              'Guardar Información',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
+                    BtnPrimary(
+                        text: 'Guardar',
+                        onPressed:
+                            landlordProvider.isLoading ? null : _handleSave),
                   ],
                 );
               },
@@ -271,6 +254,49 @@ class _CompleteLandlordProfilePageState
           ),
         ),
       ),
+    );
+  }
+}
+
+class _PhoneInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final newText = newValue.text;
+    if (newText.isEmpty) return newValue;
+
+    newText.replaceAll(RegExp(r'\D'), '');
+    final buffer = StringBuffer();
+
+    int selectionIndex = newValue.selection.end;
+    int digitCount = 0;
+    int newSelectionIndex = 0;
+
+    for (int i = 0; i < newText.length; i++) {
+      if (i == selectionIndex) {
+        newSelectionIndex = buffer.length;
+      }
+      if (RegExp(r'\d').hasMatch(newText[i])) {
+        if (digitCount == 2 || digitCount == 5 || digitCount == 8) {
+          buffer.write(' ');
+          if (i == selectionIndex) {
+            newSelectionIndex = buffer.length;
+          }
+        }
+        buffer.write(newText[i]);
+        digitCount++;
+      }
+    }
+
+    if (selectionIndex == newText.length) {
+      newSelectionIndex = buffer.length;
+    }
+
+    return TextEditingValue(
+      text: buffer.toString(),
+      selection: TextSelection.collapsed(offset: newSelectionIndex),
     );
   }
 }

@@ -21,14 +21,13 @@ class FlavorApp extends StatelessWidget {
           create: (_) => getIt<LandlordPropertiesProvider>(),
         ),
         ChangeNotifierProvider(create: (_) => getIt<ApplicationProvider>()),
+        ChangeNotifierProvider(create: (_) => getIt<ProjectProvider>()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
           return MaterialApp.router(
             debugShowCheckedModeBanner: EnvDef.isDebugMode,
             theme: AppTheme.ligthTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.system,
             title: EnvDef.title,
             routerConfig: appRouter,
           );

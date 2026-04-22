@@ -1,6 +1,7 @@
 export './auth/get_current_user_usecase.dart';
 export './auth/reset_password_usecase.dart';
 export './auth/sign_in_usecase.dart';
+export './auth/sign_in_with_google_usecase.dart';
 export './auth/sign_out_usecase.dart';
 export './auth/sign_up_usecase.dart';
 export './property/get_properties_usecase.dart';
@@ -11,3 +12,5 @@ export './tenant/get_tenant_profile_usecase.dart';
 export './tenant/save_tenant_profile_usecase.dart';
 export './landlord/get_landlord_profile_usecase.dart';
 export './landlord/save_landlord_profile_usecase.dart';
+export './project/get_projects_usecase.dart';
+export './project/get_constructora_usecase.dart';

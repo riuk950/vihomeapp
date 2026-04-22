@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import '../../providers/tenant_provider.dart';
 import '../../providers/auth_provider.dart';
 
-class InformacionPersonalPage extends StatelessWidget {
-  const InformacionPersonalPage({super.key});
+class InformacionPersonalTenantPage extends StatelessWidget {
+  const InformacionPersonalTenantPage({super.key});
 
   @override
   Widget build(BuildContext context) {

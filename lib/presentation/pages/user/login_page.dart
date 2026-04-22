@@ -40,12 +40,24 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _handleGoogleLogin() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.clearError();
+
+    final success = await authProvider.signInWithGoogle();
+
+    if (success && mounted) {
+      context.go('/home');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-          title: const Text('Iniciar Sesión'),
+          title:
+              const Text('Iniciar Sesión', style: TextStyle(color: textColor)),
           backgroundColor: backgroundColor,
           centerTitle: true),
       body: SafeArea(
@@ -206,7 +218,46 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
+                    const Row(
+                      children: [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Text('O inicia sesión con',
+                              style: TextStyle(color: Colors.grey)),
+                        ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    OutlinedButton.icon(
+                      onPressed:
+                          authProvider.isLoading ? null : _handleGoogleLogin,
+                      icon: Image.network(
+                        'https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png',
+                        height: 24,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Fallback para cuando no hay internet o en tests de widgets
+                          return const Icon(Icons.g_mobiledata, size: 30, color: Colors.blue);
+                        },
+                      ),
+                      label: const Text(
+                        'Continuar con Google',
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        side: BorderSide(color: Colors.grey[300]!),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

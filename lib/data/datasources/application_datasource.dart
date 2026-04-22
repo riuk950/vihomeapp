@@ -63,13 +63,20 @@ class ApplicationDatasourceImpl implements ApplicationDatasource {
     String status,
   ) async {
     try {
-      await client
+      final response = await client
           .from('solicitudes')
           .update({'estado': status})
-          .eq('id', applicationId);
+          .eq('id', applicationId)
+          .select();
+
+      if (response.isEmpty) {
+        throw Exception(
+          'No se pudo actualizar la solicitud. Verifique permisos o existencia.',
+        );
+      }
       return true;
     } catch (e) {
-      return false;
+      throw Exception('Error updating application status: $e');
     }
   }
 

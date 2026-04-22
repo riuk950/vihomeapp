@@ -3,10 +3,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/data/models/application_model.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
+import 'package:vihomeapp/presentation/widgets/btn_primary.dart';
 
 class SolicitudDeArriendoPage extends StatefulWidget {
   final String propertyId;
@@ -156,7 +158,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF137FEC),
+                backgroundColor: primaryColor,
               ),
               child: const Text(
                 'Agregar',
@@ -180,7 +182,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Por favor complete todos los campos requeridos'),
-          backgroundColor: Colors.orange,
+          backgroundColor: secondaryColor,
         ),
       );
       return;
@@ -190,7 +192,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Por favor agregue al menos una referencia personal'),
-          backgroundColor: Colors.orange,
+          backgroundColor: secondaryColor,
         ),
       );
       return;
@@ -202,7 +204,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Debe aceptar todos los términos y condiciones'),
-          backgroundColor: Colors.orange,
+          backgroundColor: secondaryColor,
         ),
       );
       return;
@@ -319,7 +321,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                     Navigator.pop(context); // Volver a la página anterior
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF137FEC),
+                    backgroundColor: primaryColor,
                   ),
                   child: const Text(
                     'Entendido',
@@ -391,12 +393,12 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF137FEC).withValues(alpha: 0.1),
+                      color: primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.home,
-                      color: Color(0xFF137FEC),
+                      color: primaryColor,
                       size: 32,
                     ),
                   ),
@@ -418,7 +420,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
+                            color: primaryColor,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -444,6 +446,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                 });
               },
               children: [
+                const SizedBox(height: 16),
                 _buildTextField(
                   controller: _empresaController,
                   label: 'Empresa donde trabaja',
@@ -521,7 +524,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                       icon: const Icon(Icons.attach_file),
                       label: const Text('Adjuntar'),
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFF137FEC),
+                        foregroundColor: primaryColor,
                       ),
                     ),
                   ],
@@ -575,7 +578,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                         children: [
                           Icon(
                             _getFileIcon(file.extension ?? ''),
-                            color: const Color(0xFF137FEC),
+                            color: primaryColor,
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -663,7 +666,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                       child: Row(
                         children: [
                           const CircleAvatar(
-                            backgroundColor: Color(0xFF137FEC),
+                            backgroundColor: primaryColor,
                             child: Icon(Icons.person, color: Colors.white),
                           ),
                           const SizedBox(width: 16),
@@ -716,8 +719,8 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                     icon: const Icon(Icons.add),
                     label: const Text('Agregar Referencia'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF137FEC),
-                      side: const BorderSide(color: Color(0xFF137FEC)),
+                      foregroundColor: primaryColor,
+                      side: const BorderSide(color: primaryColor),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                   ),
@@ -786,7 +789,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                     style: TextStyle(fontSize: 14),
                   ),
                   controlAffinity: ListTileControlAffinity.leading,
-                  activeColor: const Color(0xFF137FEC),
+                  activeColor: primaryColor,
                   contentPadding: EdgeInsets.zero,
                 ),
                 CheckboxListTile(
@@ -801,7 +804,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                     style: TextStyle(fontSize: 14),
                   ),
                   controlAffinity: ListTileControlAffinity.leading,
-                  activeColor: const Color(0xFF137FEC),
+                  activeColor: primaryColor,
                   contentPadding: EdgeInsets.zero,
                 ),
                 CheckboxListTile(
@@ -816,7 +819,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                     style: TextStyle(fontSize: 14),
                   ),
                   controlAffinity: ListTileControlAffinity.leading,
-                  activeColor: const Color(0xFF137FEC),
+                  activeColor: primaryColor,
                   contentPadding: EdgeInsets.zero,
                 ),
               ],
@@ -827,40 +830,10 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
             // 4. Botón de Solicitud
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isSubmitting ? null : _enviarSolicitud,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF137FEC),
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: _isSubmitting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.send, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(
-                            'Enviar Solicitud de Arriendo',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+              child: BtnPrimary(
+                onPressed: _isSubmitting ? null : () => _enviarSolicitud(),
+                text: 'Enviar Solicitud',
+                elevation: 2,
               ),
             ),
 
@@ -899,10 +872,10 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF137FEC).withValues(alpha: 0.1),
+              color: primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: const Color(0xFF137FEC)),
+            child: Icon(icon, color: primaryColor),
           ),
           title: Text(
             title,
@@ -943,7 +916,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
       validator: validator,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFF137FEC)),
+        prefixIcon: Icon(icon, color: primaryColor),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -951,7 +924,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF137FEC), width: 2),
+          borderSide: BorderSide(color: primaryColor, width: 2),
         ),
         filled: true,
         fillColor: Colors.white,
