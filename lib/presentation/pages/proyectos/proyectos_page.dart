@@ -59,25 +59,22 @@ class _ProyectosPageState extends State<ProyectosPage> {
                   Provider.of<AuthProvider>(context, listen: false);
               final user = authProvider.user;
               int notificationCount = 0;
-
               if (user != null) {
-                if (user.role == 'arrendador') {
-                  notificationCount = appProvider.applications
-                      .where((a) => a.estado.toLowerCase() == 'pendiente')
-                      .length;
-                } else {
-                  notificationCount = appProvider.applications
-                      .where((a) => a.estado.toLowerCase() != 'pendiente')
-                      .length;
-                }
+                notificationCount = user.role == 'arrendador'
+                    ? appProvider.unreadLandlordCount
+                    : appProvider.unreadTenantCount;
               }
 
               return Badge(
-                label: Text(notificationCount.toString()),
+                label: Text(
+                  notificationCount.toString(),
+                  style: const TextStyle(fontSize: 10, color: Colors.white),
+                ),
                 isLabelVisible: notificationCount > 0,
+                backgroundColor: Colors.redAccent,
+                offset: const Offset(-4, 4),
                 child: IconButton(
-                  icon:
-                      const Icon(Icons.notifications_none, color: Colors.black),
+                  icon: const Icon(Icons.notifications_none, color: Colors.black),
                   onPressed: () {
                     if (user != null) {
                       if (user.role == 'arrendador') {

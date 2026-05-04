@@ -26,6 +26,7 @@ class _NotificationsTenantPageState extends State<NotificationsTenantPage> {
 
       if (authProvider.user != null) {
         appProvider.fetchTenantApplications(authProvider.user!.id);
+        appProvider.markAsRead(); // Limpiar el contador
       }
     });
   }

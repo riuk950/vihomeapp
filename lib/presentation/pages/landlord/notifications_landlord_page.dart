@@ -28,6 +28,7 @@ class _NotificationsLandlordPageState extends State<NotificationsLandlordPage> {
 
       if (authProvider.user != null) {
         appProvider.fetchLandlordApplications(authProvider.user!.id);
+        appProvider.markAsRead(); // Mantener consistencia
       }
     });
   }
