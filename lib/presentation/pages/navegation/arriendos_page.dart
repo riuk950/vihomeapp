@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../../providers/property_provider.dart';
+import '../../providers/application_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../../domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -42,9 +44,45 @@ class _ArriendosPageState extends State<ArriendosPage> {
               context.push('/mapa');
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.black),
-            onPressed: () {},
+          Consumer<ApplicationProvider>(
+            builder: (context, appProvider, child) {
+              final authProvider =
+                  Provider.of<AuthProvider>(context, listen: false);
+              final user = authProvider.user;
+              int notificationCount = 0;
+
+              if (user != null) {
+                if (user.role == 'arrendador') {
+                  notificationCount = appProvider.applications
+                      .where((a) => a.estado.toLowerCase() == 'pendiente')
+                      .length;
+                } else {
+                  // For tenants, maybe show total applications for now
+                  // or those that are NOT pending (meaning they were updated)
+                  notificationCount = appProvider.applications
+                      .where((a) => a.estado.toLowerCase() != 'pendiente')
+                      .length;
+                }
+              }
+
+              return Badge(
+                label: Text(notificationCount.toString()),
+                isLabelVisible: notificationCount > 0,
+                child: IconButton(
+                  icon:
+                      const Icon(Icons.notifications_none, color: Colors.black),
+                  onPressed: () {
+                    if (user != null) {
+                      if (user.role == 'arrendador') {
+                        context.push('/notifications_landlord');
+                      } else {
+                        context.push('/notifications_tenant');
+                      }
+                    }
+                  },
+                ),
+              );
+            },
           ),
         ],
       ),

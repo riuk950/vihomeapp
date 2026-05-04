@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/project_provider.dart';
+import '../../providers/application_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../../domain/entities/project.dart';
 import 'package:go_router/go_router.dart';
 
@@ -51,9 +53,43 @@ class _ProyectosPageState extends State<ProyectosPage> {
         shadowColor: backgroundColor,
         centerTitle: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.black),
-            onPressed: () {},
+          Consumer<ApplicationProvider>(
+            builder: (context, appProvider, child) {
+              final authProvider =
+                  Provider.of<AuthProvider>(context, listen: false);
+              final user = authProvider.user;
+              int notificationCount = 0;
+
+              if (user != null) {
+                if (user.role == 'arrendador') {
+                  notificationCount = appProvider.applications
+                      .where((a) => a.estado.toLowerCase() == 'pendiente')
+                      .length;
+                } else {
+                  notificationCount = appProvider.applications
+                      .where((a) => a.estado.toLowerCase() != 'pendiente')
+                      .length;
+                }
+              }
+
+              return Badge(
+                label: Text(notificationCount.toString()),
+                isLabelVisible: notificationCount > 0,
+                child: IconButton(
+                  icon:
+                      const Icon(Icons.notifications_none, color: Colors.black),
+                  onPressed: () {
+                    if (user != null) {
+                      if (user.role == 'arrendador') {
+                        context.push('/notifications_landlord');
+                      } else {
+                        context.push('/notifications_tenant');
+                      }
+                    }
+                  },
+                ),
+              );
+            },
           ),
         ],
       ),

@@ -1,7 +1,9 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'supabase_service.dart';
+import '../../core/router/app_router.dart';
 
 // Esta función debe estar FUERA de cualquier clase para manejar notificaciones
 // en segundo plano o cuando la app está cerrada completamente.
@@ -11,6 +13,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class PushNotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  static final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  /// Canal de alta importancia para Android
+  static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
+    'high_importance_channel', // id
+    'Notificaciones de ViHome', // title
+    description: 'Este canal se usa para notificaciones importantes.',
+    importance: Importance.max,
+  );
 
   /// Callback opcional para manejar la navegación cuando el usuario toca una notificación.
   /// Se puede configurar desde la capa de presentación.
@@ -23,10 +35,13 @@ class PushNotificationService {
       return;
     }
 
-    // 1. Escuchar los mensajes en Background (app minimizada o cerrada)
+    // 1. Inicializar Notificaciones Locales
+    await _initLocalNotifications();
+
+    // 2. Escuchar los mensajes en Background (app minimizada o cerrada)
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    // 2. Solicitar permisos (fundamental para iOS y para Android >= 13)
+    // 3. Solicitar permisos (fundamental para iOS y para Android >= 13)
     NotificationSettings settings = await _messaging.requestPermission(
       alert: true,
       announcement: false,
@@ -40,36 +55,132 @@ class PushNotificationService {
     debugPrint(
         'ℹ️ FCM Permisos otorgados status: ${settings.authorizationStatus}');
 
-    // 3. Escuchar los mensajes en Foreground (cuando la app está abierta en pantalla)
+    // 4. Escuchar los mensajes en Foreground (cuando la app está abierta en pantalla)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('📩 Mensaje recibido en Foreground!');
       debugPrint('Datos: ${message.data}');
 
       if (message.notification != null) {
         debugPrint('Notificación visible: ${message.notification?.title}');
-        // TODO: Puedes añadir aquí lógica usando SnackBar o LocalNotifications para
-        // mostrar un banner in-app visible para el usuario si está navegando por la app.
+        
+        // Mostrar notificación local en Foreground
+        _showLocalNotification(message);
       }
     });
 
-    // 4. Manejar cuando el usuario toca una notificación (app en background/minimizada)
+    // 5. Manejar cuando el usuario toca una notificación (app en background/minimizada)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('📲 Notificación tocada (app en background): ${message.data}');
-      onNotificationTapped?.call(message);
+      _handleNotificationNavigation(message);
     });
-
-    // 5. Manejar cuando la app se abre desde una notificación (app completamente cerrada)
-    RemoteMessage? initialMessage = await _messaging.getInitialMessage();
-    if (initialMessage != null) {
-      debugPrint('📲 App abierta desde notificación: ${initialMessage.data}');
-      onNotificationTapped?.call(initialMessage);
-    }
 
     // 6. Detectar cuando el token se refresque para actualizarlo en Supabase
     _messaging.onTokenRefresh.listen((newToken) async {
       debugPrint("🔄 FCM Token ha sido refrescado: $newToken");
       await _syncRefreshedToken(newToken);
     });
+  }
+
+  static Future<void> _initLocalNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const DarwinInitializationSettings initializationSettingsDarwin =
+        DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
+
+    const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsDarwin,
+    );
+
+    // Crear el canal en Android
+    await _localNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(_channel);
+
+    await _localNotificationsPlugin.initialize(
+      settings: initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        // Manejar toque en la notificación local (Foreground)
+        if (response.payload != null) {
+          debugPrint('📲 Notificación local tocada: ${response.payload}');
+          _navigateByType(response.payload);
+        }
+      },
+    );
+  }
+
+  static void _showLocalNotification(RemoteMessage message) {
+    RemoteNotification? notification = message.notification;
+    AndroidNotification? android = message.notification?.android;
+
+    if (notification != null) {
+      _localNotificationsPlugin.show(
+        id: notification.hashCode,
+        title: notification.title,
+        body: notification.body,
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            _channel.id,
+            _channel.name,
+            channelDescription: _channel.description,
+            icon: android?.smallIcon ?? '@mipmap/ic_launcher',
+            importance: _channel.importance,
+            priority: Priority.high,
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        // Pasar la data como payload para recuperarla al tocar
+        payload: message.data['type'], 
+      );
+    }
+  }
+
+  /// Procesa la notificación que abrió la app (si existe).
+  /// Debe llamarse cuando el router y el contexto estén listos.
+  static Future<void> handleInitialMessage() async {
+    RemoteMessage? initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      debugPrint('📲 App abierta desde notificación: ${initialMessage.data}');
+      _handleNotificationNavigation(initialMessage);
+    }
+  }
+
+  static void _handleNotificationNavigation(RemoteMessage message) {
+    // Si hay un callback personalizado, lo llamamos.
+    onNotificationTapped?.call(message);
+
+    // Navegación automática basada en el tipo de notificación.
+    // El payload debe contener un campo 'type'.
+    final data = message.data;
+    if (data.isEmpty) {
+      debugPrint('⚠️ Notificación no contiene datos (payload vacío)');
+      return;
+    }
+
+    final String? type = data['type'];
+    debugPrint('ℹ️ Tipo de notificación detectado: $type');
+
+    _navigateByType(type);
+  }
+
+  static void _navigateByType(String? type) {
+    if (type == 'landlord_notification' || type == 'landlord_application') {
+      appRouter.push('/notifications_landlord');
+    } else if (type == 'tenant_notification' || type == 'tenant_application') {
+      appRouter.push('/notifications_tenant');
+    } else {
+      debugPrint('⚠️ Tipo de notificación desconocido: $type');
+    }
   }
 
   static Future<String?> getToken() async {
