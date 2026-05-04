@@ -231,6 +231,7 @@ class AuthProvider with ChangeNotifier {
         'id': userId,
         'email': user.email,
         'full_name': user.name,
+        'role': user.role ?? 'arrendatario',
       };
 
       // Agregar el fcm_token solo si no es nulo
