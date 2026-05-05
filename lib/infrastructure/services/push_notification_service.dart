@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'supabase_service.dart';
 import '../../core/router/app_router.dart';
 
@@ -62,7 +63,7 @@ class PushNotificationService {
 
       if (message.notification != null) {
         debugPrint('Notificación visible: ${message.notification?.title}');
-        
+
         // Mostrar notificación local en Foreground
         _showLocalNotification(message);
       }
@@ -83,7 +84,7 @@ class PushNotificationService {
 
   static Future<void> _initLocalNotifications() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/ic_stat_notifi');
 
     const DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
@@ -92,7 +93,8 @@ class PushNotificationService {
       requestSoundPermission: false,
     );
 
-    const InitializationSettings initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
     );
@@ -128,8 +130,9 @@ class PushNotificationService {
           android: AndroidNotificationDetails(
             _channel.id,
             _channel.name,
+            color: primaryColor,
             channelDescription: _channel.description,
-            icon: android?.smallIcon ?? '@mipmap/ic_launcher',
+            icon: android?.smallIcon ?? '@mipmap/ic_stat_notifi',
             importance: _channel.importance,
             priority: Priority.high,
           ),
@@ -140,7 +143,7 @@ class PushNotificationService {
           ),
         ),
         // Pasar la data como payload para recuperarla al tocar
-        payload: message.data['type'], 
+        payload: message.data['type'],
       );
     }
   }

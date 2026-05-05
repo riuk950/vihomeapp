@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_complete.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_verificado.dart';
@@ -333,6 +334,12 @@ class PerfilPage extends StatelessWidget {
                     context,
                     Icons.description_outlined,
                     'Politicas de tratamiento de datos',
+                    onTap: () async {
+                      final url = Uri.parse('https://vihome.web.app/#/privacy');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.inAppWebView);
+                      }
+                    },
                   ),
                   // Logout Option
                   InkWell(
@@ -435,9 +442,10 @@ class PerfilPage extends StatelessWidget {
     IconData icon,
     String title, {
     String? route,
+    VoidCallback? onTap,
   }) {
     return InkWell(
-      onTap: () {
+      onTap: onTap ?? () {
         if (route != null) {
           context.push(route);
         }
