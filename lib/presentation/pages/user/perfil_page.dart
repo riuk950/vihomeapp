@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_complete.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_verificado.dart';
@@ -308,6 +309,9 @@ class PerfilPage extends StatelessWidget {
                     context,
                     Icons.notifications_none,
                     'Notificaciones',
+                    route: user?.role == 'arrendador'
+                        ? '/notifications_landlord'
+                        : '/notifications_tenant',
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(
@@ -330,6 +334,12 @@ class PerfilPage extends StatelessWidget {
                     context,
                     Icons.description_outlined,
                     'Politicas de tratamiento de datos',
+                    onTap: () async {
+                      final url = Uri.parse('https://vihome.web.app/#/privacy');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.inAppWebView);
+                      }
+                    },
                   ),
                   // Logout Option
                   InkWell(
@@ -399,25 +409,28 @@ class PerfilPage extends StatelessWidget {
 
     if (confirm == true && context.mounted) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final tenantProvider = Provider.of<TenantProvider>(context, listen: false);
-      final landlordProvider = Provider.of<LandlordProvider>(context, listen: false);
-      final appProvider = Provider.of<ApplicationProvider>(context, listen: false);
-      
+      final tenantProvider =
+          Provider.of<TenantProvider>(context, listen: false);
+      final landlordProvider =
+          Provider.of<LandlordProvider>(context, listen: false);
+      final appProvider =
+          Provider.of<ApplicationProvider>(context, listen: false);
+
       try {
         // Aseguramos que la sesión se cierre a nivel de Supabase
         await Supabase.instance.client.auth.signOut();
       } catch (e) {
         debugPrint('Error al cerrar sesión en Supabase: $e');
       }
-      
+
       // Limpiar el estado local de los demás Providers para la próxima sesión
       tenantProvider.clear();
       landlordProvider.clear();
       appProvider.clear();
-      
+
       // Cerramos sesión a nivel de aplicación (Provider)
       await authProvider.signOut();
-      
+
       if (context.mounted) {
         context.go('/login');
       }
@@ -429,9 +442,10 @@ class PerfilPage extends StatelessWidget {
     IconData icon,
     String title, {
     String? route,
+    VoidCallback? onTap,
   }) {
     return InkWell(
-      onTap: () {
+      onTap: onTap ?? () {
         if (route != null) {
           context.push(route);
         }

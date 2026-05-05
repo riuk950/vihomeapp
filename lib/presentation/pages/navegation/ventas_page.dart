@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../../providers/property_provider.dart';
+import '../../providers/application_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../../domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -37,14 +39,46 @@ class _VentasPageState extends State<VentasPage> {
         centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.map_outlined, color: Colors.black),
+            icon: const Icon(Icons.location_on, color: Colors.black),
             onPressed: () {
               context.push('/mapa');
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.black),
-            onPressed: () {},
+          Consumer<ApplicationProvider>(
+            builder: (context, appProvider, child) {
+              final authProvider =
+                  Provider.of<AuthProvider>(context, listen: false);
+              final user = authProvider.user;
+              int notificationCount = 0;
+              if (user != null) {
+                notificationCount = user.role == 'arrendador'
+                    ? appProvider.unreadLandlordCount
+                    : appProvider.unreadTenantCount;
+              }
+
+              return Badge(
+                label: Text(
+                  notificationCount.toString(),
+                  style: const TextStyle(fontSize: 10, color: Colors.white),
+                ),
+                isLabelVisible: notificationCount > 0,
+                backgroundColor: Colors.redAccent,
+                offset: const Offset(-4, 4),
+                child: IconButton(
+                  icon:
+                      const Icon(Icons.notifications_none, color: Colors.black),
+                  onPressed: () {
+                    if (user != null) {
+                      if (user.role == 'arrendador') {
+                        context.push('/notifications_landlord');
+                      } else {
+                        context.push('/notifications_tenant');
+                      }
+                    }
+                  },
+                ),
+              );
+            },
           ),
         ],
       ),

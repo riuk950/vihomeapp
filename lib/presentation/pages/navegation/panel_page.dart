@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_complete.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_verificado.dart';
@@ -473,7 +474,12 @@ class PanelPage extends StatelessWidget {
             title: Text('Politicas de tratamiento de datos'),
             leading: Icon(Icons.description),
             trailing: Icon(Icons.arrow_forward_ios),
-            onTap: () {},
+            onTap: () async {
+              final url = Uri.parse('https://vihome.web.app/#/privacy');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.inAppWebView);
+              }
+            },
           ),
           Divider(),
           ListTile(

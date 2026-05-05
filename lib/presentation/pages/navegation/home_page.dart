@@ -7,6 +7,8 @@ import '../proyectos/proyectos_page.dart';
 import '../user/perfil_page.dart';
 import 'panel_page.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/application_provider.dart';
+import '../../../infrastructure/services/push_notification_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,6 +19,27 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final appProvider = Provider.of<ApplicationProvider>(context, listen: false);
+      final user = authProvider.user;
+      
+      if (user != null) {
+        if (user.role == 'arrendador') {
+          appProvider.fetchLandlordApplications(user.id);
+        } else {
+          appProvider.fetchTenantApplications(user.id);
+        }
+      }
+
+      // Procesar notificación inicial si la app se abrió desde una
+      PushNotificationService.handleInitialMessage();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

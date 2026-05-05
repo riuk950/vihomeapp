@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/domain/repositories/application_repository.dart';
@@ -7,8 +8,11 @@ import 'package:vihomeapp/infrastructure/services/supabase_service.dart';
 class ApplicationProvider extends ChangeNotifier {
   final ApplicationRepository repository;
   RealtimeChannel? _subscription;
+  DateTime? _lastViewedAt;
 
-  ApplicationProvider(this.repository);
+  ApplicationProvider(this.repository) {
+    loadLastViewed();
+  }
 
   List<Application> _applications = [];
   List<Application> get applications => _applications;
@@ -18,6 +22,40 @@ class ApplicationProvider extends ChangeNotifier {
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
+
+  // Contador inteligente para Arrendatario (Tenant)
+  int get unreadTenantCount {
+    if (_lastViewedAt == null) {
+      // Si nunca ha entrado, contamos todas las que no están pendientes
+      return _applications.where((a) => a.estado.toLowerCase() != 'pendiente').length;
+    }
+    return _applications.where((a) => 
+      a.estado.toLowerCase() != 'pendiente' && 
+      a.updatedAt.isAfter(_lastViewedAt!)
+    ).length;
+  }
+
+  // Contador inteligente para Arrendador (Landlord)
+  int get unreadLandlordCount {
+    // Para el arrendador es más simple: las que están pendientes
+    return _applications.where((a) => a.estado.toLowerCase() == 'pendiente').length;
+  }
+
+  Future<void> loadLastViewed() async {
+    final prefs = await SharedPreferences.getInstance();
+    final timestamp = prefs.getString('last_notifications_viewed');
+    if (timestamp != null) {
+      _lastViewedAt = DateTime.parse(timestamp);
+      notifyListeners();
+    }
+  }
+
+  Future<void> markAsRead() async {
+    _lastViewedAt = DateTime.now();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('last_notifications_viewed', _lastViewedAt!.toIso8601String());
+    notifyListeners();
+  }
 
   // Filtros UI
   String _currentFilter = 'Todas';
@@ -103,12 +141,43 @@ class ApplicationProvider extends ChangeNotifier {
     try {
       final apps = await repository.getTenantApplications(tenantId);
       _applications = List<Application>.from(apps);
+
+      // Iniciar escucha en tiempo real para el arrendatario (cambios de estado)
+      _subscribeToTenantApplications(tenantId);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void _subscribeToTenantApplications(String tenantId) {
+    // Cancelar suscripción previa si existe
+    _subscription?.unsubscribe();
+
+    final client = SupabaseService.instance.client;
+
+    _subscription = client
+        .channel('public:solicitudes:arrendatario:$tenantId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update, // Escuchar actualizaciones de estado
+          schema: 'public',
+          table: 'solicitudes',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'arrendatario_id',
+            value: tenantId,
+          ),
+          callback: (payload) async {
+            debugPrint('🔔 Estado de solicitud actualizado para el arrendatario!');
+            // Recargamos para obtener los datos actualizados con joins (nombre propiedad, etc)
+            final apps = await repository.getTenantApplications(tenantId);
+            _applications = List<Application>.from(apps);
+            notifyListeners();
+          },
+        )
+        .subscribe();
   }
 
   Future<bool> updateStatus(String applicationId, String newStatus) async {

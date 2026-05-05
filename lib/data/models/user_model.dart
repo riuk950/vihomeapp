@@ -27,7 +27,7 @@ class UserModel extends User {
       id: user.id,
       email: user.email ?? '',
       name: user.userMetadata?['name'] as String?,
-      role: user.userMetadata?['role'] as String?,
+      role: user.userMetadata?['role'] as String? ?? 'arrendatario',
       createdAt: parseDate(user.createdAt),
       updatedAt: parseDate(user.lastSignInAt ?? user.updatedAt),
     );
@@ -51,7 +51,7 @@ class UserModel extends User {
       id: json['id'] as String,
       email: json['email'] as String,
       name: json['name'] as String?,
-      role: json['role'] as String?,
+      role: json['role'] as String? ?? 'arrendatario',
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,

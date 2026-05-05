@@ -4,18 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
-import 'package:vihomeapp/domain/entities/tenant.dart';
-import 'package:vihomeapp/presentation/providers/tenant_provider.dart';
 
-class NotificationsLandlordPage extends StatefulWidget {
-  const NotificationsLandlordPage({super.key});
+class NotificationsTenantPage extends StatefulWidget {
+  const NotificationsTenantPage({super.key});
 
   @override
-  State<NotificationsLandlordPage> createState() =>
-      _NotificationsLandlordPageState();
+  State<NotificationsTenantPage> createState() =>
+      _NotificationsTenantPageState();
 }
 
-class _NotificationsLandlordPageState extends State<NotificationsLandlordPage> {
+class _NotificationsTenantPageState extends State<NotificationsTenantPage> {
   @override
   void initState() {
     super.initState();
@@ -27,8 +25,8 @@ class _NotificationsLandlordPageState extends State<NotificationsLandlordPage> {
       );
 
       if (authProvider.user != null) {
-        appProvider.fetchLandlordApplications(authProvider.user!.id);
-        appProvider.markAsRead(); // Mantener consistencia
+        appProvider.fetchTenantApplications(authProvider.user!.id);
+        appProvider.markAsRead(); // Limpiar el contador
       }
     });
   }
@@ -41,7 +39,7 @@ class _NotificationsLandlordPageState extends State<NotificationsLandlordPage> {
       backgroundColor: backgroundLight,
       appBar: AppBar(
         title: const Text(
-          'Notificaciones',
+          'Mis Notificaciones',
           style: TextStyle(
             color: Color(0xFF111418),
             fontSize: 18,
@@ -67,7 +65,7 @@ class _NotificationsLandlordPageState extends State<NotificationsLandlordPage> {
           }
 
           final notifications = List<Application>.from(provider.applications);
-          notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          notifications.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
           if (notifications.isEmpty) {
             return const Center(
@@ -107,16 +105,14 @@ class _NotificationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tenantProvider = Provider.of<TenantProvider>(context, listen: false);
-
     // Formatear fecha
-    final date = application.createdAt;
+    final date = application.updatedAt;
     final dateStr =
         '${date.day}/${date.month} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
 
     return InkWell(
       onTap: () {
-        context.push('/detalle-solicitud-arrendador', extra: application);
+        context.push('/detalle-solicitud', extra: application);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -130,34 +126,29 @@ class _NotificationItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  FutureBuilder<Tenant?>(
-                    future: tenantProvider.getTenantById(application.arrendatarioId),
-                    builder: (context, snapshot) {
-                      final tenantName = snapshot.hasData
-                          ? '${snapshot.data!.primerNombre} ${snapshot.data!.primerApellido}'
-                          : 'Un arrendatario';
-                      
-                      return RichText(
-                        text: TextSpan(
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 14,
-                            fontFamily: 'Lato', // Usar fuente del proyecto si está disponible
-                          ),
-                          children: [
-                            TextSpan(
-                              text: tenantName,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const TextSpan(text: ' ha enviado una solicitud para '),
-                            TextSpan(
-                              text: application.tituloPropiedad ?? 'tu propiedad',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 14,
+                        fontFamily: 'Lato',
+                      ),
+                      children: [
+                        const TextSpan(text: 'Tu solicitud para '),
+                        TextSpan(
+                          text: application.tituloPropiedad ?? 'la propiedad',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      );
-                    },
+                        const TextSpan(text: ' ha sido '),
+                        TextSpan(
+                          text: _getEstadoTexto(application.estado),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: _getStatusColor(application.estado),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -167,42 +158,53 @@ class _NotificationItem extends StatelessWidget {
                 ],
               ),
             ),
-            // Indicador de "Nueva" si es pendiente
-            if (application.estado.toLowerCase() == 'pendiente')
-              Container(
-                margin: const EdgeInsets.only(top: 8),
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF137FEC),
-                  shape: BoxShape.circle,
-                ),
-              ),
           ],
         ),
       ),
     );
   }
 
+  String _getEstadoTexto(String estado) {
+    switch (estado.toLowerCase()) {
+      case 'pendiente':
+        return 'enviada y está pendiente de revisión';
+      case 'aceptada':
+        return 'ACEPTADA';
+      case 'rechazada':
+        return 'RECHAZADA';
+      default:
+        return estado;
+    }
+  }
+
+  Color _getStatusColor(String estado) {
+    switch (estado.toLowerCase()) {
+      case 'pendiente':
+        return const Color(0xFF137FEC);
+      case 'aceptada':
+        return Colors.green;
+      case 'rechazada':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
   Widget _buildStatusIcon(String estado) {
-    Color color;
+    Color color = _getStatusColor(estado);
     IconData icon;
 
     switch (estado.toLowerCase()) {
       case 'pendiente':
-        color = const Color(0xFF137FEC);
-        icon = Icons.assignment_late_outlined;
+        icon = Icons.send_outlined;
         break;
       case 'aceptada':
-        color = Colors.green;
         icon = Icons.check_circle_outline;
         break;
       case 'rechazada':
-        color = Colors.red;
         icon = Icons.cancel_outlined;
         break;
       default:
-        color = Colors.grey;
         icon = Icons.info_outline;
     }
 

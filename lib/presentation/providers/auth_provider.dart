@@ -223,20 +223,26 @@ class AuthProvider with ChangeNotifier {
   Future<void> _syncToken(User user) async {
     try {
       final token = await PushNotificationService.getToken();
-      if (token == null) return;
-
       final client = SupabaseService.instance.client;
       final userId = user.id;
 
-      // Sincronizar únicamente en la tabla general 'profiles' con los campos correctos
-      await client.from('profiles').upsert({
+      // Crear el mapa de datos a sincronizar
+      final Map<String, dynamic> updateData = {
         'id': userId,
-        'fcm_token': token,
         'email': user.email,
         'full_name': user.name,
-      });
+        'role': user.role ?? 'arrendatario',
+      };
+
+      // Agregar el fcm_token solo si no es nulo
+      if (token != null) {
+        updateData['fcm_token'] = token;
+      }
+
+      // Sincronizar en la tabla general 'profiles' con los campos correctos
+      await client.from('profiles').upsert(updateData);
     } catch (e) {
-      debugPrint("Error al sincronizar datos de usuario y fcm_token: $e");
+      debugPrint("Error al sincronizar datos de usuario: $e");
     }
   }
 }
