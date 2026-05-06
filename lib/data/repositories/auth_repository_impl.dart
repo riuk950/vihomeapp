@@ -109,6 +109,18 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, void>> updateUserRole(String role) async {
+    try {
+      await remoteDataSource.updateUserRole(role);
+      return const Right(null);
+    } on AuthFailure catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(AuthFailure(e.toString()));
+    }
+  }
+
+  @override
   Stream<Either<Failure, User?>> authStateChanges() {
     try {
       return remoteDataSource.authStateChanges().map((user) {

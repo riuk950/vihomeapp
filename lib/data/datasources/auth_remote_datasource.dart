@@ -29,6 +29,8 @@ abstract class AuthRemoteDataSource {
 
   Future<entity.User> signInWithGoogle();
 
+  Future<void> updateUserRole(String role);
+
   Stream<entity.User?> authStateChanges();
 }
 
@@ -167,6 +169,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return UserModel.fromSupabaseUser(response.user!).toEntity();
     } on AuthFailure {
       rethrow;
+    } catch (e) {
+      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
+
+  @override
+  Future<void> updateUserRole(String role) async {
+    try {
+      final user = supabaseService.client.auth.currentUser;
+      if (user == null) throw const AuthFailure('No hay usuario autenticado');
+
+      // 1. Actualizar metadatos de Auth
+      await supabaseService.client.auth.updateUser(
+        supabase.UserAttributes(
+          data: {'role': role},
+        ),
+      );
+
+      // 2. Actualizar tabla profiles
+      await supabaseService.client.from('profiles').update({
+        'role': role,
+      }).eq('id', user.id);
     } catch (e) {
       throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
     }

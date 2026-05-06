@@ -7,6 +7,7 @@ import '../../domain/usecases/auth/sign_in_with_google_usecase.dart';
 import '../../domain/usecases/auth/sign_out_usecase.dart';
 import '../../domain/usecases/auth/sign_up_usecase.dart';
 import '../../domain/usecases/auth/reset_password_usecase.dart';
+import '../../domain/usecases/auth/update_user_role_usecase.dart';
 import '../../infrastructure/services/push_notification_service.dart';
 import '../../infrastructure/services/supabase_service.dart';
 
@@ -17,6 +18,7 @@ class AuthProvider with ChangeNotifier {
   final SignUpUseCase signUpUseCase;
   final SignOutUseCase signOutUseCase;
   final ResetPasswordUseCase resetPasswordUseCase;
+  final UpdateUserRoleUseCase updateUserRoleUseCase;
 
   User? _user;
   bool _isLoading = false;
@@ -34,6 +36,7 @@ class AuthProvider with ChangeNotifier {
     required this.signUpUseCase,
     required this.signOutUseCase,
     required this.resetPasswordUseCase,
+    required this.updateUserRoleUseCase,
   }) {
     _initializeAuth();
   }
@@ -191,6 +194,35 @@ class AuthProvider with ChangeNotifier {
         },
         (_) {
           _setLoading(false);
+          return true;
+        },
+      );
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> becomeLandlord() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final result = await updateUserRoleUseCase('arrendador');
+
+      return result.fold(
+        (failure) {
+          _setError(failure.message);
+          _setLoading(false);
+          return false;
+        },
+        (_) {
+          if (_user != null) {
+            _user = _user!.copyWith(role: 'arrendador');
+          }
+          _setLoading(false);
+          notifyListeners();
           return true;
         },
       );

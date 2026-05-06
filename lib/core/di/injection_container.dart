@@ -105,6 +105,9 @@ Future<void> setupDependencyInjection() async {
     () => ResetPasswordUseCase(getIt<AuthRepository>()),
   );
   getIt.registerLazySingleton(
+    () => UpdateUserRoleUseCase(getIt<AuthRepository>()),
+  );
+  getIt.registerLazySingleton(
     () => GetPropertiesUseCase(getIt<PropertyRepository>()),
   );
   getIt.registerLazySingleton(
@@ -151,6 +154,7 @@ Future<void> setupDependencyInjection() async {
       signUpUseCase: getIt<SignUpUseCase>(),
       signOutUseCase: getIt<SignOutUseCase>(),
       resetPasswordUseCase: getIt<ResetPasswordUseCase>(),
+      updateUserRoleUseCase: getIt<UpdateUserRoleUseCase>(),
     ),
   );
   getIt.registerFactory(

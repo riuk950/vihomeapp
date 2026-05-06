@@ -230,60 +230,65 @@ class PerfilPage extends StatelessWidget {
                   const SizedBox(height: 24), */
 
                   // Become Landlord Banner
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: primaryColor.withValues(alpha: 0.1),
+                  if (user?.role == 'arrendatario')
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: InkWell(
+                        onTap: () => _showBecomeLandlordDialog(context),
                         borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: primaryColor,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.real_estate_agent,
-                              color: Colors.white,
-                            ),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Conviértete en Arrendador',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0F172A),
-                                  ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: primaryColor,
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Publica tus propiedades y gestiona tus arriendos.',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                  ),
+                                child: const Icon(
+                                  Icons.real_estate_agent,
+                                  color: Colors.white,
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Conviértete en Arrendador',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Publica tus propiedades y gestiona tus arriendos.',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right,
+                                color: Color(0xFF137FEC),
+                              ),
+                            ],
                           ),
-                          const Icon(
-                            Icons.chevron_right,
-                            color: Color(0xFF137FEC),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
 
                   const SizedBox(height: 16),
 
@@ -433,6 +438,67 @@ class PerfilPage extends StatelessWidget {
 
       if (context.mounted) {
         context.go('/login');
+      }
+    }
+  }
+
+  Future<void> _showBecomeLandlordDialog(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Conviértete en Arrendador'),
+        content: const Text(
+          '¿Estás seguro de que quieres convertirte en Arrendador? '
+          'Podrás publicar tus propiedades y gestionar tus arriendos.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Confirmar',
+              style: TextStyle(color: primaryColor),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && context.mounted) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      // Mostrar loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final success = await authProvider.becomeLandlord();
+
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Cerrar loading
+
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('¡Ahora eres Arrendador!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                authProvider.errorMessage ?? 'Error al cambiar de rol',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

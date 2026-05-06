@@ -32,6 +32,9 @@ abstract class AuthRepository {
   /// Actualiza la contraseña
   Future<Either<Failure, void>> updatePassword(String newPassword);
   
+  /// Actualiza el rol del usuario
+  Future<Either<Failure, void>> updateUserRole(String role);
+  
   /// Stream de cambios en el estado de autenticación
   Stream<Either<Failure, User?>> authStateChanges();
 }
