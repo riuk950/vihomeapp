@@ -8,6 +8,7 @@ import 'package:vihomeapp/presentation/providers/property_provider.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
+import 'package:intl/intl.dart';
 
 class MapaPage extends StatefulWidget {
   const MapaPage({super.key});
@@ -53,32 +54,58 @@ class _MapaPageState extends State<MapaPage> {
     // Limpiar marcadores existentes
     await pointAnnotationManager?.deleteAll();
 
-    // Generar imagen del marcador
-    final Uint8List markerImage = await _loadMarkerImage();
+    // Generar imágenes de los marcadores
+    final Uint8List arriendoMarker = await _loadMarkerImage(Colors.blue);
+    final Uint8List ventaMarker = await _loadMarkerImage(Colors.red);
 
     try {
+      // Registrar marcador de arriendo
       await mapboxMap?.style.addStyleImage(
-        'custom-marker',
+        'marker-arriendo',
         2.0,
-        MbxImage(width: 40, height: 40, data: markerImage),
+        MbxImage(width: 40, height: 40, data: arriendoMarker),
+        false,
+        [],
+        [],
+        null,
+      );
+      // Registrar marcador de venta
+      await mapboxMap?.style.addStyleImage(
+        'marker-venta',
+        2.0,
+        MbxImage(width: 40, height: 40, data: ventaMarker),
         false,
         [],
         [],
         null,
       );
     } catch (e) {
-      debugPrint('Error adding image to style: $e');
+      debugPrint('Error adding images to style: $e');
     }
+
+    final currencyFormat = NumberFormat.currency(
+      locale: 'es_CO',
+      symbol: '\$',
+      decimalDigits: 0,
+      customPattern:
+          '\u00A4#,##0', // El caracter \u00A4 representa el símbolo de moneda
+    );
 
     for (var property in provider.properties) {
       if (property.lat != 0 && property.lng != 0) {
         final point = Point(coordinates: Position(property.lng, property.lat));
 
+        final bool isArriendo = property.estado.toLowerCase() == 'arriendo';
+        final double? price =
+            isArriendo ? property.precioRenta : property.precioVenta;
+        final String priceText =
+            price != null ? currencyFormat.format(price) : 'N/A';
+
         final options = PointAnnotationOptions(
           geometry: point,
-          iconImage: 'custom-marker',
+          iconImage: isArriendo ? 'marker-arriendo' : 'marker-venta',
           iconSize: 1.0,
-          textField: '\$${property.precioRenta}',
+          textField: priceText,
           textSize: 12.0,
           textOffset: [0, 2.0],
           textColor: Colors.black.toARGB32(),
@@ -89,15 +116,15 @@ class _MapaPageState extends State<MapaPage> {
     }
   }
 
-  Future<Uint8List> _loadMarkerImage() async {
+  Future<Uint8List> _loadMarkerImage(Color color) async {
     final pictureRecorder = ui.PictureRecorder();
     final canvas = Canvas(pictureRecorder);
-    final paint = Paint()..color = Colors.red;
+    final paint = Paint()..color = color;
     final radius = 20.0;
 
     canvas.drawCircle(Offset(radius, radius), radius, paint);
 
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+    final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
     textPainter.text = TextSpan(
       text: String.fromCharCode(Icons.home.codePoint),
       style: TextStyle(

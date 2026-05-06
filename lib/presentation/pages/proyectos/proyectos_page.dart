@@ -433,11 +433,10 @@ class _ProyectosPageState extends State<ProyectosPage> {
   }
 
   String _formatCurrency(double amount) {
-    final formatter = NumberFormat.currency(
+    return NumberFormat.currency(
       locale: 'es_CO',
-      customPattern: '\$ #,##0',
+      symbol: '\$',
       decimalDigits: 0,
-    );
-    return formatter.format(amount);
+    ).format(amount);
   }
 }
