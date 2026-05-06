@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/data/models/application_model.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
+import 'package:vihomeapp/presentation/helpers/phone_input_formatter.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/widgets/btn_primary.dart';
@@ -120,6 +123,10 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: telefonoController,
+                  inputFormatters: [
+                    PhoneInputFormatter(),
+                    LengthLimitingTextInputFormatter(15),
+                  ],
                   decoration: const InputDecoration(
                     labelText: 'Teléfono',
                     border: OutlineInputBorder(),
@@ -230,7 +237,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
           .map(
             (ref) => PersonalReference(
               nombre: ref['nombre']!,
-              telefono: ref['telefono']!,
+              telefono: ref['telefono']!.replaceAll(RegExp(r'\D'), ''),
               relacion: ref['relacion']!,
             ),
           )
@@ -284,10 +291,11 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
         empresa: _empresaController.text,
         cargo: _cargoController.text,
         tiempoEmpleo: _tiempoEmpleoController.text,
-        ingresosMensuales: _ingresoMensualController.text,
+        ingresosMensuales:
+            _ingresoMensualController.text.replaceAll(RegExp(r'\D'), ''),
         otrosIngresos: _otrosIngresosController.text.isEmpty
             ? null
-            : _otrosIngresosController.text,
+            : _otrosIngresosController.text.replaceAll(RegExp(r'\D'), ''),
         documentoUrl: documentoUrlsString,
         refPersonales: refPersonales,
       );
@@ -369,9 +377,10 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // Información de la propiedad
@@ -489,6 +498,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                   label: 'Ingreso mensual (COP)',
                   icon: Icons.attach_money,
                   keyboardType: TextInputType.number,
+                  inputFormatters: [_CurrencyInputFormatter()],
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Este campo es requerido';
@@ -502,6 +512,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
                   label: 'Otros ingresos (opcional)',
                   icon: Icons.account_balance_wallet,
                   keyboardType: TextInputType.number,
+                  inputFormatters: [_CurrencyInputFormatter()],
                 ),
                 const SizedBox(height: 24),
 
@@ -841,8 +852,9 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildExpansionPanel({
     required String title,
@@ -909,11 +921,13 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
     required IconData icon,
     TextInputType? keyboardType,
     String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: primaryColor),
@@ -949,5 +963,35 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+}
+
+class _CurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Limpiar el texto de todo lo que no sea dígitos
+    String newText = newValue.text.replaceAll(RegExp(r'\D'), '');
+
+    // Si no hay dígitos, devolver vacío
+    if (newText.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Formatear con separadores de miles (punto)
+    final double value = double.parse(newText);
+    final formatter = NumberFormat.decimalPattern('es_CO');
+    final String formattedText = formatter.format(value);
+
+    return newValue.copyWith(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
+    );
   }
 }

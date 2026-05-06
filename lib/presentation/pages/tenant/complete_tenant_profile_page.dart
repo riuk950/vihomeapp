@@ -6,6 +6,7 @@ import '../../../domain/entities/tenant.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/tenant_provider.dart';
 import 'package:flutter/services.dart';
+import '../../helpers/phone_input_formatter.dart';
 
 class CompleteTenantProfilePage extends StatefulWidget {
   const CompleteTenantProfilePage({super.key});
@@ -216,7 +217,7 @@ class _CompleteTenantProfilePageState extends State<CompleteTenantProfilePage> {
                       controller: _telefonoContactoController,
                       keyboardType: TextInputType.phone,
                       inputFormatters: [
-                        _PhoneInputFormatter(),
+                        PhoneInputFormatter(),
                         LengthLimitingTextInputFormatter(15),
                       ],
                       decoration: const InputDecoration(
@@ -262,45 +263,3 @@ class _CompleteTenantProfilePageState extends State<CompleteTenantProfilePage> {
   }
 }
 
-class _PhoneInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final newText = newValue.text;
-    if (newText.isEmpty) return newValue;
-
-    newText.replaceAll(RegExp(r'\D'), '');
-    final buffer = StringBuffer();
-
-    int selectionIndex = newValue.selection.end;
-    int digitCount = 0;
-    int newSelectionIndex = 0;
-
-    for (int i = 0; i < newText.length; i++) {
-      if (i == selectionIndex) {
-        newSelectionIndex = buffer.length;
-      }
-      if (RegExp(r'\d').hasMatch(newText[i])) {
-        if (digitCount == 2 || digitCount == 5 || digitCount == 8) {
-          buffer.write(' ');
-          if (i == selectionIndex) {
-            newSelectionIndex = buffer.length;
-          }
-        }
-        buffer.write(newText[i]);
-        digitCount++;
-      }
-    }
-
-    if (selectionIndex == newText.length) {
-      newSelectionIndex = buffer.length;
-    }
-
-    return TextEditingValue(
-      text: buffer.toString(),
-      selection: TextSelection.collapsed(offset: newSelectionIndex),
-    );
-  }
-}

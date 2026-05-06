@@ -4,6 +4,7 @@ export './auth/sign_in_usecase.dart';
 export './auth/sign_in_with_google_usecase.dart';
 export './auth/sign_out_usecase.dart';
 export './auth/sign_up_usecase.dart';
+export './auth/update_user_role_usecase.dart';
 export './property/get_properties_usecase.dart';
 export './property/get_properties_by_landlord_usecase.dart';
 export './property/create_property_usecase.dart';

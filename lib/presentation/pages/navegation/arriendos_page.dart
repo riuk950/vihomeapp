@@ -81,8 +81,9 @@ class _ArriendosPageState extends State<ArriendosPage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
+      body: SafeArea(
+        child: Column(
+          children: [
           // Search Bar
           /* Padding(
             padding: const EdgeInsets.all(16.0),
@@ -173,7 +174,8 @@ class _ArriendosPageState extends State<ArriendosPage> {
               },
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

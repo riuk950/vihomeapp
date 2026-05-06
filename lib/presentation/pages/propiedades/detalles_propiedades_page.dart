@@ -17,6 +17,7 @@ import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/widgets/btn_primary.dart';
 import 'package:vihomeapp/core/di/injection_container.dart';
 import 'package:vihomeapp/domain/usecases/landlord/get_landlord_profile_usecase.dart';
+import 'package:intl/intl.dart';
 
 class DetallesPropiedadesPage extends StatefulWidget {
   final Property property;
@@ -181,8 +182,9 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
+      body: SafeArea(
+        child: Stack(
+          children: [
           CustomScrollView(
             slivers: [
               _buildImageCarousel(),
@@ -201,7 +203,8 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
           else if (user?.role == 'arrendatario' &&
               widget.property.estado == 'arriendo')
             _buildTenantActionBar(),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -308,7 +311,7 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildMainInfo(
-            '\$${(widget.property.precioRenta ?? widget.property.precio).toStringAsFixed(0)} COP/mes'),
+            '${_formatCurrency(widget.property.precioRenta ?? widget.property.precio)} COP/mes'),
         _buildFeatures(),
         _buildDivider(),
         _buildDescription(),
@@ -328,7 +331,7 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildMainInfo(
-            '\$${(widget.property.precioVenta ?? widget.property.precio).toStringAsFixed(0)} COP'),
+            '${_formatCurrency(widget.property.precioVenta ?? widget.property.precio)} COP'),
         _buildFeatures(),
         _buildDivider(),
         _buildDescription(),
@@ -822,5 +825,13 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
         ),
       ],
     );
+  }
+
+  String _formatCurrency(double amount) {
+    return NumberFormat.currency(
+      locale: 'es_CO',
+      symbol: '\$',
+      decimalDigits: 0,
+    ).format(amount);
   }
 }
