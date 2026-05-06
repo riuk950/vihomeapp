@@ -132,8 +132,9 @@ class _DetallesProyectoPageState extends State<DetallesProyectoPage> {
     final project = widget.project;
     return Scaffold(
       backgroundColor: backgroundColor,
-      body: Stack(
-        children: [
+      body: SafeArea(
+        child: Stack(
+          children: [
           // Contenido scrolleable
           CustomScrollView(
             slivers: [
@@ -235,12 +236,12 @@ class _DetallesProyectoPageState extends State<DetallesProyectoPage> {
                       else
                         // Imagen placeholder si no hay fotos
                         Container(
-                          color: const Color(0xFFE2E8F0),
+                          color: backgroundColor,
                           child: const Center(
                             child: Icon(
                               Icons.apartment,
                               size: 80,
-                              color: Color(0xFF94A3B8),
+                              color: disabledColor,
                             ),
                           ),
                         ),
@@ -678,26 +679,6 @@ class _DetallesProyectoPageState extends State<DetallesProyectoPage> {
                         'Contactar',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: primaryColor,
-                        side: const BorderSide(color: primaryColor, width: 2),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        final url = Uri.parse(_constructora!.sitioWeb!);
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url);
-                        }
-                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         foregroundColor: Colors.white,
@@ -708,23 +689,46 @@ class _DetallesProyectoPageState extends State<DetallesProyectoPage> {
                         elevation: 4,
                         shadowColor: primaryColor.withValues(alpha: 0.4),
                       ),
-                      child: const Text(
-                        'Solicitar Información',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
                     ),
                   ),
+                  // const SizedBox(width: 12),
+                  // Expanded(
+                  //   flex: 2,
+                  //   child: ElevatedButton(
+                  //     onPressed: () async {
+                  //       final url = Uri.parse(_constructora!.sitioWeb!);
+                  //       if (await canLaunchUrl(url)) {
+                  //         await launchUrl(url);
+                  //       }
+                  //     },
+                  //     style: ElevatedButton.styleFrom(
+                  //       backgroundColor: primaryColor,
+                  //       foregroundColor: Colors.white,
+                  //       padding: const EdgeInsets.symmetric(vertical: 14),
+                  //       shape: RoundedRectangleBorder(
+                  //         borderRadius: BorderRadius.circular(10),
+                  //       ),
+                  //       elevation: 4,
+                  //       shadowColor: primaryColor.withValues(alpha: 0.4),
+                  //     ),
+                  //     child: const Text(
+                  //       'Solicitar Información',
+                  //       style: TextStyle(
+                  //         fontWeight: FontWeight.bold,
+                  //         fontSize: 15,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ── Helpers de UI ─────────────────────────────────────────────────────────
 

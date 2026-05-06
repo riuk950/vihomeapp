@@ -90,73 +90,75 @@ class _ProyectosPageState extends State<ProyectosPage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 10),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
 
-          // Filtros de estado
-          SizedBox(
-            height: 50,
-            child: Consumer<ProjectProvider>(
-              builder: (context, provider, child) {
-                return ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _filters.length,
-                  itemBuilder: (context, index) {
-                    final isSelected =
-                        provider.selectedFilter == _filters[index];
-                    return _buildFilterChip(
-                      _filterLabels[index],
-                      isSelected,
-                      () => provider.selectFilter(_filters[index]),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-
-          // Lista de proyectos
-          Expanded(
-            child: Consumer<ProjectProvider>(
-              builder: (context, provider, child) {
-                if (provider.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: primaryColor),
-                  );
-                }
-
-                if (provider.errorMessage != null) {
-                  return Center(child: Text(provider.errorMessage!));
-                }
-
-                final projects = provider.filteredProjects;
-
-                if (projects.isEmpty) {
-                  return const Center(
-                    child: Text('No se encontraron proyectos'),
-                  );
-                }
-
-                return RefreshIndicator(
-                  color: primaryColor,
-                  backgroundColor: backgroundColor,
-                  onRefresh: () async {
-                    provider.fetchProjects();
-                  },
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: projects.length,
+            // Filtros de estado
+            SizedBox(
+              height: 50,
+              child: Consumer<ProjectProvider>(
+                builder: (context, provider, child) {
+                  return ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _filters.length,
                     itemBuilder: (context, index) {
-                      return _buildProjectCard(context, projects[index]);
+                      final isSelected =
+                          provider.selectedFilter == _filters[index];
+                      return _buildFilterChip(
+                        _filterLabels[index],
+                        isSelected,
+                        () => provider.selectFilter(_filters[index]),
+                      );
                     },
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+
+            // Lista de proyectos
+            Expanded(
+              child: Consumer<ProjectProvider>(
+                builder: (context, provider, child) {
+                  if (provider.isLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: primaryColor),
+                    );
+                  }
+
+                  if (provider.errorMessage != null) {
+                    return Center(child: Text(provider.errorMessage!));
+                  }
+
+                  final projects = provider.filteredProjects;
+
+                  if (projects.isEmpty) {
+                    return const Center(
+                      child: Text('No se encontraron proyectos'),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    color: primaryColor,
+                    backgroundColor: backgroundColor,
+                    onRefresh: () async {
+                      provider.fetchProjects();
+                    },
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: projects.length,
+                      itemBuilder: (context, index) {
+                        return _buildProjectCard(context, projects[index]);
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

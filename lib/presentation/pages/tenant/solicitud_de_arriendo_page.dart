@@ -377,9 +377,10 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // Información de la propiedad
@@ -851,8 +852,9 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildExpansionPanel({
     required String title,

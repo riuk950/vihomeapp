@@ -181,8 +181,9 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
+      body: SafeArea(
+        child: Stack(
+          children: [
           CustomScrollView(
             slivers: [
               _buildImageCarousel(),
@@ -201,7 +202,8 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
           else if (user?.role == 'arrendatario' &&
               widget.property.estado == 'arriendo')
             _buildTenantActionBar(),
-        ],
+          ],
+        ),
       ),
     );
   }

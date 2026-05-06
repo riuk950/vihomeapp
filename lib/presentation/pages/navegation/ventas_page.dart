@@ -82,8 +82,9 @@ class _VentasPageState extends State<VentasPage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
+      body: SafeArea(
+        child: Column(
+          children: [
           // Search Bar
           /* Padding(
             padding: const EdgeInsets.all(16.0),
@@ -175,7 +176,8 @@ class _VentasPageState extends State<VentasPage> {
               },
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
