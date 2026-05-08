@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
@@ -34,12 +35,8 @@ class _SolicitudesArrendadorPageState extends State<SolicitudesArrendadorPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Definición de colores del diseño
-    const backgroundLight = Color(0xFFF6F7F8);
-    // const backgroundDark = Color(0xFF101922); // Si implementamos dark mode
-
     return Scaffold(
-      backgroundColor: backgroundLight,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: const Text(
           'Solicitudes de Arriendo',
@@ -50,10 +47,10 @@ class _SolicitudesArrendadorPageState extends State<SolicitudesArrendadorPage> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: backgroundLight,
+        backgroundColor: backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111418)),
+          icon: const Icon(Icons.arrow_back, color: textColor),
           onPressed: () => context.pop(),
         ),
       ),
@@ -150,23 +147,21 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF137FEC);
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? primaryColor : Colors.white,
+          color: isSelected ? primaryColor : backgroundColor,
           borderRadius: BorderRadius.circular(999), // full rounded
           border: Border.all(
-            color: isSelected ? primaryColor : Colors.grey[300]!,
+            color: isSelected ? primaryColor : disabledColor,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[700],
+            color: isSelected ? backgroundColor : disabledColor,
             fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
@@ -193,13 +188,13 @@ class _ApplicationCard extends StatelessWidget {
     final statusColor = isPending
         ? Colors.amber[700]
         : (application.estado.toLowerCase() == 'aceptada'
-              ? Colors.green
-              : Colors.red);
+            ? Colors.green
+            : Colors.red);
     final statusBgColor = isPending
         ? Colors.amber[100]
         : (application.estado.toLowerCase() == 'aceptada'
-              ? Colors.green[100]
-              : Colors.red[100]);
+            ? Colors.green[100]
+            : Colors.red[100]);
 
     // Format date simple
     final date = application.createdAt;
@@ -209,16 +204,16 @@ class _ApplicationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: textColor,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey[100]!),
+        border: Border.all(color: disabledColor),
       ),
       child: Column(
         children: [
@@ -231,10 +226,10 @@ class _ApplicationCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: const BoxDecoration(
-                  color: Colors.grey,
+                  color: disabledColor,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.person, color: Colors.white),
+                child: const Icon(Icons.person, color: backgroundColor),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -257,7 +252,7 @@ class _ApplicationCard extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF111418),
+                              color: textColor,
                             ),
                           ),
                         );
@@ -272,7 +267,7 @@ class _ApplicationCard extends StatelessWidget {
                         'Ingresos: \$${application.ingresosMensuales}',
                         style: const TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF137FEC),
+                          color: primaryColor,
                         ),
                       ),
                   ],
@@ -305,7 +300,7 @@ class _ApplicationCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.grey[50], // Slate 50
+              color: disabledColor, // Slate 50
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -351,8 +346,8 @@ class _ApplicationCard extends StatelessWidget {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF137FEC),
-                          foregroundColor: Colors.white,
+                          backgroundColor: primaryColor,
+                          foregroundColor: backgroundColor,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -368,8 +363,8 @@ class _ApplicationCard extends StatelessWidget {
                           );
                         },
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF137FEC),
-                          side: const BorderSide(color: Color(0xFF137FEC)),
+                          foregroundColor: primaryColor,
+                          side: const BorderSide(color: primaryColor),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),

@@ -469,6 +469,8 @@ class PerfilPage extends StatelessWidget {
 
     if (confirm == true && context.mounted) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final landlordProvider =
+          Provider.of<LandlordProvider>(context, listen: false);
 
       // Mostrar loading
       showDialog(
@@ -483,12 +485,22 @@ class PerfilPage extends StatelessWidget {
         Navigator.of(context).pop(); // Cerrar loading
 
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('¡Ahora eres Arrendador!'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          // Cargar perfil de arrendador (puede que no exista aún)
+          final userId = authProvider.user?.id;
+          if (userId != null) {
+            await landlordProvider.loadLandlordProfile(userId);
+          }
+
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('¡Ahora eres Arrendador!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            // Redirigir a completar perfil de arrendador
+            context.push('/complete-landlord-profile');
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

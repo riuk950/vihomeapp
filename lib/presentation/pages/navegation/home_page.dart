@@ -19,26 +19,52 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
-  
+  String? _lastRole;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final appProvider = Provider.of<ApplicationProvider>(context, listen: false);
       final user = authProvider.user;
-      
-      if (user != null) {
-        if (user.role == 'arrendador') {
-          appProvider.fetchLandlordApplications(user.id);
-        } else {
-          appProvider.fetchTenantApplications(user.id);
-        }
-      }
+      _lastRole = user?.role;
+      _loadApplicationsForRole(user?.role, user?.id);
 
       // Procesar notificación inicial si la app se abrió desde una
       PushNotificationService.handleInitialMessage();
+
+      // Escuchar cambios futuros de rol
+      authProvider.addListener(_onAuthChanged);
     });
+  }
+
+  @override
+  void dispose() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.removeListener(_onAuthChanged);
+    super.dispose();
+  }
+
+  void _onAuthChanged() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    final newRole = user?.role;
+
+    // Solo recargar si el rol cambió efectivamente
+    if (newRole != _lastRole) {
+      _lastRole = newRole;
+      _loadApplicationsForRole(newRole, user?.id);
+    }
+  }
+
+  void _loadApplicationsForRole(String? role, String? userId) {
+    if (userId == null) return;
+    final appProvider = Provider.of<ApplicationProvider>(context, listen: false);
+    if (role == 'arrendador') {
+      appProvider.fetchLandlordApplications(userId);
+    } else {
+      appProvider.fetchTenantApplications(userId);
+    }
   }
 
   @override
