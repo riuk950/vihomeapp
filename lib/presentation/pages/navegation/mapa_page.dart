@@ -21,6 +21,14 @@ class _MapaPageState extends State<MapaPage> {
   MapboxMap? mapboxMap;
   PointAnnotationManager? pointAnnotationManager;
 
+  final currencyFormat = NumberFormat.currency(
+    locale: 'es_CO',
+    symbol: '\$',
+    decimalDigits: 0,
+    customPattern:
+        '\u00A4#,##0', // El caracter \u00A4 representa el símbolo de moneda
+  );
+
   @override
   void initState() {
     super.initState();
@@ -47,6 +55,31 @@ class _MapaPageState extends State<MapaPage> {
     _loadPropertyMarkers();
   }
 
+  IconData _getIconForPropertyType(String tipoPropiedad) {
+    switch (tipoPropiedad.toLowerCase()) {
+      case 'casa':
+        return Icons.house;
+      case 'apartamento':
+        return Icons.apartment;
+      case 'local':
+        return Icons.store;
+      case 'oficina':
+        return Icons.business;
+      case 'lote':
+      case 'terreno':
+        return Icons.landscape;
+      case 'finca':
+        return Icons.agriculture;
+      case 'bodega':
+        return Icons.warehouse;
+      case 'habitacion':
+      case 'habitación':
+        return Icons.bed;
+      default:
+        return Icons.home;
+    }
+  }
+
   Future<void> _loadPropertyMarkers() async {
     if (pointAnnotationManager == null) return;
 
@@ -54,42 +87,7 @@ class _MapaPageState extends State<MapaPage> {
     // Limpiar marcadores existentes
     await pointAnnotationManager?.deleteAll();
 
-    // Generar imágenes de los marcadores
-    final Uint8List arriendoMarker = await _loadMarkerImage(Colors.blue);
-    final Uint8List ventaMarker = await _loadMarkerImage(Colors.red);
-
-    try {
-      // Registrar marcador de arriendo
-      await mapboxMap?.style.addStyleImage(
-        'marker-arriendo',
-        2.0,
-        MbxImage(width: 40, height: 40, data: arriendoMarker),
-        false,
-        [],
-        [],
-        null,
-      );
-      // Registrar marcador de venta
-      await mapboxMap?.style.addStyleImage(
-        'marker-venta',
-        2.0,
-        MbxImage(width: 40, height: 40, data: ventaMarker),
-        false,
-        [],
-        [],
-        null,
-      );
-    } catch (e) {
-      debugPrint('Error adding images to style: $e');
-    }
-
-    final currencyFormat = NumberFormat.currency(
-      locale: 'es_CO',
-      symbol: '\$',
-      decimalDigits: 0,
-      customPattern:
-          '\u00A4#,##0', // El caracter \u00A4 representa el símbolo de moneda
-    );
+    final Set<String> registeredMarkers = {};
 
     for (var property in provider.properties) {
       if (property.lat != 0 && property.lng != 0) {
@@ -101,9 +99,31 @@ class _MapaPageState extends State<MapaPage> {
         final String priceText =
             price != null ? currencyFormat.format(price) : 'N/A';
 
+        final IconData icon = isArriendo ? _getIconForPropertyType(property.tipoPropiedad) : Icons.home;
+        final String markerKey = isArriendo ? 'marker-arriendo-${icon.codePoint}' : 'marker-venta';
+
+        if (!registeredMarkers.contains(markerKey)) {
+          final Color color = isArriendo ? Colors.blue : Colors.red;
+          final Uint8List markerBytes = await _loadMarkerImage(color, icon);
+          try {
+            await mapboxMap?.style.addStyleImage(
+              markerKey,
+              2.0,
+              MbxImage(width: 40, height: 40, data: markerBytes),
+              false,
+              [],
+              [],
+              null,
+            );
+          } catch (e) {
+            debugPrint('Error adding images to style: $e');
+          }
+          registeredMarkers.add(markerKey);
+        }
+
         final options = PointAnnotationOptions(
           geometry: point,
-          iconImage: isArriendo ? 'marker-arriendo' : 'marker-venta',
+          iconImage: markerKey,
           iconSize: 1.0,
           textField: priceText,
           textSize: 12.0,
@@ -116,7 +136,7 @@ class _MapaPageState extends State<MapaPage> {
     }
   }
 
-  Future<Uint8List> _loadMarkerImage(Color color) async {
+  Future<Uint8List> _loadMarkerImage(Color color, IconData iconData) async {
     final pictureRecorder = ui.PictureRecorder();
     final canvas = Canvas(pictureRecorder);
     final paint = Paint()..color = color;
@@ -126,11 +146,12 @@ class _MapaPageState extends State<MapaPage> {
 
     final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
     textPainter.text = TextSpan(
-      text: String.fromCharCode(Icons.home.codePoint),
+      text: String.fromCharCode(iconData.codePoint),
       style: TextStyle(
         fontSize: 25.0,
-        fontFamily: Icons.home.fontFamily,
         color: Colors.white,
+        fontFamily: iconData.fontFamily,
+        package: iconData.fontPackage,
       ),
     );
     textPainter.layout();
@@ -225,6 +246,13 @@ class _MapaPageState extends State<MapaPage> {
         ),
       ),
       builder: (context) {
+        final bool isArriendo = property.estado.toLowerCase() == 'arriendo';
+
+        final double? price =
+            isArriendo ? property.precioRenta : property.precioVenta;
+        final String priceText =
+            price != null ? currencyFormat.format(price) : 'N/A';
+
         return Container(
           padding: const EdgeInsets.all(16),
           height: 350,
@@ -260,15 +288,15 @@ class _MapaPageState extends State<MapaPage> {
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 16),
-              const Text(
-                'Precio de Venta',
-                style: TextStyle(color: disabledColor, fontSize: 12),
+              Text(
+                isArriendo ? 'Precio de Arriendo' : 'Precio de Venta',
+                style: const TextStyle(color: disabledColor, fontSize: 12),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '\$${property.precioRenta}',
+                    priceText,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

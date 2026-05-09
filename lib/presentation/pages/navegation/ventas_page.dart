@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
-import '../../providers/property_provider.dart';
-import '../../providers/application_provider.dart';
-import '../../providers/auth_provider.dart';
-import '../../../domain/entities/property.dart';
+import 'package:vihomeapp/presentation/providers/providers.dart';
+import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -85,8 +83,8 @@ class _VentasPageState extends State<VentasPage> {
       body: SafeArea(
         child: Column(
           children: [
-          // Search Bar
-          /* Padding(
+            // Search Bar
+            /* Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               decoration: InputDecoration(
@@ -103,79 +101,79 @@ class _VentasPageState extends State<VentasPage> {
               ),
             ),
           ), */
-          const SizedBox(height: 10),
+            const SizedBox(height: 10),
 
-          // Filters
-          SizedBox(
-            height: 50,
-            child: Consumer<PropertyProvider>(
-              builder: (context, provider, child) {
-                return ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    _buildFilterChip(
-                      'Todas',
-                      provider.selectedType == null,
-                      () => provider.selectType(null),
-                    ),
-                    ...provider.propertyTypes.map(
-                      (type) => _buildFilterChip(
-                        type.nombre,
-                        provider.selectedType == type,
-                        () => provider.selectType(type),
+            // Filters
+            SizedBox(
+              height: 50,
+              child: Consumer<PropertyProvider>(
+                builder: (context, provider, child) {
+                  return ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      _buildFilterChip(
+                        'Todas',
+                        provider.selectedType == null,
+                        () => provider.selectType(null),
                       ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-
-          // Property List
-          Expanded(
-            child: Consumer<PropertyProvider>(
-              builder: (context, propertyProvider, child) {
-                // Filter only properties with estado == 'venta'
-                final ventasProperties = propertyProvider.properties
-                    .where((p) => p.estado == 'venta')
-                    .toList();
-
-                if (propertyProvider.isLoading &&
-                    propertyProvider.propertyTypes.isEmpty) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: primaryColor),
+                      ...provider.propertyTypes.map(
+                        (type) => _buildFilterChip(
+                          type.nombre,
+                          provider.selectedType == type,
+                          () => provider.selectType(type),
+                        ),
+                      ),
+                    ],
                   );
-                }
-
-                if (propertyProvider.errorMessage != null) {
-                  return Center(child: Text(propertyProvider.errorMessage!));
-                }
-
-                if (ventasProperties.isEmpty) {
-                  return const Center(
-                      child: Text('No se encontraron propiedades en venta'));
-                }
-
-                return RefreshIndicator(
-                  color: primaryColor,
-                  backgroundColor: backgroundColor,
-                  onRefresh: () async {
-                    propertyProvider.fetchProperties();
-                    propertyProvider.fetchPropertyTypes();
-                  },
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: ventasProperties.length,
-                    itemBuilder: (context, index) {
-                      final property = ventasProperties[index];
-                      return _buildPropertyCard(context, property);
-                    },
-                  ),
-                );
-              },
+                },
+              ),
             ),
-          ),
+
+            // Property List
+            Expanded(
+              child: Consumer<PropertyProvider>(
+                builder: (context, propertyProvider, child) {
+                  // Filter only properties with estado == 'venta'
+                  final ventasProperties = propertyProvider.properties
+                      .where((p) => p.estado == 'venta')
+                      .toList();
+
+                  if (propertyProvider.isLoading &&
+                      propertyProvider.propertyTypes.isEmpty) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: primaryColor),
+                    );
+                  }
+
+                  if (propertyProvider.errorMessage != null) {
+                    return Center(child: Text(propertyProvider.errorMessage!));
+                  }
+
+                  if (ventasProperties.isEmpty) {
+                    return const Center(
+                        child: Text('No se encontraron propiedades en venta'));
+                  }
+
+                  return RefreshIndicator(
+                    color: primaryColor,
+                    backgroundColor: backgroundColor,
+                    onRefresh: () async {
+                      propertyProvider.fetchProperties();
+                      propertyProvider.fetchPropertyTypes();
+                    },
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: ventasProperties.length,
+                      itemBuilder: (context, index) {
+                        final property = ventasProperties[index];
+                        return _buildPropertyCard(context, property);
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),

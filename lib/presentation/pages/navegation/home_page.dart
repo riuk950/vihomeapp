@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
-import 'arriendos_page.dart';
-import 'ventas_page.dart';
-import '../proyectos/proyectos_page.dart';
-import '../user/perfil_page.dart';
-import 'panel_page.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/application_provider.dart';
-import '../../../infrastructure/services/push_notification_service.dart';
+import 'package:vihomeapp/presentation/pages/pages.dart';
+import 'package:vihomeapp/presentation/providers/providers.dart';
+import 'package:vihomeapp/infrastructure/services/push_notification_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -59,7 +54,8 @@ class _HomePageState extends State<HomePage> {
 
   void _loadApplicationsForRole(String? role, String? userId) {
     if (userId == null) return;
-    final appProvider = Provider.of<ApplicationProvider>(context, listen: false);
+    final appProvider =
+        Provider.of<ApplicationProvider>(context, listen: false);
     if (role == 'arrendador') {
       appProvider.fetchLandlordApplications(userId);
     } else {

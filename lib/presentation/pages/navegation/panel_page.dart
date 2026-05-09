@@ -4,12 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
+import 'package:vihomeapp/presentation/providers/providers.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_complete.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_verificado.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/tenant_provider.dart';
-import '../../providers/landlord_provider.dart';
-import '../../providers/application_provider.dart';
 
 class PanelPage extends StatelessWidget {
   const PanelPage({super.key});
@@ -315,9 +312,6 @@ class PanelPage extends StatelessWidget {
   }
 
   Widget _buildApplicationStatusCard(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final user = authProvider.user;
-
     return Consumer<ApplicationProvider>(
       builder: (context, appProvider, child) {
         final apps = appProvider.applications;

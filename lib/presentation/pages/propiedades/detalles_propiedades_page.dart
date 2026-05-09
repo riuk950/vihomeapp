@@ -498,12 +498,6 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
             )
           : Row(
               children: [
-                const CircleAvatar(
-                  radius: 28,
-                  backgroundImage:
-                      NetworkImage('https://i.pravatar.cc/150?img=11'),
-                ),
-                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -522,7 +516,7 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Colors.blue),
+                const Icon(Icons.check_circle_outline, color: primaryColor),
               ],
             ),
     );
