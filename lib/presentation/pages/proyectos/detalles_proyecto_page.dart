@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
@@ -127,6 +128,30 @@ class _DetallesProyectoPageState extends State<DetallesProyectoPage> {
     super.dispose();
   }
 
+  void _shareProject() {
+    final String shareText = '''
+¡Mira este proyecto en VIHOME!
+
+🏢 ${widget.project.tipoPropiedad} - ${_constructora?.nombre ?? 'Proyecto'}
+📍 ${widget.project.ubicacionPrincipal}
+💰 Desde ${_formatCurrency(widget.project.precioDesde)}
+📐 ${widget.project.area.toStringAsFixed(0)} m²
+🛏️ ${widget.project.habitaciones} Habitaciones
+🏗️ Estado: ${widget.project.estado}
+
+${widget.project.descripcion.isNotEmpty ? widget.project.descripcion : 'Excelente proyecto disponible.'}
+
+¡Descarga VIHOME para ver más detalles!
+''';
+
+    SharePlus.instance.share(
+      ShareParams(
+        text: shareText,
+        subject: widget.project.tipoPropiedad,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final project = widget.project;
@@ -173,7 +198,7 @@ class _DetallesProyectoPageState extends State<DetallesProyectoPage> {
                           size: 20,
                         ),
                       ),
-                      onPressed: () {},
+                      onPressed: _shareProject,
                     ),
                     const SizedBox(width: 4),
                   ],

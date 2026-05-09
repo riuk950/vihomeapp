@@ -165,7 +165,16 @@ class PanelPage extends StatelessWidget {
                                 icon: Icons.description_outlined,
                                 title: 'Mis Documentos',
                                 subtitle: 'Accede a tus documentos',
-                                onTap: () {},
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Esta funcionalidad estara disponible proximamente.',
+                                      ),
+                                      backgroundColor: Colors.blue,
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -174,6 +183,7 @@ class PanelPage extends StatelessWidget {
                                 context,
                                 icon: Icons.person_outline,
                                 title: 'Información Personal',
+                                locked: !isVerified,
                                 subtitle: 'Actualiza tus datos',
                                 onTap: () {
                                   context.push('/personal-info-landlord');

@@ -18,6 +18,7 @@ import 'package:vihomeapp/presentation/widgets/btn_primary.dart';
 import 'package:vihomeapp/core/di/injection_container.dart';
 import 'package:vihomeapp/domain/usecases/landlord/get_landlord_profile_usecase.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DetallesPropiedadesPage extends StatefulWidget {
   final Property property;
@@ -160,6 +161,34 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
     super.dispose();
   }
 
+  void _shareProperty() {
+    final String price = widget.property.estado == 'arriendo'
+        ? '${_formatCurrency(widget.property.precioRenta ?? widget.property.precio)} COP/mes'
+        : '${_formatCurrency(widget.property.precioVenta ?? widget.property.precio)} COP';
+
+    final String shareText = '''
+¡Mira esta propiedad en VIHOME!
+
+🏠 ${widget.property.titulo}
+📍 ${widget.property.direccion}
+💰 $price
+🛏️ ${widget.property.habitaciones} Habitaciones
+🚿 ${widget.property.banos} Baños
+📐 ${widget.property.metrosCuadrados.toStringAsFixed(0)} m²
+
+${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excelente propiedad disponible.'}
+
+¡Descarga VIHOME para ver más detalles!
+''';
+
+    SharePlus.instance.share(
+      ShareParams(
+        text: shareText,
+        subject: widget.property.titulo,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -177,7 +206,7 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.share, color: Colors.black),
-            onPressed: () {},
+            onPressed: _shareProperty,
           ),
         ],
       ),

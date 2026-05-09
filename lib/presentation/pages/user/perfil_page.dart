@@ -51,6 +51,9 @@ class PerfilPage extends StatelessWidget {
         child: Consumer<AuthProvider>(
           builder: (context, authProvider, child) {
             final user = authProvider.user;
+            final isVerified = user?.role == 'arrendador'
+                ? Provider.of<LandlordProvider>(context).isVerified
+                : Provider.of<TenantProvider>(context).isVerified;
             return SingleChildScrollView(
               child: Column(
                 children: [
@@ -282,7 +285,7 @@ class PerfilPage extends StatelessWidget {
                               ),
                               const Icon(
                                 Icons.chevron_right,
-                                color: Color(0xFF137FEC),
+                                color: primaryColor,
                               ),
                             ],
                           ),
@@ -298,18 +301,20 @@ class PerfilPage extends StatelessWidget {
                     Icons.person_outline,
                     'Información Personal',
                     route: '/personal-info',
+                    locked: !isVerified,
                   ),
                   _buildMenuOption(
                     context,
                     Icons.history,
                     'Historial de Solicitudes',
                     route: '/solicitudes-arrendatario',
+                    locked: !isVerified,
                   ),
-                  _buildMenuOption(
-                    context,
-                    Icons.description_outlined,
-                    'Mis Contratos',
-                  ),
+                  // _buildMenuOption(
+                  //   context,
+                  //   Icons.description_outlined,
+                  //   'Mis Contratos',
+                  // ),
                   _buildMenuOption(
                     context,
                     Icons.notifications_none,
@@ -317,6 +322,7 @@ class PerfilPage extends StatelessWidget {
                     route: user?.role == 'arrendador'
                         ? '/notifications_landlord'
                         : '/notifications_tenant',
+                    locked: !isVerified,
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(
@@ -521,39 +527,44 @@ class PerfilPage extends StatelessWidget {
     String title, {
     String? route,
     VoidCallback? onTap,
+    bool locked = false,
   }) {
-    return InkWell(
-      onTap: onTap ?? () {
-        if (route != null) {
-          context.push(route);
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
+    return Opacity(
+      opacity: locked ? 0.5 : 1.0,
+      child: InkWell(
+        onTap: onTap ??
+            () {
+              if (route != null && !locked) {
+                context.push(route);
+              }
+            },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: const Color(0xFF0F172A)),
               ),
-              child: Icon(icon, color: const Color(0xFF0F172A)),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF0F172A),
-                  fontWeight: FontWeight.w500,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF0F172A),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
-            Icon(Icons.chevron_right, color: Colors.grey[400]),
-          ],
+              Icon(Icons.chevron_right, color: primaryColor),
+            ],
+          ),
         ),
       ),
     );
