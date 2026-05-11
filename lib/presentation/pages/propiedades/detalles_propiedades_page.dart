@@ -11,13 +11,14 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:vihomeapp/domain/entities/landlord.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
-import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
+
 import 'package:vihomeapp/presentation/providers/tenant_provider.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/widgets/btn_primary.dart';
 import 'package:vihomeapp/core/di/injection_container.dart';
 import 'package:vihomeapp/domain/usecases/landlord/get_landlord_profile_usecase.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DetallesPropiedadesPage extends StatefulWidget {
   final Property property;
@@ -160,11 +161,38 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
     super.dispose();
   }
 
+  void _shareProperty() {
+    final String price = widget.property.estado == 'arriendo'
+        ? '${_formatCurrency(widget.property.precioRenta ?? widget.property.precio)} COP/mes'
+        : '${_formatCurrency(widget.property.precioVenta ?? widget.property.precio)} COP';
+
+    final String shareText = '''
+¡Mira esta propiedad en VIHOME!
+
+🏠 ${widget.property.titulo}
+📍 ${widget.property.direccion}
+💰 $price
+🛏️ ${widget.property.habitaciones} Habitaciones
+🚿 ${widget.property.banos} Baños
+📐 ${widget.property.metrosCuadrados.toStringAsFixed(0)} m²
+
+${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excelente propiedad disponible.'}
+
+¡Descarga VIHOME para ver más detalles!
+''';
+
+    SharePlus.instance.share(
+      ShareParams(
+        text: shareText,
+        subject: widget.property.titulo,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
-    final isOwner = user != null && user.id == widget.property.arrendadorId;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -178,31 +206,29 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.share, color: Colors.black),
-            onPressed: () {},
+            onPressed: _shareProperty,
           ),
         ],
       ),
       body: SafeArea(
         child: Stack(
           children: [
-          CustomScrollView(
-            slivers: [
-              _buildImageCarousel(),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: widget.property.estado == 'arriendo'
-                      ? _buildArriendoContent()
-                      : _buildVentaContent(),
+            CustomScrollView(
+              slivers: [
+                _buildImageCarousel(),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: widget.property.estado == 'arriendo'
+                        ? _buildArriendoContent()
+                        : _buildVentaContent(),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          if (isOwner)
-            _buildOwnerActionBar()
-          else if (user?.role == 'arrendatario' &&
-              widget.property.estado == 'arriendo')
-            _buildTenantActionBar(),
+              ],
+            ),
+            if (user?.role == 'arrendatario' &&
+                widget.property.estado == 'arriendo')
+              _buildTenantActionBar(),
           ],
         ),
       ),
@@ -318,10 +344,9 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
         _buildDivider(),
         _buildAmenities(),
         _buildDivider(),
-        _buildLandlordProfile(),
-        _buildDivider(),
         _buildLocation(),
-        const SizedBox(height: 100),
+        _buildDivider(),
+        _buildLandlordProfile(),
       ],
     );
   }
@@ -340,10 +365,9 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
         _buildDivider(),
         _buildLandlordProfile(),
         _buildDivider(),
-        _buildContactInfo(),
-        _buildDivider(),
         _buildLocation(),
-        const SizedBox(height: 50),
+        _buildDivider(),
+        _buildContactInfo(),
       ],
     );
   }
@@ -503,12 +527,6 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
             )
           : Row(
               children: [
-                const CircleAvatar(
-                  radius: 28,
-                  backgroundImage:
-                      NetworkImage('https://i.pravatar.cc/150?img=11'),
-                ),
-                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -527,7 +545,7 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Colors.blue),
+                const Icon(Icons.check_circle_outline, color: primaryColor),
               ],
             ),
     );
@@ -581,68 +599,6 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildOwnerActionBar() {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.grey.shade200)),
-        ),
-        child: Consumer<LandlordPropertiesProvider>(
-          builder: (context, provider, child) {
-            final isPublished = widget.property.publicado;
-            return ElevatedButton(
-              onPressed: provider.isLoading
-                  ? null
-                  : () async {
-                      final success = await provider.togglePropertyPublication(
-                        widget.property.id,
-                        widget.property.publicado,
-                      );
-                      if (success && context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              isPublished
-                                  ? 'Propiedad despublicada exitosamente'
-                                  : 'Propiedad publicada exitosamente',
-                            ),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                        Navigator.of(context).pop();
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    isPublished ? primaryColor : const Color(0xFF137FEC),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-              ),
-              child: provider.isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2),
-                    )
-                  : Text(
-                      isPublished ? 'Pausar Publicación' : 'Publicar propiedad',
-                      style: const TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-            );
-          },
-        ),
-      ),
     );
   }
 

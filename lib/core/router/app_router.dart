@@ -5,18 +5,8 @@ import 'package:vihomeapp/data/models/property_model.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:vihomeapp/env/env_def.dart';
-import 'package:vihomeapp/presentation/pages/landlord/complete_landlord_profile_page.dart';
-import 'package:vihomeapp/presentation/pages/landlord/informacion_personal_landlord_page.dart';
-import 'package:vihomeapp/presentation/pages/location_picker_page.dart';
 import 'package:vihomeapp/presentation/pages/pages.dart';
-import 'package:vihomeapp/presentation/pages/propiedades/detalles_propiedades_page.dart';
-import 'package:vihomeapp/presentation/pages/tenant/complete_tenant_profile_page.dart';
-import 'package:vihomeapp/presentation/pages/tenant/detalle_solicitud_page.dart';
-import 'package:vihomeapp/presentation/pages/tenant/informacion_personal_tenant_page.dart';
-import 'package:vihomeapp/presentation/pages/tenant/notifications_tenant_page.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
-import 'package:vihomeapp/presentation/pages/landlord/detalle_solicitud_arrendador_page.dart';
-import 'package:vihomeapp/presentation/pages/proyectos/detalles_proyecto_page.dart';
 import 'package:vihomeapp/domain/entities/project.dart';
 
 GoRouter createAppRouter() {

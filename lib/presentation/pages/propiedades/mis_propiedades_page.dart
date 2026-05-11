@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
@@ -303,27 +304,51 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue, size: 22),
-                            constraints: const BoxConstraints(),
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            onPressed: () {
-                              // TODO: Navegar a vista de edición
-                              // context.push('/editar-propiedad', extra: property);
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red, size: 22),
-                            constraints: const BoxConstraints(),
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            onPressed: () {
-                              _confirmDeleteProperty(context, property);
-                            },
-                          ),
-                        ],
+                      Consumer<LandlordPropertiesProvider>(
+                        builder: (context, provider, _) {
+                          final isPublished = property.publicado;
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Color(0xFF137FEC),
+                                  size: 22,
+                                ),
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                ),
+                                tooltip: 'Editar propiedad',
+                                onPressed: () {
+                                  // TODO: context.push('/editar-propiedad', extra: property);
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Color(0xFFEF4444),
+                                  size: 22,
+                                ),
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                ),
+                                tooltip: 'Eliminar propiedad',
+                                onPressed: () {
+                                  _confirmDeleteProperty(context, property);
+                                },
+                              ),
+                              _buildTogglePublishButton(
+                                context,
+                                provider,
+                                property,
+                                isPublished,
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -349,8 +374,8 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                   const SizedBox(height: 8),
                   Text(
                     property.estado == 'arriendo'
-                        ? '\$${(property.precioRenta ?? property.precio).toStringAsFixed(0)} COP/mes'
-                        : '\$${(property.precioVenta ?? property.precio).toStringAsFixed(0)} COP',
+                        ? '${_formatCurrency(property.precioRenta ?? property.precio)} COP/mes'
+                        : '${_formatCurrency(property.precioVenta ?? property.precio)} COP',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -383,6 +408,154 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
         ),
       ),
     );
+  }
+
+  String _formatCurrency(double amount) {
+    return NumberFormat.currency(
+      locale: 'es_CO',
+      symbol: '\$',
+      decimalDigits: 0,
+    ).format(amount);
+  }
+
+  Widget _buildTogglePublishButton(
+    BuildContext context,
+    LandlordPropertiesProvider provider,
+    Property property,
+    bool isPublished,
+  ) {
+    return Tooltip(
+      message: isPublished ? 'Pausar publicación' : 'Publicar propiedad',
+      child: GestureDetector(
+        onTap: provider.isLoading
+            ? null
+            : () => _confirmTogglePublication(context, provider, property),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: isPublished
+                ? const Color(0xFF10B981).withValues(alpha: 0.12)
+                : const Color(0xFF6B7280).withValues(alpha: 0.10),
+            shape: BoxShape.circle,
+          ),
+          child: provider.isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(
+                  isPublished
+                      ? Icons.stop_circle_outlined
+                      : Icons.play_circle_outline,
+                  size: 22,
+                  color: isPublished
+                      ? const Color(0xFF10B981)
+                      : const Color(0xFF6B7280),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmTogglePublication(
+    BuildContext context,
+    LandlordPropertiesProvider provider,
+    Property property,
+  ) async {
+    final isPublished = property.publicado;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(
+              isPublished
+                  ? Icons.stop_circle_outlined
+                  : Icons.play_circle_outline,
+              color: isPublished
+                  ? const Color(0xFF6B7280)
+                  : const Color(0xFF10B981),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              isPublished ? 'Pausar Publicación' : 'Publicar Propiedad',
+              style: const TextStyle(fontSize: 18),
+            ),
+          ],
+        ),
+        content: Text(
+          isPublished
+              ? '¿Deseas pausar la publicación de "${property.titulo}"? Dejará de aparecer en la plataforma.'
+              : '¿Deseas publicar "${property.titulo}"? Será visible para todos los usuarios.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isPublished
+                  ? const Color(0xFF6B7280)
+                  : const Color(0xFF10B981),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            icon: Icon(
+              isPublished
+                  ? Icons.stop_circle_outlined
+                  : Icons.play_circle_outline,
+              size: 18,
+            ),
+            label: Text(isPublished ? 'Pausar' : 'Publicar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && context.mounted) {
+      final success = await provider.togglePropertyPublication(
+        property.id,
+        isPublished,
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  success
+                      ? Icons.check_circle_outline
+                      : Icons.error_outline,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  success
+                      ? (isPublished
+                          ? 'Propiedad pausada exitosamente'
+                          : 'Propiedad publicada exitosamente')
+                      : (provider.errorMessage ?? 'Error al cambiar estado'),
+                ),
+              ],
+            ),
+            backgroundColor:
+                success ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   void _confirmDeleteProperty(BuildContext context, Property property) {

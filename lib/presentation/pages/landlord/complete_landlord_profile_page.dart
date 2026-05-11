@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/domain/entities/landlord.dart';
+import 'package:vihomeapp/presentation/providers/providers.dart';
 import 'package:vihomeapp/presentation/widgets/widgets.dart';
-import '../../../domain/entities/landlord.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/landlord_provider.dart';
 import 'package:flutter/services.dart';
 
 class CompleteLandlordProfilePage extends StatefulWidget {
@@ -195,8 +194,8 @@ class _CompleteLandlordProfilePageState
                         if (int.tryParse(value) == null) {
                           return 'Debe ser un número válido';
                         }
-                        if (value.length != 10) {
-                          return 'El número debe tener exactamente 10 dígitos';
+                        if (value.length < 5 || value.length > 10) {
+                          return 'El número de documento debe tener entre 5 y 10 dígitos';
                         }
                         return null;
                       },

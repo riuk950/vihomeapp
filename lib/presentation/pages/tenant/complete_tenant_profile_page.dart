@@ -192,8 +192,8 @@ class _CompleteTenantProfilePageState extends State<CompleteTenantProfilePage> {
                         if (int.tryParse(value) == null) {
                           return 'Debe ser un número válido';
                         }
-                        if (value.length != 10) {
-                          return 'El número debe tener exactamente 10 dígitos';
+                        if (value.length < 5 || value.length > 10) {
+                          return 'El número de documento debe tener entre 5 y 10 dígitos';
                         }
                         return null;
                       },
@@ -262,4 +262,3 @@ class _CompleteTenantProfilePageState extends State<CompleteTenantProfilePage> {
     );
   }
 }
-
