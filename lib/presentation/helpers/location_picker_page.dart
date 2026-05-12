@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -16,8 +14,8 @@ class LocationPickerPage extends StatefulWidget {
 
 class _LocationPickerPageState extends State<LocationPickerPage> {
   MapboxMap? mapboxMap;
-  PointAnnotationManager? pointAnnotationManager;
   Point? selectedPoint;
+  bool _isMoving = false;
 
   @override
   void initState() {
@@ -52,25 +50,30 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
       await _enableLocationPuck();
     }
 
-    // Crear el gestor de anotaciones
-    pointAnnotationManager =
-        await mapboxMap.annotations.createPointAnnotationManager();
+    // Inicializar el punto seleccionado con el centro inicial
+    final cameraState = await mapboxMap.getCameraState();
+    setState(() {
+      selectedPoint = cameraState.center;
+    });
+  }
 
-    // Cargar imagen del marcador
-    final Uint8List markerImage = await _loadMarkerImage();
-    try {
-      await mapboxMap.style.addStyleImage(
-        'selected-marker',
-        2.0,
-        MbxImage(width: 40, height: 40, data: markerImage),
-        false,
-        [],
-        [],
-        null,
-      );
-    } catch (e) {
-      debugPrint('Error adding image to style: $e');
-    }
+  void _onCameraChange(CameraChangedEventData event) async {
+    if (mapboxMap == null) return;
+
+    final cameraState = await mapboxMap!.getCameraState();
+    setState(() {
+      selectedPoint = cameraState.center;
+      _isMoving = true;
+    });
+
+    // Pequeño retraso para detectar cuando deja de moverse
+    Future.delayed(const Duration(milliseconds: 100), () async {
+      if (mounted) {
+        setState(() {
+          _isMoving = false;
+        });
+      }
+    });
   }
 
   Future<void> _enableLocationPuck() async {
@@ -129,13 +132,14 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
       final position = await geo.Geolocator.getCurrentPosition();
 
       if (mapboxMap != null) {
-        mapboxMap!.setCamera(
+        mapboxMap!.flyTo(
           CameraOptions(
             center: Point(
               coordinates: Position(position.longitude, position.latitude),
             ),
             zoom: 15.0,
           ),
+          MapAnimationOptions(duration: 1000),
         );
 
         // Asegurarse de que el puck esté habilitado
@@ -149,62 +153,6 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
         );
       }
     }
-  }
-
-  Future<Uint8List> _loadMarkerImage() async {
-    final pictureRecorder = ui.PictureRecorder();
-    final canvas = Canvas(pictureRecorder);
-    final paint = Paint()..color = Colors.red;
-    final radius = 20.0;
-
-    canvas.drawCircle(Offset(radius, radius), radius, paint);
-
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
-    textPainter.text = TextSpan(
-      text: String.fromCharCode(Icons.location_on.codePoint),
-      style: TextStyle(
-        fontSize: 25.0,
-        fontFamily: Icons.location_on.fontFamily,
-        color: Colors.white,
-      ),
-    );
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(radius - textPainter.width / 2, radius - textPainter.height / 2),
-    );
-
-    final picture = pictureRecorder.endRecording();
-    final image = await picture.toImage(
-      (radius * 2).toInt(),
-      (radius * 2).toInt(),
-    );
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    return byteData!.buffer.asUint8List();
-  }
-
-  void _handleMapTap(MapContentGestureContext mapContext) {
-    final point = mapContext.point;
-
-    setState(() {
-      selectedPoint = point;
-    });
-
-    _updateMarker(point);
-  }
-
-  Future<void> _updateMarker(Point point) async {
-    if (pointAnnotationManager == null) return;
-
-    await pointAnnotationManager?.deleteAll();
-
-    final options = PointAnnotationOptions(
-      geometry: point,
-      iconImage: 'selected-marker',
-      iconSize: 1.0,
-    );
-
-    await pointAnnotationManager?.create(options);
   }
 
   void _confirmSelection() {
@@ -246,7 +194,33 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
               center: Point(coordinates: Position(-72.933, 5.715)),
               zoom: 13.0,
             ),
-            onTapListener: _handleMapTap,
+            onCameraChangeListener: _onCameraChange,
+          ),
+          // Marcador fijo en el centro
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 35),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                transform: Matrix4.translationValues(0, _isMoving ? -10 : 0, 0),
+                child: const Icon(
+                  Icons.location_on,
+                  size: 45,
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          ),
+          // Punto de referencia (sombra) para el marcador
+          Center(
+            child: Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+              ),
+            ),
           ),
           if (selectedPoint != null)
             Positioned(
