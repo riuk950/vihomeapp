@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
-import '../providers/auth_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,7 +18,20 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkAuthAndNavigate();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // Solicitar permisos de ubicación al inicio
+    await _requestPermissions();
+    await _checkAuthAndNavigate();
+  }
+
+  Future<void> _requestPermissions() async {
+    // Solicitar permiso de ubicación
+    await Permission.location.request();
+    // Nota: Los permisos de notificación se solicitan en PushNotificationService.initializeApp()
+    // que se llama en el main.
   }
 
   _checkAuthAndNavigate() async {

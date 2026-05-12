@@ -503,7 +503,12 @@ class PanelPage extends StatelessWidget {
             title: Text('Terminos y condiciones'),
             leading: Icon(Icons.description),
             trailing: Icon(Icons.arrow_forward_ios),
-            onTap: () {},
+            onTap: () async {
+              final url = Uri.parse('https://vihome.web.app/#/terms');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.inAppWebView);
+              }
+            },
           ),
           Divider(),
           ListTile(
@@ -522,7 +527,12 @@ class PanelPage extends StatelessWidget {
             title: Text('Preguntas frecuentes'),
             leading: Icon(Icons.question_mark),
             trailing: Icon(Icons.arrow_forward_ios),
-            onTap: () {},
+            onTap: () async {
+              final url = Uri.parse('https://vihome.web.app/#/faq');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.inAppWebView);
+              }
+            },
           ),
           Divider(),
           ListTile(

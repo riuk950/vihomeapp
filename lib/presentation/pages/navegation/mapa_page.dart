@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/env/env_def.dart';
 import 'package:vihomeapp/presentation/providers/property_provider.dart';
@@ -9,6 +10,7 @@ import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
+import 'package:geolocator/geolocator.dart' as geo;
 
 class MapaPage extends StatefulWidget {
   const MapaPage({super.key});
@@ -43,8 +45,93 @@ class _MapaPageState extends State<MapaPage> {
     });
   }
 
+  Future<void> _enableLocationPuck() async {
+    if (mapboxMap == null) return;
+
+    try {
+      // Configurar el puck de ubicación
+      await mapboxMap!.location.updateSettings(
+        LocationComponentSettings(
+          enabled: true,
+          pulsingEnabled: true,
+          pulsingColor: Colors.blue.toARGB32(),
+          pulsingMaxRadius: 20.0,
+          showAccuracyRing: true,
+          accuracyRingColor: Colors.blue.withValues(alpha: 0.2).toARGB32(),
+          accuracyRingBorderColor:
+              Colors.blue.withValues(alpha: 0.5).toARGB32(),
+        ),
+      );
+
+      debugPrint('Location puck habilitado correctamente');
+    } catch (e) {
+      debugPrint('Error al habilitar location puck: $e');
+    }
+  }
+
+  void _centerOnUserLocation() async {
+    // Verificar si tenemos permisos
+    geo.LocationPermission permission = await geo.Geolocator.checkPermission();
+    if (permission == geo.LocationPermission.denied) {
+      permission = await geo.Geolocator.requestPermission();
+      if (permission == geo.LocationPermission.denied) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Permiso de ubicación denegado')),
+          );
+        }
+        return;
+      }
+    }
+
+    if (permission == geo.LocationPermission.deniedForever) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Los permisos de ubicación están denegados permanentemente.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      final position = await geo.Geolocator.getCurrentPosition();
+
+      if (mapboxMap != null) {
+        mapboxMap!.setCamera(
+          CameraOptions(
+            center: Point(
+              coordinates: Position(position.longitude, position.latitude),
+            ),
+            zoom: 15.0,
+          ),
+        );
+
+        // Asegurarse de que el puck esté habilitado
+        await _enableLocationPuck();
+      }
+    } catch (e) {
+      debugPrint('Error al obtener la ubicación: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al obtener la ubicación actual')),
+        );
+      }
+    }
+  }
+
   _onMapCreated(MapboxMap mapboxMap) async {
     this.mapboxMap = mapboxMap;
+
+    // Verificar permisos antes de habilitar el puck
+    final status = await Permission.location.status;
+    if (status.isGranted) {
+      await _enableLocationPuck();
+    }
+
     // Crear el gestor de anotaciones
     pointAnnotationManager =
         await mapboxMap.annotations.createPointAnnotationManager();
@@ -99,8 +186,11 @@ class _MapaPageState extends State<MapaPage> {
         final String priceText =
             price != null ? currencyFormat.format(price) : 'N/A';
 
-        final IconData icon = isArriendo ? _getIconForPropertyType(property.tipoPropiedad) : Icons.home;
-        final String markerKey = isArriendo ? 'marker-arriendo-${icon.codePoint}' : 'marker-venta';
+        final IconData icon = isArriendo
+            ? _getIconForPropertyType(property.tipoPropiedad)
+            : Icons.home;
+        final String markerKey =
+            isArriendo ? 'marker-arriendo-${icon.codePoint}' : 'marker-venta';
 
         if (!registeredMarkers.contains(markerKey)) {
           final Color color = isArriendo ? Colors.blue : Colors.red;
@@ -206,6 +296,19 @@ class _MapaPageState extends State<MapaPage> {
                 child: FloatingActionButton(
                   onPressed: _loadPropertyMarkers,
                   child: const Icon(Icons.refresh),
+                ),
+              ),
+              Positioned(
+                bottom: 80,
+                right: 20,
+                child: FloatingActionButton(
+                  heroTag: 'location',
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  onPressed: () {
+                    _centerOnUserLocation();
+                  },
+                  child: const Icon(Icons.my_location),
                 ),
               ),
             ],

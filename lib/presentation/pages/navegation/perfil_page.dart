@@ -335,11 +335,23 @@ class PerfilPage extends StatelessWidget {
                     context,
                     Icons.help_outline,
                     'Preguntas Frecuentes',
+                    onTap: () async {
+                      final url = Uri.parse('https://vihome.web.app/#/faq');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.inAppWebView);
+                      }
+                    },
                   ),
                   _buildMenuOption(
                     context,
                     Icons.description_outlined,
                     'Terminos y Condiciones',
+                    onTap: () async {
+                      final url = Uri.parse('https://vihome.web.app/#/terms');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.inAppWebView);
+                      }
+                    },
                   ),
                   _buildMenuOption(
                     context,

@@ -10,6 +10,7 @@ import '../../domain/usecases/auth/reset_password_usecase.dart';
 import '../../domain/usecases/auth/update_user_role_usecase.dart';
 import '../../infrastructure/services/push_notification_service.dart';
 import '../../infrastructure/services/supabase_service.dart';
+import '../../core/network/network_info.dart';
 
 class AuthProvider with ChangeNotifier {
   final GetCurrentUserUseCase getCurrentUserUseCase;
@@ -19,6 +20,7 @@ class AuthProvider with ChangeNotifier {
   final SignOutUseCase signOutUseCase;
   final ResetPasswordUseCase resetPasswordUseCase;
   final UpdateUserRoleUseCase updateUserRoleUseCase;
+  final NetworkInfo? networkInfo;
 
   User? _user;
   bool _isLoading = false;
@@ -37,6 +39,7 @@ class AuthProvider with ChangeNotifier {
     required this.signOutUseCase,
     required this.resetPasswordUseCase,
     required this.updateUserRoleUseCase,
+    this.networkInfo,
   }) {
     _initializeAuth();
   }
@@ -254,6 +257,12 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _syncToken(User user) async {
     try {
+      // Verificar conexión antes de intentar sincronizar
+      if (networkInfo != null && !await networkInfo!.isConnected) {
+        debugPrint("Sincronización omitida: No hay conexión a internet");
+        return;
+      }
+
       final token = await PushNotificationService.getToken();
       final client = SupabaseService.instance.client;
       final userId = user.id;
@@ -273,8 +282,15 @@ class AuthProvider with ChangeNotifier {
 
       // Sincronizar en la tabla general 'profiles' con los campos correctos
       await client.from('profiles').upsert(updateData);
+      debugPrint("✅ Datos de usuario sincronizados correctamente");
     } catch (e) {
-      debugPrint("Error al sincronizar datos de usuario: $e");
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        debugPrint(
+            "⚠️ Error de red al sincronizar datos (posible DNS o falta de internet): $e");
+      } else {
+        debugPrint("❌ Error al sincronizar datos de usuario: $e");
+      }
     }
   }
 }
