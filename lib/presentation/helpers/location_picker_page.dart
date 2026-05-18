@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/env/env_def.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart' as geo;
@@ -85,12 +86,12 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
         LocationComponentSettings(
           enabled: true,
           pulsingEnabled: true,
-          pulsingColor: Colors.blue.toARGB32(),
+          pulsingColor: primaryColor.toARGB32(),
           pulsingMaxRadius: 20.0,
           showAccuracyRing: true,
-          accuracyRingColor: Colors.blue.withValues(alpha: 0.2).toARGB32(),
+          accuracyRingColor: primaryColor.withValues(alpha: 0.2).toARGB32(),
           accuracyRingBorderColor:
-              Colors.blue.withValues(alpha: 0.5).toARGB32(),
+              primaryColor.withValues(alpha: 0.5).toARGB32(),
         ),
       );
 
@@ -186,75 +187,78 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             ),
         ],
       ),
-      body: Stack(
-        children: [
-          MapWidget(
-            onMapCreated: _onMapCreated,
-            cameraOptions: CameraOptions(
-              center: Point(coordinates: Position(-72.933, 5.715)),
-              zoom: 13.0,
-            ),
-            onCameraChangeListener: _onCameraChange,
-          ),
-          // Marcador fijo en el centro
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 35),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                transform: Matrix4.translationValues(0, _isMoving ? -10 : 0, 0),
-                child: const Icon(
-                  Icons.location_on,
-                  size: 45,
-                  color: Colors.red,
-                ),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            MapWidget(
+              onMapCreated: _onMapCreated,
+              cameraOptions: CameraOptions(
+                center: Point(coordinates: Position(-72.933, 5.715)),
+                zoom: 13.0,
               ),
+              onCameraChangeListener: _onCameraChange,
             ),
-          ),
-          // Punto de referencia (sombra) para el marcador
-          Center(
-            child: Container(
-              width: 5,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.5),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          if (selectedPoint != null)
-            Positioned(
-              bottom: 30,
-              left: 20,
-              right: 20,
-              child: ElevatedButton(
-                onPressed: _confirmSelection,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF137FEC),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            // Marcador fijo en el centro
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 35),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  transform:
+                      Matrix4.translationValues(0, _isMoving ? -10 : 0, 0),
+                  child: const Icon(
+                    Icons.location_on,
+                    size: 45,
+                    color: Colors.red,
                   ),
                 ),
-                child: const Text(
-                  'Confirmar Ubicación',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+            // Punto de referencia (sombra) para el marcador
+            Center(
+              child: Container(
+                width: 5,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: textColor,
+                  shape: BoxShape.circle,
                 ),
               ),
             ),
-          Positioned(
-            bottom: 100,
-            right: 20,
-            child: FloatingActionButton(
-              onPressed: _centerOnUserLocation,
-              tooltip: 'Mi ubicación',
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.blue,
-              child: const Icon(Icons.my_location),
+            if (selectedPoint != null)
+              Positioned(
+                bottom: 30,
+                left: 20,
+                right: 20,
+                child: ElevatedButton(
+                  onPressed: _confirmSelection,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: backgroundColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Confirmar Ubicación',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            Positioned(
+              bottom: 100,
+              right: 20,
+              child: FloatingActionButton(
+                onPressed: _centerOnUserLocation,
+                tooltip: 'Mi ubicación',
+                backgroundColor: backgroundColor,
+                foregroundColor: primaryColor,
+                child: const Icon(Icons.my_location),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

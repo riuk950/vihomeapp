@@ -275,45 +275,47 @@ class _MapaPageState extends State<MapaPage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mapa Propiedades'), centerTitle: true),
-      body: Consumer<PropertyProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: SafeArea(
+        child: Consumer<PropertyProvider>(
+          builder: (context, provider, child) {
+            if (provider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          return Stack(
-            children: [
-              MapWidget(
-                onMapCreated: _onMapCreated,
-                cameraOptions: CameraOptions(
-                  center: Point(coordinates: Position(-72.933, 5.715)),
-                  zoom: 13.0,
+            return Stack(
+              children: [
+                MapWidget(
+                  onMapCreated: _onMapCreated,
+                  cameraOptions: CameraOptions(
+                    center: Point(coordinates: Position(-72.933, 5.715)),
+                    zoom: 13.0,
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 20,
-                right: 20,
-                child: FloatingActionButton(
-                  onPressed: _loadPropertyMarkers,
-                  child: const Icon(Icons.refresh),
+                Positioned(
+                  bottom: 20,
+                  right: 20,
+                  child: FloatingActionButton(
+                    onPressed: _loadPropertyMarkers,
+                    child: const Icon(Icons.refresh),
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 80,
-                right: 20,
-                child: FloatingActionButton(
-                  heroTag: 'location',
-                  backgroundColor: primaryColor,
-                  foregroundColor: Colors.white,
-                  onPressed: () {
-                    _centerOnUserLocation();
-                  },
-                  child: const Icon(Icons.my_location),
+                Positioned(
+                  bottom: 80,
+                  right: 20,
+                  child: FloatingActionButton(
+                    heroTag: 'location',
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    onPressed: () {
+                      _centerOnUserLocation();
+                    },
+                    child: const Icon(Icons.my_location),
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

@@ -61,145 +61,148 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
           ),
         ],
       ),
-      body: Consumer<LandlordPropertiesProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: SafeArea(
+        child: Consumer<LandlordPropertiesProvider>(
+          builder: (context, provider, child) {
+            if (provider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (provider.errorMessage != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    provider.errorMessage!,
-                    style: const TextStyle(fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      final authProvider = Provider.of<AuthProvider>(
-                        context,
-                        listen: false,
-                      );
-                      if (authProvider.user != null) {
-                        provider.fetchPropertiesByLandlord(
-                          authProvider.user!.id,
-                        );
-                      }
-                    },
-                    child: const Text('Reintentar'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (provider.properties.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.home_outlined, size: 80, color: primaryColor),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No tienes propiedades registradas',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Agrega tu primera propiedad para comenzar',
-                    style: TextStyle(fontSize: 14, color: secondaryColor),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      context.push('/crear-propiedad');
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Agregar Propiedad'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return Column(
-            children: [
-              // Stats Card
-              Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
+            if (provider.errorMessage != null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: _buildStatItem(
-                        'Total',
-                        provider.properties.length.toString(),
-                        const Color(0xFF137FEC),
+                    const Icon(Icons.error_outline,
+                        size: 64, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Text(
+                      provider.errorMessage!,
+                      style: const TextStyle(fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        final authProvider = Provider.of<AuthProvider>(
+                          context,
+                          listen: false,
+                        );
+                        if (authProvider.user != null) {
+                          provider.fetchPropertiesByLandlord(
+                            authProvider.user!.id,
+                          );
+                        }
+                      },
+                      child: const Text('Reintentar'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (provider.properties.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.home_outlined, size: 80, color: primaryColor),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No tienes propiedades registradas',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
                       ),
                     ),
-                    Container(width: 1, height: 40, color: Colors.grey[300]),
-                    Expanded(
-                      child: _buildStatItem(
-                        'Activas',
-                        provider.activePropertiesCount.toString(),
-                        const Color(0xFF10B981),
-                      ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Agrega tu primera propiedad para comenzar',
+                      style: TextStyle(fontSize: 14, color: secondaryColor),
                     ),
-                    Container(width: 1, height: 40, color: Colors.grey[300]),
-                    Expanded(
-                      child: _buildStatItem(
-                        'Inactivas',
-                        provider.inactivePropertiesCount.toString(),
-                        const Color(0xFF6B7280),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        context.push('/crear-propiedad');
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Agregar Propiedad'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
+              );
+            }
 
-              // Properties List
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: provider.properties.length,
-                  itemBuilder: (context, index) {
-                    final property = provider.properties[index];
-                    return _buildPropertyCard(context, property);
-                  },
+            return Column(
+              children: [
+                // Stats Card
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatItem(
+                          'Total',
+                          provider.properties.length.toString(),
+                          const Color(0xFF137FEC),
+                        ),
+                      ),
+                      Container(width: 1, height: 40, color: Colors.grey[300]),
+                      Expanded(
+                        child: _buildStatItem(
+                          'Activas',
+                          provider.activePropertiesCount.toString(),
+                          const Color(0xFF10B981),
+                        ),
+                      ),
+                      Container(width: 1, height: 40, color: Colors.grey[300]),
+                      Expanded(
+                        child: _buildStatItem(
+                          'Inactivas',
+                          provider.inactivePropertiesCount.toString(),
+                          const Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
+
+                // Properties List
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: provider.properties.length,
+                    itemBuilder: (context, index) {
+                      final property = provider.properties[index];
+                      return _buildPropertyCard(context, property);
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -530,9 +533,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
             content: Row(
               children: [
                 Icon(
-                  success
-                      ? Icons.check_circle_outline
-                      : Icons.error_outline,
+                  success ? Icons.check_circle_outline : Icons.error_outline,
                   color: Colors.white,
                   size: 20,
                 ),
@@ -570,7 +571,8 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+              child:
+                  const Text('Cancelar', style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -580,7 +582,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                   listen: false,
                 );
                 final success = await provider.deleteProperty(property.id);
-                
+
                 if (!context.mounted) return;
 
                 if (success) {
@@ -593,14 +595,16 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(provider.errorMessage ?? 'Error al eliminar la propiedad'),
+                      content: Text(provider.errorMessage ??
+                          'Error al eliminar la propiedad'),
                       backgroundColor: Colors.red,
                     ),
                   );
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+              child:
+                  const Text('Eliminar', style: TextStyle(color: Colors.white)),
             ),
           ],
         );

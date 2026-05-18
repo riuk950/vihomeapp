@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
@@ -180,10 +182,10 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         'descripcion': _descripcionController.text,
         'precio': 0,
         'precio_renta': _precioRentaController.text.isNotEmpty
-            ? double.tryParse(_precioRentaController.text)
+            ? double.tryParse(_precioRentaController.text.replaceAll(RegExp(r'\D'), ''))
             : null,
         'precio_venta': _precioVentaController.text.isNotEmpty
-            ? double.tryParse(_precioVentaController.text)
+            ? double.tryParse(_precioVentaController.text.replaceAll(RegExp(r'\D'), ''))
             : null,
         'habitaciones': int.tryParse(_habitacionesController.text) ?? 0,
         'banos': int.tryParse(_banosController.text) ?? 0,
@@ -242,230 +244,233 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
           ),
         ),
       ),
-      body: Consumer<LandlordPropertiesProvider>(
-        builder: (context, provider, child) {
-          return Stack(
-            children: [
-              SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionTitle('Información General'),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _tituloController,
-                        label: 'Título',
-                        hint: 'Ej: Hermosa casa en el centro',
-                        validator: (v) =>
-                            v?.isEmpty ?? true ? 'Requerido' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _isLoadingTipos
-                                ? const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  )
-                                : _buildDropdown(
-                                    label: 'Tipo de Propiedad',
-                                    value: _tipoPropiedad,
-                                    items: _tiposPropiedad,
-                                    onChanged: (v) =>
-                                        setState(() => _tipoPropiedad = v),
-                                  ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildTextField(
-                              controller: _ciudadController,
-                              label: 'Ciudad',
-                              hint: 'Ej: Bogotá',
-                              enabled: false,
-                              validator: (v) =>
-                                  v?.isEmpty ?? true ? 'Requerido' : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _buildDropdown(
-                        label: 'Estado',
-                        value: _estado,
-                        items: ['arriendo', 'venta'],
-                        onChanged: (v) => setState(() => _estado = v!),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _direccionController,
-                        label: 'Dirección',
-                        hint: 'Ej: Carrera 7 # 12-34',
-                        validator: (v) =>
-                            v?.isEmpty ?? true ? 'Requerido' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      // Location Picker
-                      _buildLocationPicker(),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _descripcionController,
-                        label: 'Descripción',
-                        hint: 'Describe las características principales...',
-                        maxLines: 3,
-                        validator: (v) =>
-                            v?.isEmpty ?? true ? 'Requerido' : null,
-                      ),
-
-                      const SizedBox(height: 24),
-                      _buildSectionTitle('Fotos de la Propiedad'),
-                      const SizedBox(height: 16),
-                      _buildImagePicker(),
-
-                      const SizedBox(height: 24),
-                      _buildSectionTitle('Detalles y Precio'),
-                      const SizedBox(height: 16),
-
-                      if (_estado == 'arriendo')
+      body: SafeArea(
+        child: Consumer<LandlordPropertiesProvider>(
+          builder: (context, provider, child) {
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('Información General'),
+                        const SizedBox(height: 16),
                         _buildTextField(
-                          controller: _precioRentaController,
-                          label: 'Precio de Renta (COP)',
-                          hint: '0',
-                          keyboardType: TextInputType.number,
-                          prefixText: '\$ ',
-                        )
-                      else
-                        _buildTextField(
-                          controller: _precioVentaController,
-                          label: 'Precio de Venta (COP)',
-                          hint: '0',
-                          keyboardType: TextInputType.number,
-                          prefixText: '\$ ',
+                          controller: _tituloController,
+                          label: 'Título',
+                          hint: 'Ej: Hermosa casa en el centro',
+                          validator: (v) =>
+                              v?.isEmpty ?? true ? 'Requerido' : null,
                         ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildTextField(
-                              controller: _habitacionesController,
-                              label: 'Habitaciones',
-                              hint: '0',
-                              keyboardType: TextInputType.number,
-                              validator: (v) =>
-                                  v?.isEmpty ?? true ? 'Requerido' : null,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildTextField(
-                              controller: _banosController,
-                              label: 'Baños',
-                              hint: '0',
-                              keyboardType: TextInputType.number,
-                              validator: (v) =>
-                                  v?.isEmpty ?? true ? 'Requerido' : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _metrosCuadradosController,
-                        label: 'Metros Cuadrados',
-                        hint: '0',
-                        keyboardType: TextInputType.number,
-                        suffixText: 'm²',
-                        validator: (v) =>
-                            v?.isEmpty ?? true ? 'Requerido' : null,
-                      ),
-
-                      const SizedBox(height: 24),
-                      _buildSectionTitle('Amenidades'),
-                      const SizedBox(height: 16),
-                      _buildAmenidadesSelector(),
-
-                      const SizedBox(height: 24),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        const SizedBox(height: 16),
+                        Row(
                           children: [
-                            const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Publicar Propiedad',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                Text(
-                                  'Hacer visible para todos los usuarios',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
+                            Expanded(
+                              child: _isLoadingTipos
+                                  ? const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    )
+                                  : _buildDropdown(
+                                      label: 'Tipo de Propiedad',
+                                      value: _tipoPropiedad,
+                                      items: _tiposPropiedad,
+                                      onChanged: (v) =>
+                                          setState(() => _tipoPropiedad = v),
+                                    ),
                             ),
-                            Switch(
-                              value: _publicado,
-                              onChanged: (v) => setState(() => _publicado = v),
-                              activeTrackColor: primaryColor,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _ciudadController,
+                                label: 'Ciudad',
+                                hint: 'Ej: Bogotá',
+                                enabled: false,
+                                validator: (v) =>
+                                    v?.isEmpty ?? true ? 'Requerido' : null,
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 32),
+                        const SizedBox(height: 16),
+                        _buildDropdown(
+                          label: 'Estado',
+                          value: _estado,
+                          items: ['arriendo', 'venta'],
+                          onChanged: (v) => setState(() => _estado = v!),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _direccionController,
+                          label: 'Dirección',
+                          hint: 'Ej: Carrera 7 # 12-34',
+                          validator: (v) =>
+                              v?.isEmpty ?? true ? 'Requerido' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        // Location Picker
+                        _buildLocationPicker(),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _descripcionController,
+                          label: 'Descripción',
+                          hint: 'Describe las características principales...',
+                          maxLines: 3,
+                          validator: (v) =>
+                              v?.isEmpty ?? true ? 'Requerido' : null,
+                        ),
 
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: (provider.isLoading || _isUploadingImages)
-                              ? null
-                              : _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            foregroundColor: backgroundColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
+                        const SizedBox(height: 24),
+                        _buildSectionTitle('Fotos de la Propiedad'),
+                        const SizedBox(height: 16),
+                        _buildImagePicker(),
+
+                        const SizedBox(height: 24),
+                        _buildSectionTitle('Detalles y Precio'),
+                        const SizedBox(height: 16),
+
+                        if (_estado == 'arriendo')
+                          _buildTextField(
+                            controller: _precioRentaController,
+                            label: 'Precio de Renta (COP)',
+                            hint: '0',
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [_CurrencyInputFormatter()],
+                          )
+                        else
+                          _buildTextField(
+                            controller: _precioVentaController,
+                            label: 'Precio de Venta (COP)',
+                            hint: '0',
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [_CurrencyInputFormatter()],
                           ),
-                          child: const Text(
-                            'Crear Propiedad',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _habitacionesController,
+                                label: 'Habitaciones',
+                                hint: '0',
+                                keyboardType: TextInputType.number,
+                                validator: (v) =>
+                                    v?.isEmpty ?? true ? 'Requerido' : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _banosController,
+                                label: 'Baños',
+                                hint: '0',
+                                keyboardType: TextInputType.number,
+                                validator: (v) =>
+                                    v?.isEmpty ?? true ? 'Requerido' : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _metrosCuadradosController,
+                          label: 'Metros Cuadrados',
+                          hint: '0',
+                          keyboardType: TextInputType.number,
+                          suffixText: 'm²',
+                          validator: (v) =>
+                              v?.isEmpty ?? true ? 'Requerido' : null,
+                        ),
+
+                        const SizedBox(height: 24),
+                        _buildSectionTitle('Amenidades'),
+                        const SizedBox(height: 16),
+                        _buildAmenidadesSelector(),
+
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[200]!),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Publicar Propiedad',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Hacer visible para todos los usuarios',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Switch(
+                                value: _publicado,
+                                onChanged: (v) =>
+                                    setState(() => _publicado = v),
+                                activeTrackColor: primaryColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed:
+                                (provider.isLoading || _isUploadingImages)
+                                    ? null
+                                    : _submitForm,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              foregroundColor: backgroundColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'Crear Propiedad',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              if (provider.isLoading || _isUploadingImages)
-                Container(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-            ],
-          );
-        },
+                if (provider.isLoading || _isUploadingImages)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -491,6 +496,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
     String? prefixText,
     String? suffixText,
     bool enabled = true,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -510,6 +516,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
           keyboardType: keyboardType,
           maxLines: maxLines,
           validator: validator,
+          inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey[400]),
@@ -791,8 +798,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         return FilterChip(
           label: Text(amenidad.idAmenidad.trim()),
           avatar: Icon(iconData,
-              size: 18,
-              color: isSelected ? Colors.white : primaryColor),
+              size: 18, color: isSelected ? Colors.white : primaryColor),
           selected: isSelected,
           selectedColor: primaryColor,
           checkmarkColor: Colors.white,
@@ -815,12 +821,94 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
 
   IconData _getAmenityIcon(String name) {
     switch (name.trim().toLowerCase()) {
-      case 'pool': return Icons.pool;
-      case 'fitness_center': return Icons.fitness_center;
-      case 'security_outlined': return Icons.security_outlined;
-      case 'park_outlined': return Icons.park_outlined;
-      case 'local_parking_outlined': return Icons.local_parking_outlined;
-      default: return Icons.check_circle_outline;
+      case 'pool':
+        return Icons.pool;
+      case 'fitness_center':
+        return Icons.fitness_center;
+      case 'security_outlined':
+        return Icons.security_outlined;
+      case 'park_outlined':
+        return Icons.park_outlined;
+      case 'local_parking_outlined':
+        return Icons.local_parking_outlined;
+      default:
+        return Icons.check_circle_outline;
     }
+  }
+
+  static String _formatCurrency(double amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'es_CO',
+      customPattern: '\$ #,##0',
+      decimalDigits: 0,
+    );
+    return formatter.format(amount);
+  }
+}
+
+class _CurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    // Limpiar todos los caracteres que no sean dígitos
+    final String cleanText = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (cleanText.isEmpty) {
+      return newValue.copyWith(
+        text: '',
+        selection: const TextSelection.collapsed(offset: 0),
+      );
+    }
+
+    // Convertir a double
+    final double value = double.tryParse(cleanText) ?? 0;
+    
+    // Formatear usando el método estático de la clase de estado
+    final String formattedText = _CrearPropiedadPageState._formatCurrency(value);
+
+    // Calcular la posición del cursor de forma dinámica para evitar saltos molestos
+    int selectionEnd = newValue.selection.end;
+    if (selectionEnd < 0) {
+      selectionEnd = newValue.text.length;
+    }
+
+    final int digitsBeforeCursor = newValue.text
+        .substring(0, selectionEnd)
+        .replaceAll(RegExp(r'\D'), '')
+        .length;
+
+    int selectionIndex = 0;
+    int digitCount = 0;
+    
+    for (int i = 0; i < formattedText.length; i++) {
+      if (RegExp(r'\d').hasMatch(formattedText[i])) {
+        digitCount++;
+      }
+      if (digitCount == digitsBeforeCursor) {
+        selectionIndex = i + 1;
+        break;
+      }
+    }
+    
+    // Caso alternativo si no se encontró el índice de selección
+    if (selectionIndex == 0) {
+      if (digitsBeforeCursor == 0) {
+        // Colocar el cursor justo después de la primera cifra numérica
+        selectionIndex = formattedText.indexOf(RegExp(r'\d'));
+        if (selectionIndex == -1) selectionIndex = formattedText.length;
+      } else {
+        selectionIndex = formattedText.length;
+      }
+    }
+
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: selectionIndex),
+    );
   }
 }
