@@ -6,6 +6,7 @@ import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
+import 'package:vihomeapp/presentation/widgets/alert_dialog.dart';
 
 class MisPropiedadesPage extends StatefulWidget {
   const MisPropiedadesPage({super.key});
@@ -45,7 +46,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
         title: const Text(
           'Mis Propiedades',
           style: TextStyle(
-            color: Color(0xFF111418),
+            color: textColor,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -165,7 +166,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                         child: _buildStatItem(
                           'Total',
                           provider.properties.length.toString(),
-                          const Color(0xFF137FEC),
+                          primaryColor,
                         ),
                       ),
                       Container(width: 1, height: 40, color: Colors.grey[300]),
@@ -181,7 +182,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                         child: _buildStatItem(
                           'Inactivas',
                           provider.inactivePropertiesCount.toString(),
-                          const Color(0xFF6B7280),
+                          disabledColor,
                         ),
                       ),
                     ],
@@ -277,7 +278,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                     child: Text(
                       property.publicado ? 'Activa' : 'Inactiva',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: backgroundColor,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -316,7 +317,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                               IconButton(
                                 icon: const Icon(
                                   Icons.edit,
-                                  color: Color(0xFF137FEC),
+                                  color: primaryColor,
                                   size: 22,
                                 ),
                                 constraints: const BoxConstraints(),
@@ -325,7 +326,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                                 ),
                                 tooltip: 'Editar propiedad',
                                 onPressed: () {
-                                  // TODO: context.push('/editar-propiedad', extra: property);
+                                  _confirmEditProperty(context, property);
                                 },
                               ),
                               IconButton(
@@ -470,55 +471,16 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
     final isPublished = property.publicado;
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(
-              isPublished
-                  ? Icons.stop_circle_outlined
-                  : Icons.play_circle_outline,
-              color: isPublished
-                  ? const Color(0xFF6B7280)
-                  : const Color(0xFF10B981),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              isPublished ? 'Pausar Publicación' : 'Publicar Propiedad',
-              style: const TextStyle(fontSize: 18),
-            ),
-          ],
-        ),
-        content: Text(
-          isPublished
-              ? '¿Deseas pausar la publicación de "${property.titulo}"? Dejará de aparecer en la plataforma.'
-              : '¿Deseas publicar "${property.titulo}"? Será visible para todos los usuarios.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isPublished
-                  ? const Color(0xFF6B7280)
-                  : const Color(0xFF10B981),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            icon: Icon(
-              isPublished
-                  ? Icons.stop_circle_outlined
-                  : Icons.play_circle_outline,
-              size: 18,
-            ),
-            label: Text(isPublished ? 'Pausar' : 'Publicar'),
-          ),
-        ],
+      builder: (ctx) => AlertDialogWidget(
+        icon: isPublished
+            ? Icons.stop_circle_outlined
+            : Icons.play_circle_outline,
+        title: isPublished ? 'Pausar Publicación' : 'Publicar Propiedad',
+        content: isPublished
+            ? '¿Deseas pausar la publicación de "${property.titulo}"? Dejará de aparecer en la plataforma.'
+            : '¿Deseas publicar "${property.titulo}"? Será visible para todos los usuarios.',
+        cancelText: 'Cancelar',
+        acceptText: isPublished ? 'Pausar' : 'Publicar',
       ),
     );
 
@@ -559,65 +521,74 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
     }
   }
 
-  void _confirmDeleteProperty(BuildContext context, Property property) {
-    showDialog(
+  _confirmEditProperty(BuildContext context, Property property) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialogWidget(
+        icon: Icons.edit,
+        title: 'Editar propiedad',
+        content: '¿Deseas editar "${property.titulo}"?',
+        cancelText: 'Cancelar',
+        acceptText: 'Editar',
+      ),
+    );
+
+    if (confirm == true && context.mounted) {
+      context.push('/editar-propiedad', extra: property);
+    }
+  }
+
+  Future<void> _confirmDeleteProperty(
+      BuildContext context, Property property) async {
+    final confirm = await showDialog<bool>(
       context: context,
       builder: (BuildContext ctx) {
-        return AlertDialog(
-          title: const Text('Eliminar propiedad'),
-          content: Text(
-            '¿Estás seguro de que deseas eliminar "${property.titulo}"? Esta acción no se puede deshacer.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child:
-                  const Text('Cancelar', style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(ctx);
-                final provider = Provider.of<LandlordPropertiesProvider>(
-                  context,
-                  listen: false,
-                );
-                final success = await provider.deleteProperty(property.id);
-
-                if (!context.mounted) return;
-
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Propiedad eliminada exitosamente'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(provider.errorMessage ??
-                          'Error al eliminar la propiedad'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child:
-                  const Text('Eliminar', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+        return AlertDialogWidget(
+          icon: Icons.delete_outline,
+          title: 'Eliminar propiedad',
+          content:
+              '¿Estás seguro de que deseas eliminar "${property.titulo}"? Esta acción no se puede deshacer.',
+          cancelText: 'Cancelar',
+          acceptText: 'Eliminar',
         );
       },
     );
+
+    if (confirm == true && context.mounted) {
+      final provider = Provider.of<LandlordPropertiesProvider>(
+        context,
+        listen: false,
+      );
+      final success = await provider.deleteProperty(property.id);
+
+      if (!context.mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Propiedad eliminada exitosamente'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              provider.errorMessage ?? 'Error al eliminar la propiedad',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildFeature(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: Colors.grey[600]),
+        Icon(icon, size: 18, color: primaryColor),
         const SizedBox(width: 4),
-        Text(text, style: TextStyle(color: Colors.grey[600])),
+        Text(text, style: TextStyle(color: disabledColor)),
       ],
     );
   }

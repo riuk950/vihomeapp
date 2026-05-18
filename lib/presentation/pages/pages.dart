@@ -26,6 +26,7 @@ export 'tenant/solicitud_de_arriendo_page.dart';
 export 'propiedades/mis_propiedades_page.dart';
 export 'propiedades/detalles_propiedades_page.dart';
 export 'propiedades/crear_propiedad_page.dart';
+export 'propiedades/editar_propiedades_page.dart';
 
 //proyectos pages
 export 'proyectos/proyectos_page.dart';

@@ -79,6 +79,39 @@ class LandlordPropertiesProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> updateProperty(
+    String propertyId,
+    Map<String, dynamic> propertyData,
+  ) async {
+    try {
+      _setLoading(true);
+      clearError();
+
+      final result = await updatePropertyUseCase(propertyId, propertyData);
+
+      return result.fold(
+        (failure) {
+          _setError(failure.message);
+          _setLoading(false);
+          return false;
+        },
+        (updatedProperty) {
+          final index = _properties.indexWhere((p) => p.id == propertyId);
+          if (index != -1) {
+            _properties[index] = updatedProperty;
+          }
+          _setLoading(false);
+          notifyListeners();
+          return true;
+        },
+      );
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
   Future<bool> togglePropertyPublication(
     String propertyId,
     bool currentStatus,
