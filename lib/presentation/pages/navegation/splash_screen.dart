@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -22,27 +21,38 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
-    // Solicitar permisos de ubicación al inicio
-    await _requestPermissions();
+    // Los permisos de ubicación ya se solicitan bajo demanda en las páginas de mapas.
+    // Los permisos de notificación se solicitan en PushNotificationService.initializeApp() en el main.
     await _checkAuthAndNavigate();
   }
 
-  Future<void> _requestPermissions() async {
-    // Solicitar permiso de ubicación
-    await Permission.location.request();
-    // Nota: Los permisos de notificación se solicitan en PushNotificationService.initializeApp()
-    // que se llama en el main.
-  }
+  Future<void> _checkAuthAndNavigate() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final startTime = DateTime.now();
 
-  _checkAuthAndNavigate() async {
-    // Esperar un momento para mostrar el splash
-    await Future.delayed(const Duration(seconds: 2));
+    // Esperamos a que el AuthProvider esté completamente inicializado para evitar jank de transición
+    if (!authProvider.isInitialized) {
+      final completer = Completer<void>();
+      void listener() {
+        if (authProvider.isInitialized) {
+          authProvider.removeListener(listener);
+          completer.complete();
+        }
+      }
+      authProvider.addListener(listener);
+      await completer.future;
+    }
+
+    // Calculamos el tiempo restante para cumplir los 2 segundos mínimos de la animación del splash
+    final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+    final remainingDelay = 2000 - elapsed;
+    if (remainingDelay > 0) {
+      await Future.delayed(Duration(milliseconds: remainingDelay));
+    }
 
     if (!mounted) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final isAuthenticated = authProvider.isAuthenticated;
-
     if (mounted) {
       if (isAuthenticated) {
         context.go('/home');

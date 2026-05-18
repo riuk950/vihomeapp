@@ -25,11 +25,13 @@ class AuthProvider with ChangeNotifier {
   User? _user;
   bool _isLoading = false;
   String? _errorMessage;
+  bool _isInitialized = false;
 
   User? get user => _user;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _user != null;
+  bool get isInitialized => _isInitialized;
 
   AuthProvider({
     required this.getCurrentUserUseCase,
@@ -47,12 +49,17 @@ class AuthProvider with ChangeNotifier {
   void _initializeAuth() async {
     final result = await getCurrentUserUseCase();
     result.fold(
-      (failure) => _setError(failure.message),
+      (failure) {
+        _setError(failure.message);
+        _isInitialized = true;
+        notifyListeners();
+      },
       (user) {
         _user = user;
         if (user != null) {
           _syncToken(user);
         }
+        _isInitialized = true;
         notifyListeners();
       },
     );
