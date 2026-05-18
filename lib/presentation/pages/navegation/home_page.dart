@@ -15,12 +15,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   String? _lastRole;
+  AuthProvider? _authProvider;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      _authProvider = authProvider;
       final user = authProvider.user;
       _lastRole = user?.role;
       _loadApplicationsForRole(user?.role, user?.id);
@@ -35,8 +37,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    authProvider.removeListener(_onAuthChanged);
+    _authProvider?.removeListener(_onAuthChanged);
     super.dispose();
   }
 

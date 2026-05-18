@@ -7,6 +7,7 @@ import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/presentation/providers/providers.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_complete.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_verificado.dart';
+import 'package:vihomeapp/presentation/widgets/alert_dialog.dart';
 
 class PanelPage extends StatelessWidget {
   const PanelPage({super.key});
@@ -675,22 +676,12 @@ class PanelPage extends StatelessWidget {
   Future<void> _handleLogout(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cerrar Sesión'),
-        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Cerrar Sesión',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
+      builder: (context) => const AlertDialogWidget(
+        icon: Icons.logout,
+        title: 'Cerrar Sesión',
+        content: '¿Estás seguro de que quieres cerrar sesión?',
+        cancelText: 'Cancelar',
+        acceptText: 'Cerrar Sesión',
       ),
     );
 

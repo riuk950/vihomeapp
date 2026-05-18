@@ -32,11 +32,11 @@ class AlertDialogWidget extends StatelessWidget {
       content: Text(content),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.of(context).pop(false),
           child: Text(cancelText, style: TextStyle(color: primaryColor)),
         ),
         ElevatedButton(
-          onPressed: () => Navigator.pop(context, true),
+          onPressed: () => Navigator.of(context).pop(true),
           child: Text(acceptText),
         ),
       ],
