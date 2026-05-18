@@ -14,6 +14,13 @@ class EnvDef {
   static bool isDebugMode = dotenv.env['DEBUG_MODE'] == 'true';
   static String get googleWebClientId =>
       dotenv.env['GOOGLE_WEB_CLIENT_ID'] ?? '';
+
+  static String get admobBannerId => 
+      dotenv.env['ADMOB_BANNER_ID'] ?? '';
+  
+  static String get admobInterstitialId => 
+      dotenv.env['ADMOB_INTERSTITIAL_ID'] ?? '';
+
   static bool get isProduction => dotenv.env['DEBUG_MODE'] == 'false';
   static bool get isDevelopment => !isProduction;
 }

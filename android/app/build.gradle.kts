@@ -73,10 +73,12 @@ android {
             dimension = "default"
             applicationIdSuffix = ".dev"
             // The app name is now defined in src/dev/res/values/strings.xml
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-7376405914543917~8610487917" // Google Test App ID
         }
         create("prod") {
             dimension = "default"
             // The app name is now defined in src/prod/res/values/strings.xml
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-7376405914543917~1446313762" // ID actual (Producción)
         }
     }
 }

@@ -7,6 +7,7 @@ import '../app/app.dart';
 import '../core/di/injection_container.dart';
 import '../env/env_def.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import '../core/ads/ad_manager.dart' as vihomeapp_ads;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,9 @@ Future<void> main() async {
   } catch (e) {
     debugPrint("Firebase pendiente de configurarse en consola nativa: $e");
   }
+
+  // Inicializar Google Mobile Ads
+  await getIt<vihomeapp_ads.AdManager>().initialize();
 
   runApp(const FlavorApp());
 }

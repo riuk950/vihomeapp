@@ -4,6 +4,7 @@ class User {
   final String email;
   final String? name;
   final String? role;
+  final bool isPremium;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -12,6 +13,7 @@ class User {
     required this.email,
     this.name,
     this.role,
+    this.isPremium = false,
     this.createdAt,
     this.updatedAt,
   });
@@ -21,6 +23,7 @@ class User {
     String? email,
     String? name,
     String? role,
+    bool? isPremium,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -29,6 +32,7 @@ class User {
       email: email ?? this.email,
       name: name ?? this.name,
       role: role ?? this.role,
+      isPremium: isPremium ?? this.isPremium,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -42,6 +46,7 @@ class User {
         other.email == email &&
         other.name == name &&
         other.role == role &&
+        other.isPremium == isPremium &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt;
   }
@@ -52,6 +57,7 @@ class User {
       email.hashCode ^
       (name?.hashCode ?? 0) ^
       (role?.hashCode ?? 0) ^
+      isPremium.hashCode ^
       (createdAt?.hashCode ?? 0) ^
       (updatedAt?.hashCode ?? 0);
 }

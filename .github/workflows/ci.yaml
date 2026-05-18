@@ -29,9 +29,13 @@ jobs:
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
             echo "${{ secrets.ENV_PROD }}" > .env.prod
             echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_PROD }}" >> .env.prod
+            echo "ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID_PROD }}" >> .env.prod
+            echo "ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID_PROD }}" >> .env.prod
           else
             echo "${{ secrets.ENV_DEV }}" > .env.dev
             echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_DEV }}" >> .env.dev
+            echo "ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID_DEV }}" >> .env.dev
+            echo "ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID_DEV }}" >> .env.dev
           fi
       - name: Crear archivos .env si faltan 🧩
         run: |
@@ -111,9 +115,13 @@ jobs:
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
             echo "${{ secrets.ENV_PROD }}" > .env.prod
             echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_PROD }}" >> .env.prod
+            echo "ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID_PROD }}" >> .env.prod
+            echo "ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID_PROD }}" >> .env.prod
           else
             echo "${{ secrets.ENV_DEV }}" > .env.dev
             echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_DEV }}" >> .env.dev
+            echo "ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID_DEV }}" >> .env.dev
+            echo "ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID_DEV }}" >> .env.dev
           fi
       - name: Crear archivos .env si faltan 🧩
         run: |

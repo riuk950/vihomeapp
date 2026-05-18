@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/subscription_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -44,7 +45,9 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     if (success && mounted) {
-      context.go('/home');
+      final subscriptionProvider = Provider.of<SubscriptionProvider>(context, listen: false);
+      await subscriptionProvider.initialize(authProvider.user?.id);
+      if (mounted) context.go('/home');
     }
   }
 
@@ -55,7 +58,9 @@ class _LoginPageState extends State<LoginPage> {
     final success = await authProvider.signInWithGoogle();
 
     if (success && mounted) {
-      context.go('/home');
+      final subscriptionProvider = Provider.of<SubscriptionProvider>(context, listen: false);
+      await subscriptionProvider.initialize(authProvider.user?.id);
+      if (mounted) context.go('/home');
     }
   }
 

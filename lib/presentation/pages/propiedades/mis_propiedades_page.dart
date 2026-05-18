@@ -7,6 +7,7 @@ import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
 import 'package:vihomeapp/presentation/widgets/alert_dialog.dart';
+import 'package:vihomeapp/presentation/widgets/ad_banner_widget.dart';
 
 class MisPropiedadesPage extends StatefulWidget {
   const MisPropiedadesPage({super.key});
@@ -200,6 +201,8 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                     },
                   ),
                 ),
+                
+                const AdBannerWidget(),
               ],
             );
           },

@@ -24,6 +24,9 @@ import '../../infrastructure/services/supabase_service.dart';
 //Providers
 import '../../presentation/providers/providers.dart';
 
+//Ads
+import '../ads/ad_manager.dart';
+
 //Repositorios Data
 import '../../data/repositories/repositories.dart';
 import '../../data/repositories/application_repository_impl.dart';
@@ -190,4 +193,8 @@ Future<void> setupDependencyInjection() async {
   getIt.registerFactory(
     () => ProjectProvider(getProjectsUseCase: getIt<GetProjectsUseCase>()),
   );
+  getIt.registerFactory(
+    () => SubscriptionProvider(),
+  );
+  getIt.registerLazySingleton<AdManager>(() => AdManager());
 }
