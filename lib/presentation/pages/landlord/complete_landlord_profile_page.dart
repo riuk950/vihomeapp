@@ -5,6 +5,8 @@ import 'package:vihomeapp/domain/entities/landlord.dart';
 import 'package:vihomeapp/presentation/providers/providers.dart';
 import 'package:vihomeapp/presentation/widgets/widgets.dart';
 import 'package:flutter/services.dart';
+import '../../helpers/phone_input_formatter.dart';
+
 
 class CompleteLandlordProfilePage extends StatefulWidget {
   const CompleteLandlordProfilePage({super.key});
@@ -25,6 +27,15 @@ class _CompleteLandlordProfilePageState
   final _direccionContactoController = TextEditingController();
   final _telefonoContactoController = TextEditingController();
   String _tipoDocumento = 'CC';
+
+  @override
+  void initState() {
+    super.initState();
+    _telefonoContactoController.text = '57';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<LandlordProvider>(context, listen: false).clearError();
+    });
+  }
 
   @override
   void dispose() {
@@ -219,7 +230,7 @@ class _CompleteLandlordProfilePageState
                       controller: _telefonoContactoController,
                       keyboardType: TextInputType.phone,
                       inputFormatters: [
-                        _PhoneInputFormatter(),
+                        PhoneInputFormatter(),
                         LengthLimitingTextInputFormatter(15),
                       ],
                       decoration: const InputDecoration(
@@ -257,45 +268,4 @@ class _CompleteLandlordProfilePageState
   }
 }
 
-class _PhoneInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final newText = newValue.text;
-    if (newText.isEmpty) return newValue;
 
-    newText.replaceAll(RegExp(r'\D'), '');
-    final buffer = StringBuffer();
-
-    int selectionIndex = newValue.selection.end;
-    int digitCount = 0;
-    int newSelectionIndex = 0;
-
-    for (int i = 0; i < newText.length; i++) {
-      if (i == selectionIndex) {
-        newSelectionIndex = buffer.length;
-      }
-      if (RegExp(r'\d').hasMatch(newText[i])) {
-        if (digitCount == 2 || digitCount == 5 || digitCount == 8) {
-          buffer.write(' ');
-          if (i == selectionIndex) {
-            newSelectionIndex = buffer.length;
-          }
-        }
-        buffer.write(newText[i]);
-        digitCount++;
-      }
-    }
-
-    if (selectionIndex == newText.length) {
-      newSelectionIndex = buffer.length;
-    }
-
-    return TextEditingValue(
-      text: buffer.toString(),
-      selection: TextSelection.collapsed(offset: newSelectionIndex),
-    );
-  }
-}

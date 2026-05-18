@@ -176,6 +176,29 @@ GoRouter createAppRouter() {
         builder: (context, state) => const CrearPropiedadPage(),
       ),
       GoRoute(
+        path: '/editar-propiedad',
+        name: 'editar-propiedad',
+        builder: (context, state) {
+          final extra = state.extra;
+          Property? property;
+
+          if (extra is Property) {
+            property = extra;
+          } else if (extra is Map<String, dynamic>) {
+            property = PropertyModel.fromJson(extra);
+          }
+
+          if (property == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Error')),
+              body: const Center(child: Text('Error: Propiedad no válida')),
+            );
+          }
+
+          return EditarPropiedadesPage(property: property);
+        },
+      ),
+      GoRoute(
         path: '/mapa',
         name: 'mapa',
         builder: (context, state) => const MapaPage(),

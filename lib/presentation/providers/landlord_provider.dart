@@ -23,7 +23,7 @@ class LandlordProvider with ChangeNotifier {
 
   Future<void> loadLandlordProfile(String userId) async {
     _setLoading(true);
-    _clearError();
+    clearError();
 
     final result = await getLandlordProfileUseCase(userId);
 
@@ -41,7 +41,7 @@ class LandlordProvider with ChangeNotifier {
 
   Future<bool> saveLandlordProfile(Landlord landlord) async {
     _setLoading(true);
-    _clearError();
+    clearError();
 
     final result = await saveLandlordProfileUseCase(landlord);
 
@@ -69,7 +69,7 @@ class LandlordProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void _clearError() {
+  void clearError() {
     _errorMessage = null;
     notifyListeners();
   }

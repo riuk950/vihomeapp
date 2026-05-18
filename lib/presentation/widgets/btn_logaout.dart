@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import 'package:vihomeapp/presentation/widgets/alert_dialog.dart';
 import '../providers/tenant_provider.dart';
 import '../providers/landlord_provider.dart';
 import '../providers/application_provider.dart';
@@ -35,22 +36,12 @@ class BtnLogout extends StatelessWidget {
   Future<void> _handleLogout(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cerrar Sesión'),
-        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Cerrar Sesión',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
+      builder: (context) => const AlertDialogWidget(
+        icon: Icons.logout,
+        title: 'Cerrar Sesión',
+        content: '¿Estás seguro de que quieres cerrar sesión?',
+        cancelText: 'Cancelar',
+        acceptText: 'Cerrar Sesión',
       ),
     );
 

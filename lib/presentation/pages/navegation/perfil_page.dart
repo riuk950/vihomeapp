@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_complete.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_verificado.dart';
+import 'package:vihomeapp/presentation/widgets/alert_dialog.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/tenant_provider.dart';
 import '../../providers/landlord_provider.dart';
@@ -335,11 +336,23 @@ class PerfilPage extends StatelessWidget {
                     context,
                     Icons.help_outline,
                     'Preguntas Frecuentes',
+                    onTap: () async {
+                      final url = Uri.parse('https://vihome.web.app/#/faq');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.inAppWebView);
+                      }
+                    },
                   ),
                   _buildMenuOption(
                     context,
                     Icons.description_outlined,
                     'Terminos y Condiciones',
+                    onTap: () async {
+                      final url = Uri.parse('https://vihome.web.app/#/terms');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.inAppWebView);
+                      }
+                    },
                   ),
                   _buildMenuOption(
                     context,
@@ -399,22 +412,12 @@ class PerfilPage extends StatelessWidget {
   Future<void> _handleLogout(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cerrar sesión'),
-        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Cerrar sesión',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
+      builder: (context) => const AlertDialogWidget(
+        icon: Icons.logout,
+        title: 'Cerrar sesión',
+        content: '¿Estás seguro de que quieres cerrar sesión?',
+        cancelText: 'Cancelar',
+        acceptText: 'Cerrar sesión',
       ),
     );
 
@@ -451,25 +454,12 @@ class PerfilPage extends StatelessWidget {
   Future<void> _showBecomeLandlordDialog(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Conviértete en Arrendador'),
-        content: const Text(
-          '¿Estás seguro de que quieres convertirte en Arrendador? '
-          'Podrás publicar tus propiedades y gestionar tus arriendos.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Confirmar',
-              style: TextStyle(color: primaryColor),
-            ),
-          ),
-        ],
+      builder: (context) => const AlertDialogWidget(
+        icon: Icons.real_estate_agent,
+        title: 'Conviértete en Arrendador',
+        content: '¿Estás seguro de que quieres convertirte en Arrendador? Podrás publicar tus propiedades y gestionar tus arriendos.',
+        cancelText: 'Cancelar',
+        acceptText: 'Confirmar',
       ),
     );
 

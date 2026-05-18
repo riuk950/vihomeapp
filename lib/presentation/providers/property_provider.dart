@@ -32,8 +32,10 @@ class PropertyProvider with ChangeNotifier {
 
   Future<void> fetchProperties() async {
     try {
-      _setLoading(true);
-      _clearError();
+      if (_allProperties.isEmpty) {
+        _setLoading(true);
+      }
+      clearError();
 
       final result = await getPropertiesUseCase();
 
@@ -91,7 +93,7 @@ class PropertyProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void _clearError() {
+  void clearError() {
     _errorMessage = null;
     notifyListeners();
   }

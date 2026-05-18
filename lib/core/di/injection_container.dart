@@ -155,6 +155,7 @@ Future<void> setupDependencyInjection() async {
       signOutUseCase: getIt<SignOutUseCase>(),
       resetPasswordUseCase: getIt<ResetPasswordUseCase>(),
       updateUserRoleUseCase: getIt<UpdateUserRoleUseCase>(),
+      networkInfo: getIt<NetworkInfo>(),
     ),
   );
   getIt.registerFactory(

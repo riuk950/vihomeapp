@@ -28,6 +28,14 @@ class _CompleteTenantProfilePageState extends State<CompleteTenantProfilePage> {
   String _tipoDocumento = 'CC';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TenantProvider>(context, listen: false).clearError();
+    });
+  }
+
+  @override
   void dispose() {
     _primerNombreController.dispose();
     _segundoNombreController.dispose();

@@ -11,34 +11,38 @@ import 'package:file_picker/file_picker.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vihomeapp/data/models/amenidad_model.dart';
+import 'package:vihomeapp/domain/entities/property.dart';
 
-class CrearPropiedadPage extends StatefulWidget {
-  const CrearPropiedadPage({super.key});
+class EditarPropiedadesPage extends StatefulWidget {
+  final Property property;
+
+  const EditarPropiedadesPage({super.key, required this.property});
 
   @override
-  State<CrearPropiedadPage> createState() => _CrearPropiedadPageState();
+  State<EditarPropiedadesPage> createState() => _EditarPropiedadesPageState();
 }
 
-class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
+class _EditarPropiedadesPageState extends State<EditarPropiedadesPage> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
-  final _tituloController = TextEditingController();
-  final _direccionController = TextEditingController();
-  final _ciudadController = TextEditingController(text: 'Sogamoso');
-  final _descripcionController = TextEditingController();
-  final _precioRentaController = TextEditingController();
-  final _precioVentaController = TextEditingController();
-  final _habitacionesController = TextEditingController();
-  final _banosController = TextEditingController();
-  final _metrosCuadradosController = TextEditingController();
+  late final TextEditingController _tituloController;
+  late final TextEditingController _direccionController;
+  late final TextEditingController _ciudadController;
+  late final TextEditingController _descripcionController;
+  late final TextEditingController _precioRentaController;
+  late final TextEditingController _precioVentaController;
+  late final TextEditingController _habitacionesController;
+  late final TextEditingController _banosController;
+  late final TextEditingController _metrosCuadradosController;
 
   String? _tipoPropiedad;
-  String _estado = 'arriendo'; // Added state variable
-  bool _publicado = true;
+  late String _estado;
+  late bool _publicado;
   double? _lat;
   double? _lng;
-  final List<File> _selectedImages = [];
+  final List<File> _selectedNewImages = [];
+  late List<String> _existingImages;
   bool _isUploadingImages = false;
 
   List<String> _tiposPropiedad = [];
@@ -51,6 +55,47 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
   @override
   void initState() {
     super.initState();
+    _tituloController = TextEditingController(text: widget.property.titulo);
+    _direccionController = TextEditingController(text: widget.property.direccion);
+    _ciudadController = TextEditingController(text: widget.property.ciudad);
+    _descripcionController = TextEditingController(text: widget.property.descripcion);
+    _precioRentaController = TextEditingController(
+      text: widget.property.precioRenta != null
+          ? _formatCurrency(widget.property.precioRenta!)
+          : '',
+    );
+    _precioVentaController = TextEditingController(
+      text: widget.property.precioVenta != null
+          ? _formatCurrency(widget.property.precioVenta!)
+          : '',
+    );
+    _habitacionesController = TextEditingController(text: widget.property.habitaciones.toString());
+    _banosController = TextEditingController(text: widget.property.banos.toString());
+    _metrosCuadradosController = TextEditingController(
+      text: widget.property.metrosCuadrados.toString(),
+    );
+
+    _tipoPropiedad = widget.property.tipoPropiedad;
+    _estado = widget.property.estado;
+    _publicado = widget.property.publicado;
+    _lat = widget.property.lat;
+    _lng = widget.property.lng;
+    _existingImages = List<String>.from(widget.property.fotos);
+
+    // Extract existing amenity IDs
+    if (widget.property.amenidades != null) {
+      for (var a in widget.property.amenidades!) {
+        if (a is Map) {
+          final id = a['id_amenidad'] ?? a['idAmenidad'];
+          if (id != null) {
+            _amenidadesSeleccionadas.add(id.toString());
+          }
+        } else if (a is String) {
+          _amenidadesSeleccionadas.add(a);
+        }
+      }
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<LandlordPropertiesProvider>(context, listen: false)
           .clearError();
@@ -92,7 +137,10 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
               .map((e) => e['propiedad']?.toString() ?? '')
               .where((e) => e.isNotEmpty)
               .toList();
-          if (_tiposPropiedad.isNotEmpty) {
+          
+          if (_tiposPropiedad.contains(widget.property.tipoPropiedad)) {
+            _tipoPropiedad = widget.property.tipoPropiedad;
+          } else if (_tiposPropiedad.isNotEmpty) {
             _tipoPropiedad = _tiposPropiedad.first;
           }
           _isLoadingTipos = false;
@@ -138,12 +186,12 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
       }
 
       setState(() => _isUploadingImages = true);
-      List<String> photoUrls = [];
+      List<String> photoUrls = List<String>.from(_existingImages);
 
       try {
-        if (_selectedImages.isNotEmpty) {
+        if (_selectedNewImages.isNotEmpty) {
           final supabase = Supabase.instance.client;
-          for (var image in _selectedImages) {
+          for (var image in _selectedNewImages) {
             final fileName =
                 '${DateTime.now().millisecondsSinceEpoch}_${image.path.split('/').last}';
             final path = 'propiedades/$fileName';
@@ -174,17 +222,16 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
       }
 
       final propertyData = {
-        'arrendador_id': authProvider.user!.id,
         'tipo_propiedad': _tipoPropiedad ?? '',
         'titulo': _tituloController.text,
         'direccion': _direccionController.text,
         'ciudad': _ciudadController.text,
         'descripcion': _descripcionController.text,
         'precio': 0,
-        'precio_renta': _precioRentaController.text.isNotEmpty
+        'precio_renta': _estado == 'arriendo' && _precioRentaController.text.isNotEmpty
             ? double.tryParse(_precioRentaController.text.replaceAll(RegExp(r'\D'), ''))
             : null,
-        'precio_venta': _precioVentaController.text.isNotEmpty
+        'precio_venta': _estado == 'venta' && _precioVentaController.text.isNotEmpty
             ? double.tryParse(_precioVentaController.text.replaceAll(RegExp(r'\D'), ''))
             : null,
         'habitaciones': int.tryParse(_habitacionesController.text) ?? 0,
@@ -202,20 +249,20 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
             .toList(),
       };
 
-      final success = await landlordProvider.createProperty(propertyData);
+      final success = await landlordProvider.updateProperty(widget.property.id, propertyData);
 
       if (mounted) {
         setState(() => _isUploadingImages = false);
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Propiedad creada exitosamente')),
+            const SnackBar(content: Text('Propiedad actualizada exitosamente')),
           );
           context.pop(); // Volver a la lista
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                landlordProvider.errorMessage ?? 'Error al crear propiedad',
+                landlordProvider.errorMessage ?? 'Error al actualizar propiedad',
               ),
             ),
           );
@@ -236,7 +283,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
           onPressed: () => context.pop(),
         ),
         title: const Text(
-          'Nueva Propiedad',
+          'Editar Propiedad',
           style: TextStyle(
             color: textColor,
             fontSize: 18,
@@ -289,7 +336,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                               child: _buildTextField(
                                 controller: _ciudadController,
                                 label: 'Ciudad',
-                                hint: 'Ej: Bogotá',
+                                hint: 'Ej: Sogamoso',
                                 enabled: false,
                                 validator: (v) =>
                                     v?.isEmpty ?? true ? 'Requerido' : null,
@@ -450,7 +497,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                               elevation: 0,
                             ),
                             child: const Text(
-                              'Crear Propiedad',
+                              'Guardar Cambios',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -610,8 +657,6 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
         const SizedBox(height: 8),
         InkWell(
           onTap: () async {
-            // Note: Mapbox Point type might be exported as Point or something else.
-            // Usually it is Point. Ensure correct import.
             final dynamic result = await context.pushNamed('location-picker');
 
             if (result != null && result is Point) {
@@ -638,15 +683,12 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
                         ? 'Lat: ${_lat!.toStringAsFixed(4)}, Lng: ${_lng!.toStringAsFixed(4)}'
                         : 'Seleccionar en el mapa',
                     style: TextStyle(
-                      color: _lat != null ? Colors.black : Colors.grey[400],
+                      color: _lat != null && _lng != null ? textColor : Colors.grey[400],
+                      fontSize: 14,
                     ),
                   ),
                 ),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Colors.grey,
-                ),
+                const Icon(Icons.chevron_right, color: Colors.grey),
               ],
             ),
           ),
@@ -659,56 +701,103 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_selectedImages.isNotEmpty)
+        if (_existingImages.isNotEmpty || _selectedNewImages.isNotEmpty)
           SizedBox(
             height: 120,
-            child: ListView.builder(
+            child: ListView(
               scrollDirection: Axis.horizontal,
-              itemCount: _selectedImages.length,
-              itemBuilder: (context, index) {
-                return Stack(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(right: 12),
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        image: DecorationImage(
-                          image: FileImage(_selectedImages[index]),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 4,
-                      right: 16,
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedImages.removeAt(index);
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            color: Colors.white,
-                            size: 16,
+              children: [
+                ..._existingImages.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final url = entry.value;
+                  return Stack(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(right: 12),
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          image: DecorationImage(
+                            image: NetworkImage(url),
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                );
-              },
+                      Positioned(
+                        top: 4,
+                        right: 16,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _existingImages.removeAt(index);
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+                ..._selectedNewImages.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final file = entry.value;
+                  return Stack(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(right: 12),
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          image: DecorationImage(
+                            image: FileImage(file),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 16,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedNewImages.removeAt(index);
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              ],
             ),
           ),
-        if (_selectedImages.isNotEmpty) const SizedBox(height: 16),
+        if (_existingImages.isNotEmpty || _selectedNewImages.isNotEmpty)
+          const SizedBox(height: 16),
         InkWell(
           onTap: _pickImages,
           child: Container(
@@ -719,8 +808,6 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: primaryColor,
-                style: BorderStyle.values[
-                    1], // dashed emulation? No, solid is fine for now or use library for dashed
               ),
             ),
             child: Column(
@@ -764,7 +851,7 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
             .toList();
 
         setState(() {
-          _selectedImages.addAll(files);
+          _selectedNewImages.addAll(files);
         });
       }
     } catch (e) {
@@ -783,8 +870,10 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
     }
 
     if (_amenidades.isEmpty) {
-      return const Text('No hay amenidades disponibles',
-          style: TextStyle(color: Colors.grey));
+      return const Text(
+        'No hay amenidades disponibles',
+        style: TextStyle(color: Colors.grey),
+      );
     }
 
     return Wrap(
@@ -797,8 +886,11 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
 
         return FilterChip(
           label: Text(amenidad.idAmenidad.trim()),
-          avatar: Icon(iconData,
-              size: 18, color: isSelected ? Colors.white : primaryColor),
+          avatar: Icon(
+            iconData,
+            size: 18,
+            color: isSelected ? Colors.white : primaryColor,
+          ),
           selected: isSelected,
           selectedColor: primaryColor,
           checkmarkColor: Colors.white,
@@ -856,7 +948,6 @@ class _CurrencyInputFormatter extends TextInputFormatter {
       return newValue;
     }
 
-    // Limpiar todos los caracteres que no sean dígitos
     final String cleanText = newValue.text.replaceAll(RegExp(r'\D'), '');
     if (cleanText.isEmpty) {
       return newValue.copyWith(
@@ -865,13 +956,9 @@ class _CurrencyInputFormatter extends TextInputFormatter {
       );
     }
 
-    // Convertir a double
     final double value = double.tryParse(cleanText) ?? 0;
-    
-    // Formatear usando el método estático de la clase de estado
-    final String formattedText = _CrearPropiedadPageState._formatCurrency(value);
+    final String formattedText = _EditarPropiedadesPageState._formatCurrency(value);
 
-    // Calcular la posición del cursor de forma dinámica para evitar saltos molestos
     int selectionEnd = newValue.selection.end;
     if (selectionEnd < 0) {
       selectionEnd = newValue.text.length;
@@ -884,7 +971,7 @@ class _CurrencyInputFormatter extends TextInputFormatter {
 
     int selectionIndex = 0;
     int digitCount = 0;
-    
+
     for (int i = 0; i < formattedText.length; i++) {
       if (RegExp(r'\d').hasMatch(formattedText[i])) {
         digitCount++;
@@ -894,11 +981,9 @@ class _CurrencyInputFormatter extends TextInputFormatter {
         break;
       }
     }
-    
-    // Caso alternativo si no se encontró el índice de selección
+
     if (selectionIndex == 0) {
       if (digitsBeforeCursor == 0) {
-        // Colocar el cursor justo después de la primera cifra numérica
         selectionIndex = formattedText.indexOf(RegExp(r'\d'));
         if (selectionIndex == -1) selectionIndex = formattedText.length;
       } else {

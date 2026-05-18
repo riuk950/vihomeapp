@@ -86,6 +86,11 @@ class ApplicationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> fetchLandlordApplications(String landlordId) async {
     _isLoading = true;
     _errorMessage = null;

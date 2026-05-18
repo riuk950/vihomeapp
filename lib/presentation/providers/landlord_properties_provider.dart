@@ -33,7 +33,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
   Future<void> fetchPropertiesByLandlord(String landlordId) async {
     try {
       _setLoading(true);
-      _clearError();
+      clearError();
 
       final result = await getPropertiesByLandlordUseCase(landlordId);
 
@@ -56,7 +56,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
   Future<bool> createProperty(Map<String, dynamic> propertyData) async {
     try {
       _setLoading(true);
-      _clearError();
+      clearError();
 
       final result = await createPropertyUseCase(propertyData);
 
@@ -79,13 +79,46 @@ class LandlordPropertiesProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> updateProperty(
+    String propertyId,
+    Map<String, dynamic> propertyData,
+  ) async {
+    try {
+      _setLoading(true);
+      clearError();
+
+      final result = await updatePropertyUseCase(propertyId, propertyData);
+
+      return result.fold(
+        (failure) {
+          _setError(failure.message);
+          _setLoading(false);
+          return false;
+        },
+        (updatedProperty) {
+          final index = _properties.indexWhere((p) => p.id == propertyId);
+          if (index != -1) {
+            _properties[index] = updatedProperty;
+          }
+          _setLoading(false);
+          notifyListeners();
+          return true;
+        },
+      );
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
   Future<bool> togglePropertyPublication(
     String propertyId,
     bool currentStatus,
   ) async {
     try {
       _setLoading(true);
-      _clearError();
+      clearError();
 
       final result = await updatePropertyUseCase(propertyId, {
         'publicado': !currentStatus,
@@ -117,7 +150,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
   Future<bool> deleteProperty(String id) async {
     try {
       _setLoading(true);
-      _clearError();
+      clearError();
 
       final result = await deletePropertyUseCase(id);
 
@@ -151,7 +184,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void _clearError() {
+  void clearError() {
     _errorMessage = null;
     notifyListeners();
   }

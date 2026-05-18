@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
-import '../providers/auth_provider.dart';
+import '../../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,18 +17,42 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkAuthAndNavigate();
+    _initializeApp();
   }
 
-  _checkAuthAndNavigate() async {
-    // Esperar un momento para mostrar el splash
-    await Future.delayed(const Duration(seconds: 2));
+  Future<void> _initializeApp() async {
+    // Los permisos de ubicación ya se solicitan bajo demanda en las páginas de mapas.
+    // Los permisos de notificación se solicitan en PushNotificationService.initializeApp() en el main.
+    await _checkAuthAndNavigate();
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final startTime = DateTime.now();
+
+    // Esperamos a que el AuthProvider esté completamente inicializado para evitar jank de transición
+    if (!authProvider.isInitialized) {
+      final completer = Completer<void>();
+      void listener() {
+        if (authProvider.isInitialized) {
+          authProvider.removeListener(listener);
+          completer.complete();
+        }
+      }
+      authProvider.addListener(listener);
+      await completer.future;
+    }
+
+    // Calculamos el tiempo restante para cumplir los 2 segundos mínimos de la animación del splash
+    final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+    final remainingDelay = 2000 - elapsed;
+    if (remainingDelay > 0) {
+      await Future.delayed(Duration(milliseconds: remainingDelay));
+    }
 
     if (!mounted) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final isAuthenticated = authProvider.isAuthenticated;
-
     if (mounted) {
       if (isAuthenticated) {
         context.go('/home');

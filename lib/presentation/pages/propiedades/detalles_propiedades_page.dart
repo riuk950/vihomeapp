@@ -41,6 +41,10 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TenantProvider>(context, listen: false).clearError();
+      Provider.of<ApplicationProvider>(context, listen: false).clearError();
+    });
     if (EnvDef.mapboxAccessToken.isNotEmpty) {
       MapboxOptions.setAccessToken(EnvDef.mapboxAccessToken);
     }
@@ -612,7 +616,7 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
       left: 0,
       right: 0,
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: Colors.grey.shade200)),

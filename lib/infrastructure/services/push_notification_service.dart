@@ -5,6 +5,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'supabase_service.dart';
 import '../../core/router/app_router.dart';
+import '../../core/di/injection_container.dart';
+import '../../core/network/network_info.dart';
 
 // Esta función debe estar FUERA de cualquier clase para manejar notificaciones
 // en segundo plano o cuando la app está cerrada completamente.
@@ -202,6 +204,13 @@ class PushNotificationService {
   /// Sincroniza un token refrescado con la tabla profiles en Supabase.
   static Future<void> _syncRefreshedToken(String newToken) async {
     try {
+      // Verificar conexión
+      final networkInfo = getIt<NetworkInfo>();
+      if (!await networkInfo.isConnected) {
+        debugPrint("Sincronización de token omitida: No hay conexión");
+        return;
+      }
+
       final client = SupabaseService.instance.client;
       final user = client.auth.currentUser;
       if (user != null) {
@@ -216,7 +225,12 @@ class PushNotificationService {
         debugPrint("✅ Token refrescado sincronizado únicamente en profiles");
       }
     } catch (e) {
-      debugPrint("❌ Error al sincronizar token refrescado: $e");
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        debugPrint("⚠️ Error de red al sincronizar token refrescado: $e");
+      } else {
+        debugPrint("❌ Error al sincronizar token refrescado: $e");
+      }
     }
   }
 }

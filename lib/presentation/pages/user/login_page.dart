@@ -18,6 +18,14 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AuthProvider>(context, listen: false).clearError();
+    });
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -237,6 +245,7 @@ class _LoginPageState extends State<LoginPage> {
                       icon: Image.network(
                         'https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png',
                         height: 24,
+                        width: 24,
                         errorBuilder: (context, error, stackTrace) {
                           // Fallback para cuando no hay internet o en tests de widgets
                           return const Icon(Icons.g_mobiledata, size: 30, color: Colors.blue);
@@ -263,7 +272,11 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         const Text('¿No tienes cuenta? '),
                         TextButton(
-                          onPressed: () => context.go('/register'),
+                          onPressed: () {
+                            Provider.of<AuthProvider>(context, listen: false)
+                                .clearError();
+                            context.push('/register');
+                          },
                           child: const Text(
                             'Regístrate',
                             style: TextStyle(
