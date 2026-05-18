@@ -20,6 +20,7 @@ import '../../domain/usecases/property/delete_property_usecase.dart';
 
 //Servicios
 import '../../infrastructure/services/supabase_service.dart';
+import '../../infrastructure/services/analytics_service.dart';
 
 //Providers
 import '../../presentation/providers/providers.dart';
@@ -197,4 +198,5 @@ Future<void> setupDependencyInjection() async {
     () => SubscriptionProvider(),
   );
   getIt.registerLazySingleton<AdManager>(() => AdManager());
+  getIt.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
 }

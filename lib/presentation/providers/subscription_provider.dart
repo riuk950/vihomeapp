@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vihomeapp/core/di/injection_container.dart';
+import 'package:vihomeapp/infrastructure/services/analytics_service.dart';
 
 class SubscriptionProvider with ChangeNotifier {
   String? _userId;
@@ -92,6 +94,8 @@ class SubscriptionProvider with ChangeNotifier {
       _setLoading(true);
       clearError();
 
+      await getIt<AnalyticsService>().logSubscriptionStarted(product.id);
+
       final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
       
       // Para suscripciones usamos buyNonConsumable (se maneja igual en IAP plugin para subs)
@@ -135,6 +139,10 @@ class SubscriptionProvider with ChangeNotifier {
         } else if (purchase.status == PurchaseStatus.purchased || 
                    purchase.status == PurchaseStatus.restored) {
           
+          if (purchase.status == PurchaseStatus.purchased) {
+            await getIt<AnalyticsService>().logSubscriptionSuccess(purchase.productID);
+          }
+
           // Validar la compra (Idealmente en el servidor)
           // Si es válida, marcar como suscrito
           _isSubscribed = true;

@@ -73,7 +73,7 @@ android {
             dimension = "default"
             applicationIdSuffix = ".dev"
             // The app name is now defined in src/dev/res/values/strings.xml
-            manifestPlaceholders["admobAppId"] = "ca-app-pub-7376405914543917~8610487917" // Google Test App ID
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713" // ID Universal de Prueba de Google
         }
         create("prod") {
             dimension = "default"

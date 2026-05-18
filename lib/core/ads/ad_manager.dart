@@ -32,30 +32,36 @@ class AdManager {
 
   /// ID del anuncio Banner
   String get bannerAdUnitId {
+    String adId = '';
     if (EnvDef.admobBannerId.isNotEmpty) {
-      return EnvDef.admobBannerId;
+      adId = EnvDef.admobBannerId;
+    } else {
+      // Fallback a IDs de prueba de Google
+      if (Platform.isAndroid) {
+        adId = 'ca-app-pub-3940256099942544/6300978111';
+      } else if (Platform.isIOS) {
+        adId = 'ca-app-pub-3940256099942544/2934735716';
+      }
     }
-    // Fallback a IDs de prueba de Google
-    if (Platform.isAndroid) {
-      return 'ca-app-pub-3940256099942544/6300978111';
-    } else if (Platform.isIOS) {
-      return 'ca-app-pub-3940256099942544/2934735716';
-    }
-    throw UnsupportedError('Unsupported platform');
+    debugPrint('AdManager: Using Banner ID: $adId');
+    return adId;
   }
 
   /// ID del anuncio Intersticial
   String get interstitialAdUnitId {
+    String adId = '';
     if (EnvDef.admobInterstitialId.isNotEmpty) {
-      return EnvDef.admobInterstitialId;
+      adId = EnvDef.admobInterstitialId;
+    } else {
+      // Fallback a IDs de prueba de Google
+      if (Platform.isAndroid) {
+        adId = 'ca-app-pub-3940256099942544/1033173712';
+      } else if (Platform.isIOS) {
+        adId = 'ca-app-pub-3940256099942544/4411468910';
+      }
     }
-    // Fallback a IDs de prueba de Google
-    if (Platform.isAndroid) {
-      return 'ca-app-pub-3940256099942544/1033173712';
-    } else if (Platform.isIOS) {
-      return 'ca-app-pub-3940256099942544/4411468910';
-    }
-    throw UnsupportedError('Unsupported platform');
+    debugPrint('AdManager: Using Interstitial ID: $adId');
+    return adId;
   }
 
   void _createInterstitialAd() {
