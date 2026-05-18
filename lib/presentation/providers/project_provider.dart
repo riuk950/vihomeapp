@@ -36,6 +36,11 @@ class ProjectProvider extends ChangeNotifier {
         .replaceAll('ú', 'u');
   }
 
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> fetchProjects() async {
     _isLoading = true;
     _errorMessage = null;

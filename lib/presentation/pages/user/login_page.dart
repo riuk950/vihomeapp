@@ -18,6 +18,14 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AuthProvider>(context, listen: false).clearError();
+    });
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -263,7 +271,11 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         const Text('¿No tienes cuenta? '),
                         TextButton(
-                          onPressed: () => context.go('/register'),
+                          onPressed: () {
+                            Provider.of<AuthProvider>(context, listen: false)
+                                .clearError();
+                            context.push('/register');
+                          },
                           child: const Text(
                             'Regístrate',
                             style: TextStyle(

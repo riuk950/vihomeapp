@@ -24,7 +24,7 @@ class TenantProvider with ChangeNotifier {
 
   Future<void> loadTenantProfile(String userId) async {
     _setLoading(true);
-    _clearError();
+    clearError();
 
     final result = await getTenantProfileUseCase(userId);
 
@@ -42,7 +42,7 @@ class TenantProvider with ChangeNotifier {
 
   Future<bool> saveTenantProfile(Tenant tenant) async {
     _setLoading(true);
-    _clearError();
+    clearError();
 
     final result = await saveTenantProfileUseCase(tenant);
 
@@ -75,7 +75,7 @@ class TenantProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void _clearError() {
+  void clearError() {
     _errorMessage = null;
     notifyListeners();
   }

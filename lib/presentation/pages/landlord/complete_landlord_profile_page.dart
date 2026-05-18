@@ -27,6 +27,14 @@ class _CompleteLandlordProfilePageState
   String _tipoDocumento = 'CC';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<LandlordProvider>(context, listen: false).clearError();
+    });
+  }
+
+  @override
   void dispose() {
     _primerNombreController.dispose();
     _segundoNombreController.dispose();

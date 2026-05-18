@@ -22,6 +22,14 @@ class _RegisterPageState extends State<RegisterPage> {
   String _role = 'arrendatario';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AuthProvider>(context, listen: false).clearError();
+    });
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -81,6 +89,21 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: textColor),
+          onPressed: () {
+            Provider.of<AuthProvider>(context, listen: false).clearError();
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/login');
+            }
+          },
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -224,7 +247,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscurePassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),
@@ -301,7 +325,15 @@ class _RegisterPageState extends State<RegisterPage> {
                       children: [
                         const Text('¿Ya tienes cuenta? '),
                         TextButton(
-                          onPressed: () => context.go('/login'),
+                          onPressed: () {
+                            Provider.of<AuthProvider>(context, listen: false)
+                                .clearError();
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.go('/login');
+                            }
+                          },
                           child: const Text(
                             'Inicia sesión',
                             style: TextStyle(

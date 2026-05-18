@@ -684,12 +684,7 @@ ${widget.project.descripcion.isNotEmpty ? widget.project.descripcion : 'Excelent
                     top: BorderSide(color: backgroundColor),
                   ),
                 ),
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  12,
-                  16,
-                  12 + MediaQuery.of(context).padding.bottom,
-                ),
+                padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
                 child: Row(
                   children: [
                     Expanded(
@@ -711,7 +706,7 @@ ${widget.project.descripcion.isNotEmpty ? widget.project.descripcion : 'Excelent
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
-                          foregroundColor: Colors.white,
+                          foregroundColor: backgroundColor,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),

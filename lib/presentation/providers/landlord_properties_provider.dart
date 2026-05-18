@@ -33,7 +33,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
   Future<void> fetchPropertiesByLandlord(String landlordId) async {
     try {
       _setLoading(true);
-      _clearError();
+      clearError();
 
       final result = await getPropertiesByLandlordUseCase(landlordId);
 
@@ -56,7 +56,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
   Future<bool> createProperty(Map<String, dynamic> propertyData) async {
     try {
       _setLoading(true);
-      _clearError();
+      clearError();
 
       final result = await createPropertyUseCase(propertyData);
 
@@ -85,7 +85,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
   ) async {
     try {
       _setLoading(true);
-      _clearError();
+      clearError();
 
       final result = await updatePropertyUseCase(propertyId, {
         'publicado': !currentStatus,
@@ -117,7 +117,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
   Future<bool> deleteProperty(String id) async {
     try {
       _setLoading(true);
-      _clearError();
+      clearError();
 
       final result = await deletePropertyUseCase(id);
 
@@ -151,7 +151,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void _clearError() {
+  void clearError() {
     _errorMessage = null;
     notifyListeners();
   }

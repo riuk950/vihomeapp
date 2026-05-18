@@ -49,6 +49,10 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<LandlordPropertiesProvider>(context, listen: false)
+          .clearError();
+    });
     _cargarTiposPropiedad();
     _cargarAmenidades();
   }
