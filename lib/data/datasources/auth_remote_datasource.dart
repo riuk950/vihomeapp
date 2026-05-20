@@ -106,7 +106,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> resetPassword(String email) async {
     try {
+      final bool exists = await supabaseService.client.rpc<bool>(
+        'check_email_exists',
+        params: {'email_to_check': email.trim()},
+      );
+
+      if (!exists) {
+        throw const AuthFailure('El correo electrónico no está registrado.');
+      }
+
       await supabaseService.client.auth.resetPasswordForEmail(email);
+    } on AuthFailure {
+      rethrow;
     } catch (e) {
       throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
     }

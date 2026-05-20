@@ -64,6 +64,146 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  void _showForgotPasswordDialog() {
+    final emailController = TextEditingController(text: _emailController.text);
+    final formKey = GlobalKey<FormState>();
+    final pageContext = context;
+
+    showDialog(
+      context: pageContext,
+      builder: (dialogContext) {
+        bool isDialogLoading = false;
+        String? dialogError;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.lock_reset_outlined, color: primaryColor),
+                  SizedBox(width: 10),
+                  Text(
+                    'Recuperar contraseña',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: Icon(Icons.email_outlined),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingresa tu email';
+                        }
+                        if (!value.contains('@')) {
+                          return 'Email inválido';
+                        }
+                        return null;
+                      },
+                    ),
+                    if (dialogError != null) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        dialogError!,
+                        style: const TextStyle(color: Colors.red, fontSize: 13),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isDialogLoading ? null : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  onPressed: isDialogLoading
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+                          setDialogState(() {
+                            isDialogLoading = true;
+                            dialogError = null;
+                          });
+
+                          final authProvider = Provider.of<AuthProvider>(pageContext, listen: false);
+                          final success = await authProvider.resetPassword(emailController.text.trim());
+
+                          if (!mounted) return;
+
+                          setDialogState(() {
+                            isDialogLoading = false;
+                          });
+
+                          if (success) {
+                            if (dialogContext.mounted) {
+                              Navigator.of(dialogContext).pop();
+                            }
+                            if (pageContext.mounted) {
+                              ScaffoldMessenger.of(pageContext).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: primaryColor,
+                                  content: Text(
+                                    'Correo de recuperación enviado con éxito.',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              );
+                            }
+                          } else {
+                            // Cerrar el diálogo y notificar al usuario que el correo no está registrado
+                            if (dialogContext.mounted) {
+                              Navigator.of(dialogContext).pop();
+                            }
+                            if (pageContext.mounted) {
+                              ScaffoldMessenger.of(pageContext).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: Colors.red,
+                                  content: Text('Correo no está registrado'),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: isDialogLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text('Enviar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -158,20 +298,7 @@ class _LoginPageState extends State<LoginPage> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {
-                          // TODO: Implementar recuperación de contraseña
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              backgroundColor: terceraColor,
-                              content: Text(
-                                'Funcionalidad próximamente disponible',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    textBaseline: TextBaseline.alphabetic),
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: _showForgotPasswordDialog,
                         child: const Text(
                           '¿Olvidaste tu contraseña?',
                           style: TextStyle(color: secondaryColor),
