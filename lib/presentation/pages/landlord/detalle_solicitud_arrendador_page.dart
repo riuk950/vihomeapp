@@ -386,22 +386,26 @@ class _DetalleSolicitudArrendadorPageState
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey[200]!),
                       ),
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.description,
-                          color: Colors.red,
+                      child: Material(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        clipBehavior: Clip.antiAlias,
+                        child: ListTile(
+                          leading: const Icon(
+                            Icons.description,
+                            color: Colors.red,
+                          ),
+                          title: Text(
+                            filename,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: const Icon(Icons.open_in_new, size: 20),
+                          onTap: () => launchUrl(Uri.parse(url)),
                         ),
-                        title: Text(
-                          filename,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: const Icon(Icons.open_in_new, size: 20),
-                        onTap: () => launchUrl(Uri.parse(url)),
                       ),
                     );
                   }),

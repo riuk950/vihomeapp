@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "project_name": "vihomeapp",
+  "project_type": "flutter",
+  "platforms": [
+    "android",
+    "ios",
+    "shared"
+  ],
+  "build_systems": [
+    "cocoapods",
+    "gradle"
+  ],
+  "ui": [],
+  "di": [],
+  "network": [],
+  "persistence": [],
+  "serialization": [],
+  "testing": [],
+  "integrations": [
+    "firebase"
+  ],
+  "ci_cd": [
+    "github_actions"
+  ],
+  "detected_files": {
+    "android_manifest": "android/app/src/main/AndroidManifest.xml",
+    "podfile": "ios/Podfile",
+    "pubspec_yaml": "pubspec.yaml",
+    "xcodeproj": "ios/Runner.xcodeproj",
+    "xcworkspace": "ios/Runner.xcodeproj/project.xcworkspace"
+  },
+  "warnings": [
+    "archivo sensible detectado: android/app/src/dev/google-services.json (no leído)",
+    "archivo sensible detectado: android/app/src/prod/google-services.json (no leído)",
+    "archivo sensible detectado: ios/config/dev/GoogleService-Info.plist (no leído)",
+    "archivo sensible detectado: ios/config/prod/GoogleService-Info.plist (no leído)"
+  ],
+  "created_at": "2026-06-30T21:09:18Z",
+  "updated_at": "2026-06-30T21:09:18Z"
+}

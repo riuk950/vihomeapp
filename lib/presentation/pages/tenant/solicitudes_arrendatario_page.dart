@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
@@ -24,7 +25,6 @@ class _SolicitudesArrendatarioPageState
         context,
         listen: false,
       );
-
       if (authProvider.user != null) {
         appProvider.fetchTenantApplications(authProvider.user!.id);
       }
@@ -33,51 +33,90 @@ class _SolicitudesArrendatarioPageState
 
   @override
   Widget build(BuildContext context) {
-    const backgroundLight = Color(0xFFF6F7F8);
-
     return Scaffold(
-      backgroundColor: backgroundLight,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: const Text(
           'Mis Solicitudes',
           style: TextStyle(
-            color: Color(0xFF111418),
+            color: textColor,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
-        backgroundColor: backgroundLight,
+        backgroundColor: backgroundColor,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF111418)),
+          icon: const Icon(Icons.arrow_back_ios_new, color: textColor),
           onPressed: () => context.pop(),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.tune, color: Color(0xFF111418)),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Consumer<ApplicationProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: primaryColor),
+            );
           }
 
           if (provider.errorMessage != null) {
-            return Center(child: Text('Error: ${provider.errorMessage}'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: disabledColor),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Ocurrió un error',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    provider.errorMessage!,
+                    style: const TextStyle(color: disabledColor, fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
           }
 
           if (provider.applications.isEmpty) {
-            return const Center(child: Text('No has realizado solicitudes'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[300]),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Sin solicitudes aún',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: disabledColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Tus solicitudes de arriendo aparecerán aquí',
+                    style: TextStyle(fontSize: 13, color: disabledColor),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
           }
 
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: provider.applications.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final app = provider.applications[index];
               return _ApplicationCard(application: app);
@@ -89,6 +128,9 @@ class _SolicitudesArrendatarioPageState
   }
 }
 
+// ---------------------------------------------------------------------------
+// Application Card
+// ---------------------------------------------------------------------------
 class _ApplicationCard extends StatelessWidget {
   final Application application;
 
@@ -97,6 +139,7 @@ class _ApplicationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusLower = application.estado.toLowerCase();
+
     Color statusColor;
     Color statusBgColor;
     IconData statusIcon;
@@ -105,61 +148,63 @@ class _ApplicationCard extends StatelessWidget {
     switch (statusLower) {
       case 'pendiente':
         statusColor = Colors.amber[700]!;
-        statusBgColor = Colors.amber[100]!;
-        statusIcon = Icons.hourglass_top;
+        statusBgColor = Colors.amber[50]!;
+        statusIcon = Icons.hourglass_top_rounded;
         statusText = 'Pendiente';
         break;
       case 'aceptada':
         statusColor = Colors.green[700]!;
-        statusBgColor = Colors.green[100]!;
-        statusIcon = Icons.check_circle;
+        statusBgColor = Colors.green[50]!;
+        statusIcon = Icons.check_circle_outline;
         statusText = 'Aceptada';
         break;
       case 'rechazada':
         statusColor = Colors.red[700]!;
-        statusBgColor = Colors.red[100]!;
-        statusIcon = Icons.cancel;
+        statusBgColor = Colors.red[50]!;
+        statusIcon = Icons.cancel_outlined;
         statusText = 'Rechazada';
         break;
       default:
-        statusColor = Colors.grey[700]!;
-        statusBgColor = Colors.grey[200]!;
-        statusIcon = Icons.help;
+        statusColor = Colors.grey[600]!;
+        statusBgColor = Colors.grey[100]!;
+        statusIcon = Icons.help_outline;
         statusText = application.estado;
     }
 
     final date = application.createdAt;
     final dateStr = '${date.day} ${_getMonthName(date.month)}';
+    final bool isAccepted = statusLower == 'aceptada';
 
     return GestureDetector(
-      onTap: () {
-        context.push('/detalle-solicitud', extra: application);
-      },
+      onTap: () => context.push('/detalle-solicitud', extra: application),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.shade100),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 12,
+              blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           children: [
+            // ── Top: image + info ─────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Imagen placeholder (o de propiedad si viene en el join)
+                  // Property thumbnail
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: 82,
+                    height: 82,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.grey[200],
                       image: const DecorationImage(
                         image: NetworkImage(
                           'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
@@ -168,48 +213,57 @@ class _ApplicationCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
+
+                  // Info
                   Expanded(
                     child: SizedBox(
-                      height: 80,
+                      height: 82,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Title + date
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
                                 child: Text(
                                   application.tituloPropiedad ?? 'Propiedad',
                                   style: const TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF111418),
+                                    color: textColor,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               Text(
                                 dateStr,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey[400],
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
+
+                          // Address
                           Text(
                             application.direccionPropiedad ?? 'Sin dirección',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[500],
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+
                           const Spacer(),
+
+                          // Price
                           RichText(
                             text: TextSpan(
                               children: [
@@ -217,16 +271,16 @@ class _ApplicationCard extends StatelessWidget {
                                   text:
                                       '\$${application.precioRenta?.toStringAsFixed(0) ?? '0'}',
                                   style: const TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF111418),
+                                    color: primaryColor,
                                   ),
                                 ),
-                                const TextSpan(
+                                TextSpan(
                                   text: ' / mes',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey,
+                                    color: Colors.grey[400],
                                   ),
                                 ),
                               ],
@@ -239,30 +293,34 @@ class _ApplicationCard extends StatelessWidget {
                 ],
               ),
             ),
+
+            // ── Footer: status + action ───────────────────────────────────
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(12),
-                ),
-                border: Border(top: BorderSide(color: Colors.grey[100]!)),
+                color: const Color(0xFFF8FAFC),
+                borderRadius:
+                    const BorderRadius.vertical(bottom: Radius.circular(14)),
+                border: Border(top: BorderSide(color: Colors.grey.shade100)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Status pill
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
-                      vertical: 4,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
                       color: statusBgColor,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(statusIcon, size: 16, color: statusColor),
+                        Icon(statusIcon, size: 13, color: statusColor),
                         const SizedBox(width: 4),
                         Text(
                           statusText.toUpperCase(),
@@ -275,42 +333,25 @@ class _ApplicationCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (statusLower == 'aceptada')
-                    const Row(
-                      children: [
-                        Text(
-                          'Ver contrato',
-                          style: TextStyle(
-                            color: Color(0xFF137FEC),
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
+
+                  // Right action link
+                  Row(
+                    children: [
+                      Text(
+                        isAccepted ? 'Ver contrato' : 'Ver detalles',
+                        style: TextStyle(
+                          color: isAccepted ? primaryColor : Colors.grey[500],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
-                        Icon(
-                          Icons.chevron_right,
-                          size: 16,
-                          color: Color(0xFF137FEC),
-                        ),
-                      ],
-                    )
-                  else
-                    Row(
-                      children: [
-                        Text(
-                          'Ver detalles',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right,
-                          size: 16,
-                          color: Colors.grey[600],
-                        ),
-                      ],
-                    ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        size: 16,
+                        color: isAccepted ? primaryColor : Colors.grey[400],
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -322,18 +363,8 @@ class _ApplicationCard extends StatelessWidget {
 
   String _getMonthName(int month) {
     const months = [
-      'Ene',
-      'Feb',
-      'Mar',
-      'Abr',
-      'May',
-      'Jun',
-      'Jul',
-      'Ago',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dic',
+      'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
     ];
     return months[month - 1];
   }

@@ -340,36 +340,41 @@ class DetalleSolicitudPage extends StatelessWidget {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: ListTile(
-                          leading: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(8),
+                        child: Material(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          clipBehavior: Clip.antiAlias,
+                          child: ListTile(
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.description,
+                                color: Color(0xFFEF4444), // PDF red color
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.description,
-                              color: Color(0xFFEF4444), // PDF red color
+                            title: Text(
+                              filename,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w500),
                             ),
-                          ),
-                          title: Text(
-                            filename,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: const Text('Documento Adjunto'),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.remove_red_eye_outlined),
-                            onPressed: () {
-                              launchUrl(
-                                Uri.parse(url),
-                                mode: LaunchMode.externalApplication,
-                              );
-                            },
+                            subtitle: const Text('Documento Adjunto'),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.remove_red_eye_outlined),
+                              onPressed: () {
+                                launchUrl(
+                                  Uri.parse(url),
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              },
+                            ),
                           ),
                         ),
                       );

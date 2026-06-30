@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "project_name": "vihomeapp",
+  "project_type": "flutter",
+  "platforms": [
+    "android",
+    "ios",
+    "shared"
+  ],
+  "rules": [
+    "Prioritize clean architecture",
+    "Prepare code for testing",
+    "Do not introduce hacks",
+    "Respect existing project conventions"
+  ],
+  "created_at": "2026-06-30T21:09:01Z",
+  "updated_at": "2026-06-30T21:09:18Z"
+}
