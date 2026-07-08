@@ -55,7 +55,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw const AuthFailure('No se pudo iniciar sesión');
       }
 
-      return UserModel.fromSupabaseUser(response.user!).toEntity();
+      final profileResponse = await supabaseService.client.from('profiles').select('is_premium').eq('id', response.user!.id).maybeSingle();
+      final isPremium = profileResponse != null ? profileResponse['is_premium'] == true : false;
+
+      return UserModel.fromSupabaseUser(response.user!, isPremium: isPremium).toEntity();
     } on AuthFailure {
       rethrow;
     } catch (e) {
@@ -80,7 +83,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw const AuthFailure('No se pudo registrar el usuario');
       }
 
-      return UserModel.fromSupabaseUser(response.user!).toEntity();
+      final profileResponse = await supabaseService.client.from('profiles').select('is_premium').eq('id', response.user!.id).maybeSingle();
+      final isPremium = profileResponse != null ? profileResponse['is_premium'] == true : false;
+
+      return UserModel.fromSupabaseUser(response.user!, isPremium: isPremium).toEntity();
     } on AuthFailure {
       rethrow;
     } catch (e) {
@@ -100,7 +106,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> resetPassword(String email) async {
     try {
+      final bool exists = await supabaseService.client.rpc<bool>(
+        'check_email_exists',
+        params: {'email_to_check': email.trim()},
+      );
+
+      if (!exists) {
+        throw const AuthFailure('El correo electrónico no está registrado.');
+      }
+
       await supabaseService.client.auth.resetPasswordForEmail(email);
+    } on AuthFailure {
+      rethrow;
     } catch (e) {
       throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
     }
@@ -122,7 +139,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final user = supabaseService.client.auth.currentUser;
       if (user == null) return null;
-      return UserModel.fromSupabaseUser(user).toEntity();
+      
+      final profileResponse = await supabaseService.client.from('profiles').select('is_premium').eq('id', user.id).maybeSingle();
+      final isPremium = profileResponse != null ? profileResponse['is_premium'] == true : false;
+      
+      return UserModel.fromSupabaseUser(user, isPremium: isPremium).toEntity();
     } catch (e) {
       throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
     }
@@ -166,7 +187,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             'No se pudo iniciar sesión con Google en Supabase');
       }
 
-      return UserModel.fromSupabaseUser(response.user!).toEntity();
+      final profileResponse = await supabaseService.client.from('profiles').select('is_premium').eq('id', response.user!.id).maybeSingle();
+      final isPremium = profileResponse != null ? profileResponse['is_premium'] == true : false;
+
+      return UserModel.fromSupabaseUser(response.user!, isPremium: isPremium).toEntity();
     } on AuthFailure {
       rethrow;
     } catch (e) {
@@ -199,10 +223,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Stream<entity.User?> authStateChanges() {
     try {
-      return supabaseService.client.auth.onAuthStateChange.map((state) {
+      return supabaseService.client.auth.onAuthStateChange.asyncMap((state) async {
         final user = state.session?.user;
         if (user == null) return null;
-        return UserModel.fromSupabaseUser(user).toEntity();
+        try {
+          final profileResponse = await supabaseService.client.from('profiles').select('is_premium').eq('id', user.id).maybeSingle();
+          final isPremium = profileResponse != null ? profileResponse['is_premium'] == true : false;
+          return UserModel.fromSupabaseUser(user, isPremium: isPremium).toEntity();
+        } catch(e) {
+          return UserModel.fromSupabaseUser(user).toEntity();
+        }
       });
     } catch (e) {
       throw AuthFailure(e.toString().replaceAll('Exception: ', ''));

@@ -20,9 +20,13 @@ import '../../domain/usecases/property/delete_property_usecase.dart';
 
 //Servicios
 import '../../infrastructure/services/supabase_service.dart';
+import '../../infrastructure/services/analytics_service.dart';
 
 //Providers
 import '../../presentation/providers/providers.dart';
+
+//Ads
+import '../ads/ad_manager.dart';
 
 //Repositorios Data
 import '../../data/repositories/repositories.dart';
@@ -190,4 +194,9 @@ Future<void> setupDependencyInjection() async {
   getIt.registerFactory(
     () => ProjectProvider(getProjectsUseCase: getIt<GetProjectsUseCase>()),
   );
+  getIt.registerFactory(
+    () => SubscriptionProvider(),
+  );
+  getIt.registerLazySingleton<AdManager>(() => AdManager());
+  getIt.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
 }

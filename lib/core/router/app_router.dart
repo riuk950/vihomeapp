@@ -254,6 +254,11 @@ GoRouter createAppRouter() {
           return DetallesProyectoPage(project: project);
         },
       ),
+      GoRoute(
+        path: '/subscription',
+        name: 'subscription',
+        builder: (context, state) => const SubscriptionPage(),
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Error')),

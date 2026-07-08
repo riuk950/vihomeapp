@@ -23,13 +23,13 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -73,10 +73,12 @@ android {
             dimension = "default"
             applicationIdSuffix = ".dev"
             // The app name is now defined in src/dev/res/values/strings.xml
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713" // ID Universal de Prueba de Google
         }
         create("prod") {
             dimension = "default"
             // The app name is now defined in src/prod/res/values/strings.xml
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-7376405914543917~1446313762" // ID actual (Producción)
         }
     }
 }

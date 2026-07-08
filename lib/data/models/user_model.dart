@@ -8,12 +8,13 @@ class UserModel extends User {
     required super.email,
     super.name,
     super.role,
+    super.isPremium,
     super.createdAt,
     super.updatedAt,
   });
 
   /// Crea un UserModel desde un User de Supabase
-  factory UserModel.fromSupabaseUser(supabase.User user) {
+  factory UserModel.fromSupabaseUser(supabase.User user, {bool isPremium = false}) {
     DateTime? parseDate(String? dateString) {
       if (dateString == null || dateString.isEmpty) return null;
       try {
@@ -28,6 +29,7 @@ class UserModel extends User {
       email: user.email ?? '',
       name: user.userMetadata?['name'] as String?,
       role: user.userMetadata?['role'] as String? ?? 'arrendatario',
+      isPremium: isPremium,
       createdAt: parseDate(user.createdAt),
       updatedAt: parseDate(user.lastSignInAt ?? user.updatedAt),
     );
@@ -40,6 +42,7 @@ class UserModel extends User {
       email: email,
       name: name,
       role: role,
+      isPremium: isPremium,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -52,6 +55,7 @@ class UserModel extends User {
       email: json['email'] as String,
       name: json['name'] as String?,
       role: json['role'] as String? ?? 'arrendatario',
+      isPremium: json['is_premium'] as bool? ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -68,6 +72,7 @@ class UserModel extends User {
       'email': email,
       'name': name,
       'role': role,
+      'is_premium': isPremium,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };

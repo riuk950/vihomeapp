@@ -5,6 +5,7 @@ import 'package:vihomeapp/presentation/providers/providers.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:vihomeapp/presentation/widgets/ad_banner_widget.dart';
 
 class VentasPage extends StatefulWidget {
   const VentasPage({super.key});
@@ -174,6 +175,7 @@ class _VentasPageState extends State<VentasPage> {
                 },
               ),
             ),
+            const AdBannerWidget(),
           ],
         ),
       ),

@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "generatedAt": "2026-06-30T21:09:56.263305Z",
+  "root": "/Users/diego/FlutterProjects/vihomeapp",
+  "files": [
+    {
+      "path": "android/app/src/main/kotlin/com/vihomeapp/vihomeapp/MainActivity.kt",
+      "language": "kotlin",
+      "lines": 5,
+      "imports": [
+        "io.flutter.embedding.android.FlutterActivity"
+      ],
+      "symbols": [
+        {
+          "name": "MainActivity",
+          "kind": "class",
+          "line": 5
+        }
+      ]
+    },
+    {
+      "path": "ios/Runner/AppDelegate.swift",
+      "language": "swift",
+      "lines": 13,
+      "imports": [
+        "Flutter",
+        "UIKit"
+      ],
+      "symbols": [
+        {
+          "name": "application",
+          "kind": "func",
+          "line": 6,
+          "modifiers": [
+            "override"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ios/RunnerTests/RunnerTests.swift",
+      "language": "swift",
+      "lines": 12,
+      "imports": [
+        "Flutter",
+        "UIKit",
+        "XCTest"
+      ],
+      "symbols": [
+        {
+          "name": "RunnerTests",
+          "kind": "class",
+          "line": 5
+        },
+        {
+          "name": "testExample",
+          "kind": "func",
+          "line": 7,
+          "container": "RunnerTests"
+        }
+      ]
+    }
+  ]
+}

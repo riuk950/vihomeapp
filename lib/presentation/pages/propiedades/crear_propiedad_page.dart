@@ -52,8 +52,41 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<LandlordPropertiesProvider>(context, listen: false)
-          .clearError();
+      final landlordProvider = Provider.of<LandlordPropertiesProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      landlordProvider.clearError();
+      
+      // Limite de propiedades para usuarios no premium
+      final isPremium = authProvider.user?.isPremium ?? false;
+      if (!isPremium && landlordProvider.properties.isNotEmpty) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Límite Alcanzado', style: TextStyle(color: primaryColor)),
+            content: const Text('Como usuario estándar solo puedes publicar 1 propiedad. ¡Hazte Premium para publicar propiedades ilimitadas!'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close dialog
+                  context.pop(); // Go back to properties list
+                },
+                child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close dialog
+                  context.pop(); // Go back to properties list
+                  context.push('/subscription'); // Navigate to paywall
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white),
+                child: const Text('Ser Premium'),
+              ),
+            ],
+          ),
+        );
+      }
     });
     _cargarTiposPropiedad();
     _cargarAmenidades();

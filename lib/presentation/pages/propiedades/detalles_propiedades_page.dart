@@ -19,6 +19,7 @@ import 'package:vihomeapp/core/di/injection_container.dart';
 import 'package:vihomeapp/domain/usecases/landlord/get_landlord_profile_usecase.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:vihomeapp/core/ads/ad_manager.dart';
 
 class DetallesPropiedadesPage extends StatefulWidget {
   final Property property;
@@ -44,6 +45,10 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<TenantProvider>(context, listen: false).clearError();
       Provider.of<ApplicationProvider>(context, listen: false).clearError();
+      
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final isPremium = authProvider.user?.isPremium ?? false;
+      getIt<AdManager>().showInterstitialAd(isPremium: isPremium);
     });
     if (EnvDef.mapboxAccessToken.isNotEmpty) {
       MapboxOptions.setAccessToken(EnvDef.mapboxAccessToken);

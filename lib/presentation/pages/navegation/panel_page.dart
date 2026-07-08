@@ -477,9 +477,8 @@ class PanelPage extends StatelessWidget {
 
   Widget _buildMenuConfig(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -489,62 +488,67 @@ class PanelPage extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          ListTile(
-            title: Text('Administrar notificaciones'),
-            leading: Icon(Icons.notifications),
-            trailing: Icon(Icons.arrow_forward_ios),
-            onTap: () {
-              context.push('/notifications_landlord');
-            },
-          ),
-          Divider(),
-          ListTile(
-            title: Text('Terminos y condiciones'),
-            leading: Icon(Icons.description),
-            trailing: Icon(Icons.arrow_forward_ios),
-            onTap: () async {
-              final url = Uri.parse('https://vihome.web.app/#/terms');
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url, mode: LaunchMode.inAppWebView);
-              }
-            },
-          ),
-          Divider(),
-          ListTile(
-            title: Text('Politicas de tratamiento de datos'),
-            leading: Icon(Icons.description),
-            trailing: Icon(Icons.arrow_forward_ios),
-            onTap: () async {
-              final url = Uri.parse('https://vihome.web.app/#/privacy');
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url, mode: LaunchMode.inAppWebView);
-              }
-            },
-          ),
-          Divider(),
-          ListTile(
-            title: Text('Preguntas frecuentes'),
-            leading: Icon(Icons.question_mark),
-            trailing: Icon(Icons.arrow_forward_ios),
-            onTap: () async {
-              final url = Uri.parse('https://vihome.web.app/#/faq');
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url, mode: LaunchMode.inAppWebView);
-              }
-            },
-          ),
-          Divider(),
-          ListTile(
-            title: Text('Cerrar Sesión'),
-            leading: Icon(Icons.logout),
-            trailing: Icon(Icons.arrow_forward_ios),
-            onTap: () {
-              _handleLogout(context);
-            },
-          ),
-        ],
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            ListTile(
+              title: const Text('Administrar notificaciones'),
+              leading: const Icon(Icons.notifications),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () {
+                context.push('/notifications_landlord');
+              },
+            ),
+            const Divider(),
+            ListTile(
+              title: const Text('Terminos y condiciones'),
+              leading: const Icon(Icons.description),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () async {
+                final url = Uri.parse('https://vihome.web.app/#/terms');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.inAppWebView);
+                }
+              },
+            ),
+            const Divider(),
+            ListTile(
+              title: const Text('Politicas de tratamiento de datos'),
+              leading: const Icon(Icons.description),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () async {
+                final url = Uri.parse('https://vihome.web.app/#/privacy');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.inAppWebView);
+                }
+              },
+            ),
+            const Divider(),
+            ListTile(
+              title: const Text('Preguntas frecuentes'),
+              leading: const Icon(Icons.question_mark),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () async {
+                final url = Uri.parse('https://vihome.web.app/#/faq');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.inAppWebView);
+                }
+              },
+            ),
+            const Divider(),
+            ListTile(
+              title: const Text('Cerrar Sesión'),
+              leading: const Icon(Icons.logout),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () {
+                _handleLogout(context);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

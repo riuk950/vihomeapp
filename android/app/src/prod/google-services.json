@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1018516867485",
+    "project_id": "vihome-cf8ab",
+    "storage_bucket": "vihome-cf8ab.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1018516867485:android:7078f67a92246e4067c774",
+        "android_client_info": {
+          "package_name": "com.vihomeapp.vihomeapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXmPAciqzyrVJCEE8mggNDchAHg5X4oV4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

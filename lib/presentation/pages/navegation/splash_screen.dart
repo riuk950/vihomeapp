@@ -5,6 +5,7 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/subscription_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -55,7 +56,9 @@ class _SplashScreenState extends State<SplashScreen> {
     final isAuthenticated = authProvider.isAuthenticated;
     if (mounted) {
       if (isAuthenticated) {
-        context.go('/home');
+        final subscriptionProvider = Provider.of<SubscriptionProvider>(context, listen: false);
+        await subscriptionProvider.initialize(authProvider.user?.id);
+        if (mounted) context.go('/home');
       } else {
         context.go('/login');
       }
