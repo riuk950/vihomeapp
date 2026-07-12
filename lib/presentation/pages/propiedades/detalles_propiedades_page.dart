@@ -20,11 +20,14 @@ import 'package:vihomeapp/domain/usecases/landlord/get_landlord_profile_usecase.
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vihomeapp/core/ads/ad_manager.dart';
+import 'package:vihomeapp/domain/entities/user.dart';
 
 class DetallesPropiedadesPage extends StatefulWidget {
   final Property property;
+  final User user;
 
-  const DetallesPropiedadesPage({super.key, required this.property});
+  const DetallesPropiedadesPage(
+      {super.key, required this.property, required this.user});
 
   @override
   State<DetallesPropiedadesPage> createState() =>
@@ -45,7 +48,7 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<TenantProvider>(context, listen: false).clearError();
       Provider.of<ApplicationProvider>(context, listen: false).clearError();
-      
+
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final isPremium = authProvider.user?.isPremium ?? false;
       getIt<AdManager>().showInterstitialAd(isPremium: isPremium);
@@ -200,8 +203,7 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.user;
+    Provider.of<AuthProvider>(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -235,12 +237,13 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
                 ),
               ],
             ),
-            if (user?.role == 'arrendatario' &&
-                widget.property.estado == 'arriendo')
-              _buildTenantActionBar(),
           ],
         ),
       ),
+      bottomNavigationBar: (widget.user.role == 'arrendatario' &&
+              widget.property.estado == 'arriendo')
+          ? _buildTenantActionBar()
+          : null,
     );
   }
 
@@ -341,6 +344,7 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
     );
   }
 
+  //CONTENIDO ARRIENDO
   Widget _buildArriendoContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,13 +357,14 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
         _buildDivider(),
         _buildAmenities(),
         _buildDivider(),
-        _buildLocation(),
-        _buildDivider(),
         _buildLandlordProfile(),
+        _buildDivider(),
+        _buildLocation(),
       ],
     );
   }
 
+  //CONTENIDO VENTA
   Widget _buildVentaContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,6 +386,7 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
     );
   }
 
+  //INFORMACION PRINCIPAL
   Widget _buildMainInfo(String priceText) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -616,12 +622,9 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
       child: Divider(height: 10, color: Colors.transparent));
 
   Widget _buildTenantActionBar() {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
+    return SafeArea(
       child: Container(
-        padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: Colors.grey.shade200)),

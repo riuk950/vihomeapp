@@ -31,11 +31,11 @@
     "xcworkspace": "ios/Runner.xcodeproj/project.xcworkspace"
   },
   "warnings": [
-    "archivo sensible detectado: android/app/src/dev/google-services.json (no leído)",
-    "archivo sensible detectado: android/app/src/prod/google-services.json (no leído)",
-    "archivo sensible detectado: ios/config/dev/GoogleService-Info.plist (no leído)",
-    "archivo sensible detectado: ios/config/prod/GoogleService-Info.plist (no leído)"
+    "sensitive file detected: android/app/src/dev/google-services.json (not read)",
+    "sensitive file detected: android/app/src/prod/google-services.json (not read)",
+    "sensitive file detected: ios/config/dev/GoogleService-Info.plist (not read)",
+    "sensitive file detected: ios/config/prod/GoogleService-Info.plist (not read)"
   ],
-  "created_at": "2026-06-30T21:09:18Z",
-  "updated_at": "2026-06-30T21:09:18Z"
+  "created_at": "2026-07-12T15:58:04Z",
+  "updated_at": "2026-07-12T15:58:04Z"
 }

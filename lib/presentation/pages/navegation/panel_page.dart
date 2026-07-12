@@ -9,17 +9,25 @@ import 'package:vihomeapp/presentation/widgets/msn_user_complete.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_verificado.dart';
 import 'package:vihomeapp/presentation/widgets/alert_dialog.dart';
 
-class PanelPage extends StatelessWidget {
+class PanelPage extends StatefulWidget {
   const PanelPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.user;
+  State<PanelPage> createState() => _PanelPageState();
+}
 
-    // Load landlord profile if needed
-    if (user != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+class _PanelPageState extends State<PanelPage> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Load landlord profile or tenant applications if needed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
+      
+      if (user != null) {
         final landlordProvider = Provider.of<LandlordProvider>(
           context,
           listen: false,
@@ -39,8 +47,30 @@ class PanelPage extends StatelessWidget {
             appProvider.fetchTenantApplications(user.id);
           }
         }
-      });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (authProvider.user?.isPremium == true) {
+        authProvider.reloadUser();
+      }
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -476,6 +506,9 @@ class PanelPage extends StatelessWidget {
   }
 
   Widget _buildMenuConfig(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -494,6 +527,32 @@ class PanelPage extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
+            ListTile(
+              title: Text((user?.isPremium ?? false)
+                  ? 'Mi Suscripción Premium'
+                  : 'Quitar anuncios'),
+              leading: Icon((user?.isPremium ?? false)
+                  ? Icons.workspace_premium
+                  : Icons.block),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () async {
+                if (user?.isPremium ?? false) {
+                  final packageName = 'com.vihomeapp.vihomeapp';
+                  final url = Uri.parse(
+                    'https://play.google.com/store/account/subscriptions?package=$packageName',
+                  );
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(
+                      url,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  }
+                } else {
+                  context.push('/subscription');
+                }
+              },
+            ),
+            const Divider(),
             ListTile(
               title: const Text('Administrar notificaciones'),
               leading: const Icon(Icons.notifications),

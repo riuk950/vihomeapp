@@ -108,7 +108,19 @@ GoRouter createAppRouter() {
             );
           }
 
-          return DetallesPropiedadesPage(property: property);
+          final user = Provider.of<AuthProvider>(context, listen: false).user;
+
+          if (user == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Error')),
+              body: const Center(child: Text('Error: Usuario no encontrado')),
+            );
+          }
+
+          return DetallesPropiedadesPage(
+            property: property,
+            user: user,
+          );
         },
       ),
       GoRoute(

@@ -61,6 +61,14 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // Escucha en tiempo real si el usuario se vuelve premium
+    final isPremium = context.watch<AuthProvider>().user?.isPremium ?? false;
+    
+    // Si es premium, ocultamos el anuncio inmediatamente (SizedBox.shrink)
+    if (isPremium) {
+      return const SizedBox.shrink();
+    }
+
     if (_bannerAd != null && _isLoaded) {
       return Container(
         width: _bannerAd!.size.width.toDouble(),
