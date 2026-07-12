@@ -55,6 +55,7 @@ dependencies:
   geolocator: ^14.0.2
   google_mobile_ads: ^7.0.0
   in_app_purchase: ^3.2.3
+  in_app_purchase_android: ^0.4.0
   firebase_analytics: ^11.6.0
 
 dev_dependencies:

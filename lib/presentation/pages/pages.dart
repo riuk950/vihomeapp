@@ -39,4 +39,4 @@ export '../helpers/phone_input_formatter.dart';
 // User pages
 export 'user/login_page.dart';
 export 'user/register_page.dart';
-export 'user/subscription_page.dart';
+export 'suscripciones/subscription_page.dart';

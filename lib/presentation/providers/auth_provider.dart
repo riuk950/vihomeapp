@@ -65,6 +65,19 @@ class AuthProvider with ChangeNotifier {
     );
   }
 
+  Future<void> reloadUser() async {
+    final result = await getCurrentUserUseCase();
+    result.fold(
+      (failure) {
+        _setError(failure.message);
+      },
+      (user) {
+        _user = user;
+        notifyListeners();
+      },
+    );
+  }
+
   Future<bool> signInWithEmail({
     required String email,
     required String password,

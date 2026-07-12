@@ -12,17 +12,25 @@ import '../../providers/tenant_provider.dart';
 import '../../providers/landlord_provider.dart';
 import '../../providers/application_provider.dart';
 
-class PerfilPage extends StatelessWidget {
+class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Cargar perfil del arrendatario si es necesario
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final user = authProvider.user;
+  State<PerfilPage> createState() => _PerfilPageState();
+}
 
-    if (user?.role == 'arrendatario') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    
+    // Cargar perfil del arrendatario si es necesario
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
+      
+      if (user?.role == 'arrendatario') {
         final tenantProvider = Provider.of<TenantProvider>(
           context,
           listen: false,
@@ -30,9 +38,30 @@ class PerfilPage extends StatelessWidget {
         if (tenantProvider.tenant == null && !tenantProvider.isLoading) {
           tenantProvider.loadTenantProfile(user!.id);
         }
-      });
-    }
+      }
+    });
+  }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Cuando la app vuelve al primer plano (ej. tras regresar de Play Store),
+      // recargar el estado del usuario por si canceló la suscripción.
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (authProvider.user?.isPremium == true) {
+        authProvider.reloadUser();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F8), // background-light
       appBar: AppBar(
@@ -324,6 +353,32 @@ class PerfilPage extends StatelessWidget {
                         ? '/notifications_landlord'
                         : '/notifications_tenant',
                     locked: !isVerified,
+                  ),
+                  _buildMenuOption(
+                    context,
+                    (user?.isPremium ?? false)
+                        ? Icons.workspace_premium
+                        : Icons.block,
+                    (user?.isPremium ?? false)
+                        ? 'Mi Suscripción Premium'
+                        : 'Quitar anuncios',
+                    // Si ya es premium → abre el gestor de suscripciones de Play Store
+                    // Si no es premium → navega a la página de suscripción
+                    onTap: (user?.isPremium ?? false)
+                        ? () async {
+                            final packageName = 'com.vihomeapp.vihomeapp';
+                            final url = Uri.parse(
+                              'https://play.google.com/store/account/subscriptions?package=$packageName',
+                            );
+                            if (await canLaunchUrl(url)) {
+                              await launchUrl(
+                                url,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            }
+                          }
+                        : null,
+                    route: (user?.isPremium ?? false) ? null : '/subscription',
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(
