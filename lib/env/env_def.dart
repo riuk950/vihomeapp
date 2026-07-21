@@ -15,12 +15,13 @@ class EnvDef {
   static String get googleWebClientId =>
       dotenv.env['GOOGLE_WEB_CLIENT_ID'] ?? '';
 
-  static String get admobBannerId => 
-      dotenv.env['ADMOB_BANNER_ID'] ?? '';
-  
-  static String get admobInterstitialId => 
+  static String get admobBannerId => dotenv.env['ADMOB_BANNER_ID'] ?? '';
+
+  static String get admobInterstitialId =>
       dotenv.env['ADMOB_INTERSTITIAL_ID'] ?? '';
 
-  static bool get isProduction => dotenv.env['DEBUG_MODE'] == 'false';
+  static bool get isProduction => dotenv.env['DEBUG_MODE'] != 'true';
   static bool get isDevelopment => !isProduction;
+  static String get flavor => isProduction ? 'prod' : 'dev';
+  static String get appVersion => '1.0.8+9';
 }
