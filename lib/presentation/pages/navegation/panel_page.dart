@@ -27,7 +27,7 @@ class _PanelPageState extends State<PanelPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final user = authProvider.user;
-      
+
       if (user != null) {
         final landlordProvider = Provider.of<LandlordProvider>(
           context,
@@ -281,7 +281,7 @@ class _PanelPageState extends State<PanelPage> with WidgetsBindingObserver {
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 alignment: Alignment.center,
                 child: Text(
-                  'Versión ${EnvDef.appVersion} (${EnvDef.flavor})',
+                  'Versión ${EnvDef.appVersion}',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[500],
