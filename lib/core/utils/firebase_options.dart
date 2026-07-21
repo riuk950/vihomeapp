@@ -1,9 +1,16 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
+///
+/// These values were extracted directly from:
+///   - Android: android/app/src/dev/google-services.json  (dev flavor)
+///              android/app/src/prod/google-services.json (prod flavor)
+///   - iOS:     ios/Runner/GoogleService-Info.plist
+///
+/// DO NOT read Firebase credentials from .env files. Firebase SDKs require
+/// these to be compile-time constants (or at least known at initialization).
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -23,20 +30,31 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static FirebaseOptions get android => FirebaseOptions(
-    apiKey: dotenv.env['FIREBASE_API_KEY_ANDROID'] ?? '',
-    appId: dotenv.env['FIREBASE_APP_ID_ANDROID'] ?? '',
-    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
-    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
-    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+  // ---------------------------------------------------------------------------
+  // Android – values from google-services.json (both dev and prod share the
+  // same Firebase project "vihome-cf8ab" and the same app / API key).
+  // ---------------------------------------------------------------------------
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyCXmPAciqzyrVJCEE8mggNDchAHg5X4oV4',
+    appId: '1:1018516867485:android:7078f67a92246e4067c774',
+    messagingSenderId: '1018516867485',
+    projectId: 'vihome-cf8ab',
+    storageBucket: 'vihome-cf8ab.firebasestorage.app',
   );
 
-  static FirebaseOptions get ios => FirebaseOptions(
-    apiKey: dotenv.env['FIREBASE_API_KEY_IOS'] ?? '',
-    appId: dotenv.env['FIREBASE_APP_ID_IOS'] ?? '',
-    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
-    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
-    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
-    iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID'] ?? '',
+  // ---------------------------------------------------------------------------
+  // iOS – values from ios/Runner/GoogleService-Info.plist
+  // ACTION REQUIRED: If the GoogleService-Info.plist is not yet added to
+  // ios/Runner/, download it from the Firebase Console (Project Settings →
+  // Your apps → iOS) and copy it there. Then replace the placeholder values
+  // below with the actual ones from that file.
+  // ---------------------------------------------------------------------------
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCXmPAciqzyrVJCEE8mggNDchAHg5X4oV4', // TODO: replace with iOS key from GoogleService-Info.plist
+    appId: '1:1018516867485:ios:9e86a112f04d19ca67c774',
+    messagingSenderId: '1018516867485',
+    projectId: 'vihome-cf8ab',
+    storageBucket: 'vihome-cf8ab.firebasestorage.app',
+    iosBundleId: 'com.vihomeapp.vihomeapp', // TODO: confirm bundle ID in Xcode
   );
 }
