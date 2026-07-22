@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/domain/entities/tenant.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
@@ -96,7 +97,6 @@ class _DetalleSolicitudArrendadorPageState
   @override
   Widget build(BuildContext context) {
     // Colors & Styles
-    const primaryColor = Color(0xFF137FEC);
     final isPending = widget.application.estado.toLowerCase() == 'pendiente';
     final priceFormat = NumberFormat.currency(locale: 'es_CL', symbol: '\$');
 
@@ -147,7 +147,7 @@ class _DetalleSolicitudArrendadorPageState
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: primaryColor.withValues(alpha: 0.1),
+                          color: primaryColor,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(

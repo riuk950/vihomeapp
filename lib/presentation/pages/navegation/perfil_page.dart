@@ -11,6 +11,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/tenant_provider.dart';
 import '../../providers/landlord_provider.dart';
 import '../../providers/application_provider.dart';
+import '../../../env/env_def.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -451,6 +452,20 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Versión ${EnvDef.appVersion} (${EnvDef.flavor})',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[500],
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),

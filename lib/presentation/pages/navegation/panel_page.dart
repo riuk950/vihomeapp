@@ -8,6 +8,7 @@ import 'package:vihomeapp/presentation/providers/providers.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_complete.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_verificado.dart';
 import 'package:vihomeapp/presentation/widgets/alert_dialog.dart';
+import 'package:vihomeapp/env/env_def.dart';
 
 class PanelPage extends StatefulWidget {
   const PanelPage({super.key});
@@ -26,7 +27,7 @@ class _PanelPageState extends State<PanelPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final user = authProvider.user;
-      
+
       if (user != null) {
         final landlordProvider = Provider.of<LandlordProvider>(
           context,
@@ -274,6 +275,20 @@ class _PanelPageState extends State<PanelPage> with WidgetsBindingObserver {
               //const SizedBox(height: 16),
 
               _buildMenuConfig(context),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                alignment: Alignment.center,
+                child: Text(
+                  'Versión ${EnvDef.appVersion}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
               const SizedBox(height: 16),
             ],
           ),
