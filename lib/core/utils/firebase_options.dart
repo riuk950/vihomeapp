@@ -50,11 +50,11 @@ class DefaultFirebaseOptions {
   // below with the actual ones from that file.
   // ---------------------------------------------------------------------------
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCXmPAciqzyrVJCEE8mggNDchAHg5X4oV4', // TODO: replace with iOS key from GoogleService-Info.plist
+    apiKey: 'AIzaSyCXmPAciqzyrVJCEE8mggNDchAHg5X4oV4',
     appId: '1:1018516867485:ios:9e86a112f04d19ca67c774',
     messagingSenderId: '1018516867485',
     projectId: 'vihome-cf8ab',
     storageBucket: 'vihome-cf8ab.firebasestorage.app',
-    iosBundleId: 'com.vihomeapp.vihomeapp', // TODO: confirm bundle ID in Xcode
+    iosBundleId: 'com.vihomeapp.vihomeapp',
   );
 }
