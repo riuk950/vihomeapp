@@ -181,5 +181,5 @@ jobs:
           releaseFiles: build/app/outputs/bundle/prodRelease/app-prod-release.aab
           tracks: internal
           status: completed
-          changesNotSentForReview: true
+
 
