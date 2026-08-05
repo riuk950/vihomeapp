@@ -25,12 +25,12 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Cargar perfil del arrendatario si es necesario
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final user = authProvider.user;
-      
+
       if (user?.role == 'arrendatario') {
         final tenantProvider = Provider.of<TenantProvider>(
           context,
@@ -456,19 +456,34 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Versión ${EnvDef.appVersion} (${EnvDef.flavor})',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
-                        fontWeight: FontWeight.w500,
+                  if (EnvDef.flavor == 'dev')
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Versión ${EnvDef.appVersion} (${EnvDef.flavor})',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.red[500],
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
+                  if (EnvDef.flavor == 'prod')
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Versión ${EnvDef.appVersion}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 16),
                 ],
               ),
@@ -527,7 +542,8 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
       builder: (context) => const AlertDialogWidget(
         icon: Icons.real_estate_agent,
         title: 'Conviértete en Arrendador',
-        content: '¿Estás seguro de que quieres convertirte en Arrendador? Podrás publicar tus propiedades y gestionar tus arriendos.',
+        content:
+            '¿Estás seguro de que quieres convertirte en Arrendador? Podrás publicar tus propiedades y gestionar tus arriendos.',
         cancelText: 'Cancelar',
         acceptText: 'Confirmar',
       ),

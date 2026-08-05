@@ -15,6 +15,7 @@ Future<void> main() async {
   await initializeDateFormatting('es_CO', null);
   await initializeDateFormatting('es', null);
   await dotenv.load(fileName: ".env.prod");
+  await EnvDef.initPackageInfo();
   EnvDef.title = dotenv.env['APP_NAME'] ?? 'Production';
   EnvDef.isDebugMode = dotenv.env['DEBUG_MODE'] == 'true';
 

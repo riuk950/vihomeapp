@@ -276,19 +276,34 @@ class _PanelPageState extends State<PanelPage> with WidgetsBindingObserver {
 
               _buildMenuConfig(context),
               const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                alignment: Alignment.center,
-                child: Text(
-                  'Versión ${EnvDef.appVersion}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                    fontWeight: FontWeight.w500,
+              if (EnvDef.flavor == 'dev')
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Versión ${EnvDef.appVersion} (${EnvDef.flavor})',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.red[500],
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-              ),
+              if (EnvDef.flavor == 'prod')
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Versión ${EnvDef.appVersion}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 16),
             ],
           ),
