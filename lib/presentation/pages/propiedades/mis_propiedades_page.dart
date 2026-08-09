@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
+import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
 import 'package:vihomeapp/presentation/widgets/alert_dialog.dart';
@@ -24,11 +25,14 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final landlordPropertiesProvider =
           Provider.of<LandlordPropertiesProvider>(context, listen: false);
+      final applicationProvider =
+          Provider.of<ApplicationProvider>(context, listen: false);
 
       if (authProvider.user != null) {
         landlordPropertiesProvider.fetchPropertiesByLandlord(
           authProvider.user!.id,
         );
+        applicationProvider.fetchLandlordApplications(authProvider.user!.id);
       }
     });
   }
@@ -201,7 +205,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                     },
                   ),
                 ),
-                
+
                 const AdBannerWidget(),
               ],
             );
@@ -232,6 +236,20 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
   }
 
   Widget _buildPropertyCard(BuildContext context, Property property) {
+    final acceptedApplications = Provider.of<ApplicationProvider>(
+      context,
+      listen: false,
+    )
+        .applications
+        .where(
+          (application) =>
+              application.propiedadId == property.id &&
+              application.estado.toLowerCase() == 'aceptada',
+        )
+        .toList();
+    final hasAcceptedApplications = acceptedApplications.isNotEmpty;
+    final isPropertyActive = property.publicado && !hasAcceptedApplications;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -273,13 +291,13 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: property.publicado
+                      color: isPropertyActive
                           ? const Color(0xFF10B981)
                           : const Color(0xFF6B7280),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      property.publicado ? 'Activa' : 'Inactiva',
+                      isPropertyActive ? 'Activa' : 'Inactiva',
                       style: const TextStyle(
                         color: backgroundColor,
                         fontSize: 12,
@@ -347,18 +365,100 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                                   _confirmDeleteProperty(context, property);
                                 },
                               ),
-                              _buildTogglePublishButton(
-                                context,
-                                provider,
-                                property,
-                                isPublished,
-                              ),
+                              if (hasAcceptedApplications)
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.assignment_turned_in,
+                                    color: Color(0xFF10B981),
+                                    size: 22,
+                                  ),
+                                  constraints: const BoxConstraints(),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
+                                  tooltip: 'Ver solicitud aceptada',
+                                  onPressed: () {
+                                    if (acceptedApplications.isNotEmpty) {
+                                      context.push(
+                                        '/detalle-solicitud-arrendador',
+                                        extra: acceptedApplications.first,
+                                      );
+                                    }
+                                  },
+                                ),
+                              if (!hasAcceptedApplications)
+                                _buildTogglePublishButton(
+                                  context,
+                                  provider,
+                                  property,
+                                  isPublished,
+                                ),
                             ],
                           );
                         },
                       ),
                     ],
                   ),
+                  if (hasAcceptedApplications)
+                    InkWell(
+                      onTap: () {
+                        if (Provider.of<ApplicationProvider>(context,
+                                listen: false)
+                            .applications
+                            .where((application) =>
+                                application.propiedadId == property.id &&
+                                application.estado.toLowerCase() == 'aceptada')
+                            .isNotEmpty) {
+                          context.push(
+                            '/detalle-solicitud-arrendador',
+                            extra: Provider.of<ApplicationProvider>(
+                              context,
+                              listen: false,
+                            ).applications.firstWhere(
+                                  (application) =>
+                                      application.propiedadId == property.id &&
+                                      application.estado.toLowerCase() ==
+                                          'aceptada',
+                                ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF7ED),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color:
+                                const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          children: const [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              size: 16,
+                              color: Color(0xFFB45309),
+                            ),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Tiene solicitudes aceptadas; la propiedad queda inactiva y la solicitud puede revisarse aquí.',
+                                style: TextStyle(
+                                  color: Color(0xFF92400E),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
@@ -488,6 +588,50 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
     );
 
     if (confirm == true && context.mounted) {
+      if (!isPublished) {
+        final applicationProvider = Provider.of<ApplicationProvider>(
+          context,
+          listen: false,
+        );
+        final hasAcceptedApplications =
+            await applicationProvider.hasAcceptedApplicationsForProperty(
+          property.id,
+        );
+
+        if (hasAcceptedApplications && context.mounted) {
+          final confirmReactivate = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialogWidget(
+              icon: Icons.warning_amber_rounded,
+              title: 'Solicitudes aceptadas',
+              content:
+                  'La propiedad tiene solicitudes aceptadas. Al volver a publicarla se eliminarán todas las solicitudes asociadas a esta propiedad. ¿Deseas continuar?',
+              cancelText: 'Cancelar',
+              acceptText: 'Reactivar y limpiar solicitudes',
+            ),
+          );
+
+          if (confirmReactivate != true) {
+            return;
+          }
+
+          final deleted =
+              await applicationProvider.deleteApplicationsForProperty(
+            property.id,
+          );
+          if (!deleted && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content:
+                    Text('No se pudieron limpiar las solicitudes asociadas.'),
+                backgroundColor: Color(0xFFEF4444),
+              ),
+            );
+            return;
+          }
+        }
+      }
+
       final success = await provider.togglePropertyPublication(
         property.id,
         isPublished,

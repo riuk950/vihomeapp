@@ -37,4 +37,19 @@ class ApplicationRepositoryImpl implements ApplicationRepository {
   ) async {
     return await datasource.hasApplicationForProperty(tenantId, propertyId);
   }
+
+  @override
+  Future<bool> hasAcceptedApplicationsForProperty(String propertyId) async {
+    return await datasource.hasAcceptedApplicationsForProperty(propertyId);
+  }
+
+  @override
+  Future<bool> deleteApplication(String applicationId) async {
+    return await datasource.deleteApplication(applicationId);
+  }
+
+  @override
+  Future<bool> deleteApplicationsForProperty(String propertyId) async {
+    return await datasource.deleteApplicationsForProperty(propertyId);
+  }
 }
