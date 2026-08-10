@@ -1,4 +1,5 @@
 name: CI
+
 on:
   pull_request:
     branches: ["main", "develop", "release"]
@@ -6,7 +7,8 @@ on:
     branches: ["main", "develop", "release"]
 
 env:
-  FLAVOR: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+  # Corrige la detección de prod en PRs evaluando la rama destino (base_ref)
+  FLAVOR: ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && 'prod' || 'dev' }}
 
 jobs:
   ejecutar_pruebas:
@@ -14,17 +16,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
+
       - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
+          cache: true # Habilita caché de Flutter y dependencias pub
+
       - name: Instalar dependencias 📦
         run: flutter pub get
-        working-directory: .
-      - name: Crear archivo .env 📝
+
+      - name: Crear archivos .env 📝
         run: |
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
             echo "${{ secrets.ENV_PROD }}" > .env.prod
@@ -37,80 +43,46 @@ jobs:
             echo "ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID_DEV }}" >> .env.dev
             echo "ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID_DEV }}" >> .env.dev
           fi
-      - name: Crear archivos .env si faltan 🧩
-        run: |
-          touch .env.dev
-          touch .env.prod
+          # Asegura la existencia de ambos archivos para evitar fallos si la app los requiere
+          touch .env.dev .env.prod
+
       - name: Analizar código 🧐
         run: flutter analyze
-        working-directory: .
+
       - name: Ejecutar pruebas 🧪
         run: flutter test --flavor ${{ env.FLAVOR }}
-        working-directory: .
-  #   construir_ios:
-  #     name: Build Flutter (iOS)
-  #     needs: [ejecutar_pruebas]
-  #     runs-on: macos-latest
-  #     steps:
-  #       - uses: actions/checkout@v4
-  #       - uses: actions/setup-java@v4
-  #         with:
-  #           distribution: "zulu"
-  #           java-version: "17"
-  #       - uses: subosito/flutter-action@v2
-  #         with:
-  #           channel: "stable"
-  #       - name: Instalar dependencias 📦
-  #         run: flutter pub get
-  #         working-directory: .
-  #       - name: Crear archivo .env 📝
-  #         run: |
-  #           if [ "${{ env.FLAVOR }}" = "prod" ]; then
-  #             echo "APP_NAME=${{ secrets.PROD_APP_NAME }}" > .env.prod
-  #             echo "API_BASE_URL=${{ secrets.PROD_API_BASE_URL }}" >> .env.prod
-  #             echo "API_VERSION=${{ secrets.PROD_API_VERSION }}" >> .env.prod
-  #             echo "AUTH_TOKEN_KEY=${{ secrets.PROD_AUTH_TOKEN_KEY }}" >> .env.prod
-  #             echo "DEBUG_MODE=false" >> .env.prod
-  #           else
-  #             echo "APP_NAME=${{ secrets.DEV_APP_NAME }}" > .env.dev
-  #             echo "API_BASE_URL=${{ secrets.DEV_API_BASE_URL }}" >> .env.dev
-  #             echo "API_VERSION=${{ secrets.DEV_API_VERSION }}" >> .env.dev
-  #             echo "AUTH_TOKEN_KEY=${{ secrets.DEV_AUTH_TOKEN_KEY }}" >> .env.dev
-  #             echo "DEBUG_MODE=true" >> .env.dev
-  #           fi
-  #       - name: Crear archivos .env si faltan 🧩
-  #         run: |
-  #           touch .env.dev
-  #           touch .env.prod
-  #       - name: Limpiar proyecto 🧹
-  #         run: flutter clean
-  #         working-directory: .
-  #       - name: Construir aplicación 🚀
-  #         run: |
-  #           if [ "${{ env.FLAVOR }}" = "prod" ]; then
-  #             flutter build ios --flavor prod --release --no-codesign --target=lib/env/main.prod.dart
-  #           else
-  #             flutter build ios --flavor dev --release --no-codesign --target=lib/env/main.dev.dart
-  #           fi
-  #         working-directory: .
 
   construir_appbundle:
-    name: Build Flutter (Android)
+    name: Build & Deploy (Android)
     needs: [ejecutar_pruebas]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
+
       - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
+          cache: true
+
+      - name: Caché de Gradle 🐘
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Instalar dependencias 📦
         run: flutter pub get
-        working-directory: .
-      - name: Crear archivo .env 📝
+
+      - name: Crear archivos .env 📝
         run: |
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
             echo "${{ secrets.ENV_PROD }}" > .env.prod
@@ -123,13 +95,8 @@ jobs:
             echo "ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID_DEV }}" >> .env.dev
             echo "ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID_DEV }}" >> .env.dev
           fi
-      - name: Crear archivos .env si faltan 🧩
-        run: |
-          touch .env.dev
-          touch .env.prod
-      - name: Limpiar proyecto 🧹
-        run: flutter clean
-        working-directory: .
+          touch .env.dev .env.prod
+
       - name: Configurar firma de Android 🔑
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
@@ -137,20 +104,15 @@ jobs:
           echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
           echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
-      - name: Verificar archivos de firma (Debug) 🔍
+
+      - name: Construir APK 🚀
         run: |
-          echo "Contenido de android/:"
-          ls -l android/key.properties || echo "key.properties no encontrado"
-          echo "Contenido de android/app/:"
-          ls -l android/app/upload-keystore.jks || echo "keystore no encontrado"
-      - name: Construir aplicación 🚀
-        run: |
-          if [ "${{ env.FLAVOR }}" = "prod" ]; then
-            flutter build apk --flavor prod --release --target=lib/env/main.prod.dart
-          else
-            flutter build apk --flavor dev --release --target=lib/env/main.dev.dart
-          fi
-        working-directory: .
+          flutter build apk \
+            --flavor ${{ env.FLAVOR }} \
+            --release \
+            --target=lib/env/main.${{ env.FLAVOR }}.dart \
+            --build-number=${{ github.run_number }}
+
       - name: Determinar Firebase App ID 🆔
         id: firebase_app_id
         run: |
@@ -159,6 +121,7 @@ jobs:
           else
             echo "app_id=${{ secrets.FIREBASE_ANDROID_APP_ID_DEV }}" >> $GITHUB_OUTPUT
           fi
+
       - name: Subir a Firebase App Distribution 🔥
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
@@ -169,10 +132,14 @@ jobs:
 
       - name: Construir App Bundle para Google Play 📦
         if: env.FLAVOR == 'prod'
-        run: flutter build appbundle --flavor prod --release --target=lib/env/main.prod.dart --build-number=${{ github.run_number }}
-        working-directory: .
+        run: |
+          flutter build appbundle \
+            --flavor prod \
+            --release \
+            --target=lib/env/main.prod.dart \
+            --build-number=${{ github.run_number }}
 
-      - name: Subir a Google Play (Vía Interna) 🚀
+      - name: Subir a Google Play (Canal Interno) 🚀
         if: env.FLAVOR == 'prod'
         uses: r0adkll/upload-google-play@v1
         with:
@@ -182,4 +149,8 @@ jobs:
           tracks: internal
           status: completed
 
-
+      - name: Limpiar credenciales temporales 🧼
+        if: always()
+        run: |
+          rm -f android/app/upload-keystore.jks
+          rm -f android/key.properties

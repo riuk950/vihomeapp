@@ -602,7 +602,7 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
               child: IgnorePointer(
                 child: MapWidget(
                   onMapCreated: _onMapCreated,
-                  cameraOptions: CameraOptions(
+                  viewport: CameraViewportState(
                     center: Point(
                         coordinates:
                             Position(widget.property.lng, widget.property.lat)),

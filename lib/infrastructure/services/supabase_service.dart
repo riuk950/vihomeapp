@@ -13,7 +13,7 @@ class SupabaseService {
   Future<void> initialize() async {
     await Supabase.initialize(
       url: EnvDef.supabaseUrl,
-      anonKey: EnvDef.supabaseAnonKey,
+      publishableKey: EnvDef.supabaseAnonKey,
     );
   }
 
@@ -25,4 +25,3 @@ class SupabaseService {
 
   bool get isAuthenticated => currentUser != null;
 }
-
