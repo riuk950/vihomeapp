@@ -617,7 +617,7 @@ ${widget.project.descripcion.isNotEmpty ? widget.project.descripcion : 'Excelent
                               child: IgnorePointer(
                                 child: MapWidget(
                                   onMapCreated: _onMapCreated,
-                                  cameraOptions: CameraOptions(
+                                  viewport: CameraViewportState(
                                     center: Point(
                                       coordinates: Position(
                                         project.lng,

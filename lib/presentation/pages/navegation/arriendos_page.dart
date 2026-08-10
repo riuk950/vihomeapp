@@ -5,6 +5,7 @@ import 'package:vihomeapp/presentation/widgets/ad_banner_widget.dart';
 import '../../providers/property_provider.dart';
 import '../../providers/application_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/landlord_properties_provider.dart';
 import '../../../domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -17,12 +18,29 @@ class ArriendosPage extends StatefulWidget {
 }
 
 class _ArriendosPageState extends State<ArriendosPage> {
+  late final LandlordPropertiesProvider _landlordPropertiesProvider;
+
   @override
   void initState() {
     super.initState();
+    _landlordPropertiesProvider =
+        Provider.of<LandlordPropertiesProvider>(context, listen: false);
+    _landlordPropertiesProvider.addListener(_refreshFromLandlordChanges);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<PropertyProvider>(context, listen: false).fetchProperties();
     });
+  }
+
+  @override
+  void dispose() {
+    _landlordPropertiesProvider.removeListener(_refreshFromLandlordChanges);
+    super.dispose();
+  }
+
+  void _refreshFromLandlordChanges() {
+    if (!mounted) return;
+    Provider.of<PropertyProvider>(context, listen: false).fetchProperties();
   }
 
   @override
@@ -139,7 +157,7 @@ class _ArriendosPageState extends State<ArriendosPage> {
               child: Consumer<PropertyProvider>(
                 builder: (context, propertyProvider, child) {
                   final arriendosProperties = propertyProvider.properties
-                      .where((p) => p.estado == 'arriendo')
+                      .where((p) => p.estado == 'arriendo' && p.publicado)
                       .toList();
 
                   if (propertyProvider.isLoading &&
@@ -154,8 +172,33 @@ class _ArriendosPageState extends State<ArriendosPage> {
                   }
 
                   if (arriendosProperties.isEmpty) {
-                    return const Center(
-                        child: Text('No se encontraron propiedades'));
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'No se encontraron propiedades',
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                propertyProvider.fetchProperties();
+                                propertyProvider.fetchPropertyTypes();
+                              },
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Actualizar'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   }
 
                   return RefreshIndicator(

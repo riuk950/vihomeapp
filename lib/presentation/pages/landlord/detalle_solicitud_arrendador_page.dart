@@ -66,8 +66,11 @@ class _DetalleSolicitudArrendadorPageState
               content: Text(
                 'Solicitud ${newStatus.toLowerCase()} exitosamente',
               ),
-              backgroundColor:
-                  newStatus == 'aceptada' ? Colors.green : Colors.red,
+              backgroundColor: newStatus == 'aceptada'
+                  ? Colors.green
+                  : newStatus == 'cancelada'
+                      ? Colors.orange
+                      : Colors.red,
             ),
           );
           Navigator.pop(context); // Go back to list
@@ -97,14 +100,13 @@ class _DetalleSolicitudArrendadorPageState
   @override
   Widget build(BuildContext context) {
     // Colors & Styles
-    final isPending = widget.application.estado.toLowerCase() == 'pendiente';
     final priceFormat = NumberFormat.currency(locale: 'es_CL', symbol: '\$');
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text(
-          'Detalle de Postulación',
+          'Detalle de Postulación...',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
@@ -414,7 +416,8 @@ class _DetalleSolicitudArrendadorPageState
           ),
 
           // Bottom Actions
-          if (isPending)
+          if (widget.application.estado.toLowerCase() == 'pendiente' ||
+              widget.application.estado.toLowerCase() == 'aceptada')
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
@@ -431,48 +434,70 @@ class _DetalleSolicitudArrendadorPageState
                 ),
                 child: Row(
                   children: [
+                    if (widget.application.estado.toLowerCase() == 'pendiente')
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _isProcessing
+                              ? null
+                              : () => _updateStatus('rechazada'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: const BorderSide(color: Colors.red),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Rechazar'),
+                        ),
+                      ),
+                    if (widget.application.estado.toLowerCase() == 'pendiente')
+                      const SizedBox(width: 8),
                     Expanded(
                       child: OutlinedButton(
                         onPressed: _isProcessing
                             ? null
-                            : () => _updateStatus('rechazada'),
+                            : () => _updateStatus('cancelada'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red),
+                          foregroundColor: Colors.orange,
+                          side: const BorderSide(color: Colors.orange),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Rechazar'),
+                        child: const Text('Cancelar'),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _isProcessing
-                            ? null
-                            : () => _updateStatus('aceptada'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    if (widget.application.estado.toLowerCase() ==
+                        'pendiente') ...[
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _isProcessing
+                              ? null
+                              : () => _updateStatus('aceptada'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
+                          child: _isProcessing
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('Aceptar'),
                         ),
-                        child: _isProcessing
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Aceptar Solicitud'),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -529,6 +554,10 @@ class _DetalleSolicitudArrendadorPageState
       case 'rechazada':
         color = Colors.red;
         bgColor = Colors.red.withValues(alpha: 0.1);
+        break;
+      case 'cancelada':
+        color = Colors.orange;
+        bgColor = Colors.orange.withValues(alpha: 0.1);
         break;
       default:
         color = Colors.amber[800]!;

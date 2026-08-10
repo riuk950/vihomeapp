@@ -192,7 +192,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
           children: [
             MapWidget(
               onMapCreated: _onMapCreated,
-              cameraOptions: CameraOptions(
+              viewport: CameraViewportState(
                 center: Point(coordinates: Position(-72.933, 5.715)),
                 zoom: 13.0,
               ),
