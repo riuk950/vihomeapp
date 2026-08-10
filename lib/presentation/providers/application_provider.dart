@@ -47,19 +47,28 @@ class ApplicationProvider extends ChangeNotifier {
   }
 
   Future<void> loadLastViewed() async {
-    final prefs = await SharedPreferences.getInstance();
-    final timestamp = prefs.getString('last_notifications_viewed');
-    if (timestamp != null) {
-      _lastViewedAt = DateTime.parse(timestamp);
-      notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final timestamp = prefs.getString('last_notifications_viewed');
+      if (timestamp != null) {
+        _lastViewedAt = DateTime.parse(timestamp);
+        notifyListeners();
+      }
+    } catch (_) {
+      // SharedPreferences depends on Flutter binding initialization.
+      // Some tests and startup code create the provider before that happens.
     }
   }
 
   Future<void> markAsRead() async {
     _lastViewedAt = DateTime.now();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        'last_notifications_viewed', _lastViewedAt!.toIso8601String());
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+          'last_notifications_viewed', _lastViewedAt!.toIso8601String());
+    } catch (_) {
+      // Ignore persistence errors until the Flutter binding is ready.
+    }
     notifyListeners();
   }
 
