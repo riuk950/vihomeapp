@@ -47,6 +47,11 @@ class FakeApplicationRepository implements ApplicationRepository {
     deleteApplicationsCalled = true;
     return shouldDelete;
   }
+
+  @override
+  Future<bool> deleteApplication(String applicationId) async {
+    return true;
+  }
 }
 
 void main() {

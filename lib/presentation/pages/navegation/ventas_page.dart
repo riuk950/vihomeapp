@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/presentation/providers/providers.dart';
-import 'package:vihomeapp/presentation/providers/landlord_properties_provider.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
