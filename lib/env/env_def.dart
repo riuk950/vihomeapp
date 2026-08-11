@@ -20,10 +20,18 @@ class EnvDef {
     _packageInfo = await PackageInfo.fromPlatform();
   }
 
+  static bool _dotenvDebugEnabled() {
+    try {
+      return dotenv.env['DEBUG_MODE'] == 'true';
+    } catch (_) {
+      return false;
+    }
+  }
+
   static void setFlavor(String flavor) {
     final normalized = flavor.toLowerCase();
     _flavor = normalized == 'dev' ? 'dev' : 'prod';
-    _isDebugMode = _flavor == 'dev' || dotenv.env['DEBUG_MODE'] == 'true';
+    _isDebugMode = _flavor == 'dev' || _dotenvDebugEnabled();
   }
 
   static void setDebugMode(bool value) {

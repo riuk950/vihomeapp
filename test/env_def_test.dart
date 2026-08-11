@@ -13,7 +13,9 @@ void main() {
     expect(EnvDef.flavor, 'prod');
   });
 
-  test('development environment should be flagged as debug mode', () {
+  test(
+      'development environment should be explicit and not inferred from DEBUG_MODE',
+      () {
     EnvDef.setFlavor('dev');
     EnvDef.setDebugMode(true);
 
