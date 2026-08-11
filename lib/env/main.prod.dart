@@ -16,8 +16,9 @@ Future<void> main() async {
   await initializeDateFormatting('es', null);
   await dotenv.load(fileName: ".env.prod");
   await EnvDef.initPackageInfo();
+  EnvDef.setFlavor('prod');
+  EnvDef.setDebugMode(dotenv.env['DEBUG_MODE'] == 'true');
   EnvDef.title = dotenv.env['APP_NAME'] ?? 'Production';
-  EnvDef.isDebugMode = dotenv.env['DEBUG_MODE'] == 'true';
 
   // Configurar inyección de dependencias (incluye inicialización de Supabase)
   await setupDependencyInjection();
