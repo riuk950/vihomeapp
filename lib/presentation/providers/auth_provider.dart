@@ -91,7 +91,7 @@ class AuthProvider with ChangeNotifier {
         password: password,
       );
 
-      return result.fold(
+      final bool success = result.fold(
         (failure) {
           _setError(failure.message);
           _setLoading(false);
@@ -104,6 +104,7 @@ class AuthProvider with ChangeNotifier {
           return true;
         },
       );
+      return success;
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
@@ -118,7 +119,7 @@ class AuthProvider with ChangeNotifier {
 
       final result = await signInWithGoogleUseCase();
 
-      return result.fold(
+      final bool success = result.fold(
         (failure) {
           _setError(failure.message);
           _setLoading(false);
@@ -131,6 +132,7 @@ class AuthProvider with ChangeNotifier {
           return true;
         },
       );
+      return success;
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
@@ -153,7 +155,7 @@ class AuthProvider with ChangeNotifier {
         metadata: metadata,
       );
 
-      return result.fold(
+      final bool success = result.fold(
         (failure) {
           _setError(failure.message);
           _setLoading(false);
@@ -166,6 +168,7 @@ class AuthProvider with ChangeNotifier {
           return true;
         },
       );
+      return success;
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
@@ -209,7 +212,7 @@ class AuthProvider with ChangeNotifier {
 
       final result = await resetPasswordUseCase(email);
 
-      return result.fold(
+      final bool success = result.fold(
         (failure) {
           _setError(failure.message);
           _setLoading(false);
@@ -220,6 +223,7 @@ class AuthProvider with ChangeNotifier {
           return true;
         },
       );
+      return success;
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
@@ -234,7 +238,7 @@ class AuthProvider with ChangeNotifier {
 
       final result = await updateUserRoleUseCase('arrendador');
 
-      return result.fold(
+      final bool success = result.fold(
         (failure) {
           _setError(failure.message);
           _setLoading(false);
@@ -249,6 +253,7 @@ class AuthProvider with ChangeNotifier {
           return true;
         },
       );
+      return success;
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
