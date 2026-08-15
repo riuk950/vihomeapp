@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: ["main", "develop", "release"]
+    branches: ["main", "develop"]
   push:
     branches: ["main", "develop", "release"]
 
@@ -34,11 +34,15 @@ jobs:
         run: |
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
             echo "${{ secrets.ENV_PROD }}" > .env.prod
+            echo "APP_FLAVOR=prod" >> .env.prod
+            echo "DEBUG_MODE=false" >> .env.prod
             echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_PROD }}" >> .env.prod
             echo "ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID_PROD }}" >> .env.prod
             echo "ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID_PROD }}" >> .env.prod
           else
             echo "${{ secrets.ENV_DEV }}" > .env.dev
+            echo "APP_FLAVOR=dev" >> .env.dev
+            echo "DEBUG_MODE=true" >> .env.dev
             echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_DEV }}" >> .env.dev
             echo "ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID_DEV }}" >> .env.dev
             echo "ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID_DEV }}" >> .env.dev
@@ -86,11 +90,15 @@ jobs:
         run: |
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
             echo "${{ secrets.ENV_PROD }}" > .env.prod
+            echo "APP_FLAVOR=prod" >> .env.prod
+            echo "DEBUG_MODE=false" >> .env.prod
             echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_PROD }}" >> .env.prod
             echo "ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID_PROD }}" >> .env.prod
             echo "ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID_PROD }}" >> .env.prod
           else
             echo "${{ secrets.ENV_DEV }}" > .env.dev
+            echo "APP_FLAVOR=dev" >> .env.dev
+            echo "DEBUG_MODE=true" >> .env.dev
             echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID_DEV }}" >> .env.dev
             echo "ADMOB_BANNER_ID=${{ secrets.ADMOB_BANNER_ID_DEV }}" >> .env.dev
             echo "ADMOB_INTERSTITIAL_ID=${{ secrets.ADMOB_INTERSTITIAL_ID_DEV }}" >> .env.dev
@@ -113,22 +121,24 @@ jobs:
             --target=lib/env/main.${{ env.FLAVOR }}.dart \
             --build-number=${{ github.run_number }}
 
-      - name: Determinar Firebase App ID 🆔
-        id: firebase_app_id
+      - name: Determinar Firebase App ID y Ruta del APK 🆔
+        id: firebase_config
         run: |
           if [ "${{ env.FLAVOR }}" = "prod" ]; then
             echo "app_id=${{ secrets.FIREBASE_ANDROID_APP_ID_PROD }}" >> $GITHUB_OUTPUT
+            echo "apk_path=build/app/outputs/flutter-apk/app-prod-release.apk" >> $GITHUB_OUTPUT
           else
             echo "app_id=${{ secrets.FIREBASE_ANDROID_APP_ID_DEV }}" >> $GITHUB_OUTPUT
+            echo "apk_path=build/app/outputs/flutter-apk/app-dev-release.apk" >> $GITHUB_OUTPUT
           fi
 
       - name: Subir a Firebase App Distribution 🔥
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-          appId: ${{ steps.firebase_app_id.outputs.app_id }}
+          appId: ${{ steps.firebase_config.outputs.app_id }}
           serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
           groups: testers
-          file: build/app/outputs/flutter-apk/app-${{ env.FLAVOR }}-release.apk
+          file: ${{ steps.firebase_config.outputs.apk_path }}
 
       - name: Construir App Bundle para Google Play 📦
         if: env.FLAVOR == 'prod'

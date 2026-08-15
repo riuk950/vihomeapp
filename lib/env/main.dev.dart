@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:vihomeapp/core/utils/firebase_options.dart';
 import '../infrastructure/services/push_notification_service.dart';
+import '../infrastructure/services/in_app_update_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../app/app.dart';
 import '../core/di/injection_container.dart';
@@ -16,8 +17,9 @@ Future<void> main() async {
   await initializeDateFormatting('es', null);
   await dotenv.load(fileName: ".env.dev");
   await EnvDef.initPackageInfo();
+  EnvDef.setFlavor('dev');
+  EnvDef.setDebugMode(dotenv.env['DEBUG_MODE'] == 'true');
   EnvDef.title = dotenv.env['APP_NAME'] ?? 'Development';
-  EnvDef.isDebugMode = dotenv.env['DEBUG_MODE'] == 'true';
 
   // Configurar inyección de dependencias (incluye inicialización de Supabase)
   await setupDependencyInjection();
@@ -36,4 +38,8 @@ Future<void> main() async {
   await getIt<vihomeapp_ads.AdManager>().initialize();
 
   runApp(const FlavorApp());
+
+  // Verificar actualizaciones disponibles en Play Store (solo Android)
+  // Se lanza después de runApp para no retrasar el inicio de la app.
+  InAppUpdateService.checkForUpdate();
 }

@@ -12,9 +12,30 @@ class EnvDef {
     installerStore: 'Unknown',
   );
 
+  static String _flavor = 'prod';
+  static bool _isDebugMode = false;
+
   /// Método de inicialización asíncrono
   static Future<void> initPackageInfo() async {
     _packageInfo = await PackageInfo.fromPlatform();
+  }
+
+  static bool _dotenvDebugEnabled() {
+    try {
+      return dotenv.env['DEBUG_MODE'] == 'true';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static void setFlavor(String flavor) {
+    final normalized = flavor.toLowerCase();
+    _flavor = normalized == 'dev' ? 'dev' : 'prod';
+    _isDebugMode = _flavor == 'dev' || _dotenvDebugEnabled();
+  }
+
+  static void setDebugMode(bool value) {
+    _isDebugMode = value;
   }
 
   static String title = 'Vihome Dev';
@@ -28,7 +49,7 @@ class EnvDef {
   static String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
   static String get mapboxAccessToken =>
       dotenv.env['MAPBOX_ACCESS_TOKEN'] ?? '';
-  static bool isDebugMode = dotenv.env['DEBUG_MODE'] == 'true';
+  static bool get isDebugMode => _isDebugMode;
   static String get googleWebClientId =>
       dotenv.env['GOOGLE_WEB_CLIENT_ID'] ?? '';
 
@@ -37,9 +58,9 @@ class EnvDef {
   static String get admobInterstitialId =>
       dotenv.env['ADMOB_INTERSTITIAL_ID'] ?? '';
 
-  static bool get isProduction => dotenv.env['DEBUG_MODE'] != 'true';
-  static bool get isDevelopment => !isProduction;
-  static String get flavor => isProduction ? 'prod' : 'dev';
+  static bool get isProduction => _flavor == 'prod';
+  static bool get isDevelopment => _flavor == 'dev';
+  static String get flavor => _flavor;
 
   // --- Propiedades dinámicas obtenidas de PackageInfo ---
 

@@ -1,4 +1,5 @@
 import '../../core/errors/failures.dart';
+import '../../core/errors/app_error_handler.dart';
 import '../../core/utils/either.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -15,10 +16,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await remoteDataSource.getCurrentUser();
       return Right(user);
-    } on AuthFailure catch (e) {
+    } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(AuthFailure(e.toString()));
+      return Left(AppErrorHandler.handle(e));
     }
   }
 
@@ -33,10 +34,10 @@ class AuthRepositoryImpl implements AuthRepository {
         password: password,
       );
       return Right(user);
-    } on AuthFailure catch (e) {
+    } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(AuthFailure(e.toString()));
+      return Left(AppErrorHandler.handle(e));
     }
   }
 
@@ -53,10 +54,10 @@ class AuthRepositoryImpl implements AuthRepository {
         metadata: metadata,
       );
       return Right(user);
-    } on AuthFailure catch (e) {
+    } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(AuthFailure(e.toString()));
+      return Left(AppErrorHandler.handle(e));
     }
   }
 
@@ -65,10 +66,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await remoteDataSource.signOut();
       return const Right(null);
-    } on AuthFailure catch (e) {
+    } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(AuthFailure(e.toString()));
+      return Left(AppErrorHandler.handle(e));
     }
   }
 
@@ -77,10 +78,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await remoteDataSource.signInWithGoogle();
       return Right(user);
-    } on AuthFailure catch (e) {
+    } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(AuthFailure(e.toString()));
+      return Left(AppErrorHandler.handle(e));
     }
   }
 
@@ -89,10 +90,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await remoteDataSource.resetPassword(email);
       return const Right(null);
-    } on AuthFailure catch (e) {
+    } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(AuthFailure(e.toString()));
+      return Left(AppErrorHandler.handle(e));
     }
   }
 
@@ -101,10 +102,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await remoteDataSource.updatePassword(newPassword);
       return const Right(null);
-    } on AuthFailure catch (e) {
+    } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(AuthFailure(e.toString()));
+      return Left(AppErrorHandler.handle(e));
     }
   }
 
@@ -113,10 +114,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await remoteDataSource.updateUserRole(role);
       return const Right(null);
-    } on AuthFailure catch (e) {
+    } on Failure catch (e) {
       return Left(e);
     } catch (e) {
-      return Left(AuthFailure(e.toString()));
+      return Left(AppErrorHandler.handle(e));
     }
   }
 
@@ -126,10 +127,10 @@ class AuthRepositoryImpl implements AuthRepository {
       return remoteDataSource.authStateChanges().map((user) {
         return Right<Failure, User?>(user);
       }).handleError((error) {
-        return Left<Failure, User?>(AuthFailure(error.toString()));
+        return Left<Failure, User?>(AppErrorHandler.handle(error));
       });
     } catch (e) {
-      return Stream.value(Left(AuthFailure(e.toString())));
+      return Stream.value(Left(AppErrorHandler.handle(e)));
     }
   }
 }

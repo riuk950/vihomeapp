@@ -60,7 +60,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
 
       final result = await createPropertyUseCase(propertyData);
 
-      return result.fold(
+      final bool success = result.fold(
         (failure) {
           _setError(failure.message);
           _setLoading(false);
@@ -72,6 +72,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
           return true;
         },
       );
+      return success;
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
@@ -89,7 +90,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
 
       final result = await updatePropertyUseCase(propertyId, propertyData);
 
-      return result.fold(
+      final bool success = result.fold(
         (failure) {
           _setError(failure.message);
           _setLoading(false);
@@ -105,6 +106,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
           return true;
         },
       );
+      return success;
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
@@ -124,7 +126,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
         'publicado': !currentStatus,
       });
 
-      return result.fold(
+      final bool success = result.fold(
         (failure) {
           _setError(failure.message);
           _setLoading(false);
@@ -140,6 +142,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
           return true;
         },
       );
+      return success;
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
@@ -154,7 +157,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
 
       final result = await deletePropertyUseCase(id);
 
-      return result.fold(
+      final bool success = result.fold(
         (failure) {
           _setError(failure.message);
           _setLoading(false);
@@ -167,6 +170,7 @@ class LandlordPropertiesProvider with ChangeNotifier {
           return true;
         },
       );
+      return success;
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);

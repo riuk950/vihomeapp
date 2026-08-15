@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../core/errors/failures.dart';
+import '../../core/errors/supabase_error_handler.dart';
 import '../../domain/entities/user.dart' as entity;
 import '../models/user_model.dart';
 import '../../infrastructure/services/supabase_service.dart';
@@ -59,10 +60,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final isPremium = profileResponse != null ? profileResponse['is_premium'] == true : false;
 
       return UserModel.fromSupabaseUser(response.user!, isPremium: isPremium).toEntity();
-    } on AuthFailure {
+    } on Failure {
       rethrow;
     } catch (e) {
-      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -87,10 +88,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final isPremium = profileResponse != null ? profileResponse['is_premium'] == true : false;
 
       return UserModel.fromSupabaseUser(response.user!, isPremium: isPremium).toEntity();
-    } on AuthFailure {
+    } on Failure {
       rethrow;
     } catch (e) {
-      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -99,7 +100,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       await supabaseService.client.auth.signOut();
     } catch (e) {
-      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -116,10 +117,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       await supabaseService.client.auth.resetPasswordForEmail(email);
-    } on AuthFailure {
+    } on Failure {
       rethrow;
     } catch (e) {
-      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -130,7 +131,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         supabase.UserAttributes(password: newPassword),
       );
     } catch (e) {
-      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -145,7 +146,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       
       return UserModel.fromSupabaseUser(user, isPremium: isPremium).toEntity();
     } catch (e) {
-      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -191,10 +192,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final isPremium = profileResponse != null ? profileResponse['is_premium'] == true : false;
 
       return UserModel.fromSupabaseUser(response.user!, isPremium: isPremium).toEntity();
-    } on AuthFailure {
+    } on Failure {
       rethrow;
     } catch (e) {
-      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -216,7 +217,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'role': role,
       }).eq('id', user.id);
     } catch (e) {
-      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -235,7 +236,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         }
       });
     } catch (e) {
-      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 }

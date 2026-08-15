@@ -21,7 +21,7 @@ class TenantModel extends Tenant {
       segundoNombre: json['segundo_nombre'] as String?,
       primerApellido: json['primer_apellido'] as String,
       segundoApellido: json['segundo_apellido'] as String?,
-      documento: json['documento'] as int,
+      documento: json['documento'],
       direccionContacto: json['direccion_contacto'] as String,
       tipoDocumento: json['tipo_documento'] as String,
       telefonoContacto: json['telefono_contacto'] as String,
