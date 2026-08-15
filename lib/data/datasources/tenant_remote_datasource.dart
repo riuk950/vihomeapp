@@ -1,4 +1,4 @@
-import '../../core/errors/failures.dart';
+import '../../core/errors/supabase_error_handler.dart';
 import '../../infrastructure/services/supabase_service.dart';
 import '../models/tenant_model.dart';
 
@@ -24,7 +24,7 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
       if (response == null) return null;
       return TenantModel.fromJson(response);
     } catch (e) {
-      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -35,7 +35,7 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
           .from('info_arrendatarios')
           .upsert(tenant.toJson());
     } catch (e) {
-      throw AuthFailure(e.toString().replaceAll('Exception: ', ''));
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 }

@@ -1,4 +1,4 @@
-import '../../core/errors/failures.dart';
+import '../../core/errors/supabase_error_handler.dart';
 import '../models/property_model.dart';
 import '../../infrastructure/services/supabase_service.dart';
 
@@ -28,7 +28,7 @@ class PropertyRemoteDataSourceImpl implements PropertyRemoteDataSource {
           .toList();
       return properties;
     } catch (e) {
-      throw ServerFailure(e.toString());
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -44,7 +44,7 @@ class PropertyRemoteDataSourceImpl implements PropertyRemoteDataSource {
           .toList();
       return properties;
     } catch (e) {
-      throw ServerFailure(e.toString());
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -60,7 +60,7 @@ class PropertyRemoteDataSourceImpl implements PropertyRemoteDataSource {
           .single();
       return PropertyModel.fromJson(response);
     } catch (e) {
-      throw ServerFailure(e.toString());
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -78,7 +78,7 @@ class PropertyRemoteDataSourceImpl implements PropertyRemoteDataSource {
           .single();
       return PropertyModel.fromJson(response);
     } catch (e) {
-      throw ServerFailure(e.toString());
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -90,7 +90,7 @@ class PropertyRemoteDataSourceImpl implements PropertyRemoteDataSource {
           .delete()
           .eq('id', id);
     } catch (e) {
-      throw ServerFailure(e.toString());
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 
@@ -103,7 +103,7 @@ class PropertyRemoteDataSourceImpl implements PropertyRemoteDataSource {
           .map((e) => PropertyTypeModel.fromJson(e))
           .toList();
     } catch (e) {
-      throw ServerFailure(e.toString());
+      throw SupabaseErrorHandler.handle(e);
     }
   }
 }

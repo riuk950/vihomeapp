@@ -263,6 +263,9 @@ class AuthProvider with ChangeNotifier {
 
   void _setError(String? message) {
     _errorMessage = message;
+    if (message != null) {
+      debugPrint('🔔 [AuthProvider] Error establecido: $message');
+    }
     notifyListeners();
   }
 
