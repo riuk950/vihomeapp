@@ -66,7 +66,7 @@ class _CompleteTenantProfilePageState extends State<CompleteTenantProfilePage> {
       segundoApellido: _segundoApellidoController.text.trim().isEmpty
           ? null
           : _segundoApellidoController.text.trim(),
-      documento: int.parse(_documentoController.text.trim()),
+      documento: _documentoController.text.trim(),
       direccionContacto: _direccionContactoController.text.trim(),
       tipoDocumento: _tipoDocumento,
       telefonoContacto:

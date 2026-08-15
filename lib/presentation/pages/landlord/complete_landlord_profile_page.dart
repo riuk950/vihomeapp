@@ -7,7 +7,6 @@ import 'package:vihomeapp/presentation/widgets/widgets.dart';
 import 'package:flutter/services.dart';
 import '../../helpers/phone_input_formatter.dart';
 
-
 class CompleteLandlordProfilePage extends StatefulWidget {
   const CompleteLandlordProfilePage({super.key});
 
@@ -71,7 +70,7 @@ class _CompleteLandlordProfilePageState
       segundoApellido: _segundoApellidoController.text.trim().isEmpty
           ? null
           : _segundoApellidoController.text.trim(),
-      documento: int.parse(_documentoController.text.trim()),
+      documento: _documentoController.text.trim(),
       direccionContacto: _direccionContactoController.text.trim(),
       tipoDocumento: _tipoDocumento,
       telefonoContacto:
@@ -267,5 +266,3 @@ class _CompleteLandlordProfilePageState
     );
   }
 }
-
-
