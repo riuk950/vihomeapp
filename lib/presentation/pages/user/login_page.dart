@@ -431,6 +431,7 @@ class _LoginPageState extends State<LoginPage> {
                           authProvider.isLoading ? null : _handleGoogleLogin,
                       icon: Image.network(
                         'https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png',
+                        cacheWidth: 48,
                         height: 24,
                         width: 24,
                         errorBuilder: (context, error, stackTrace) {

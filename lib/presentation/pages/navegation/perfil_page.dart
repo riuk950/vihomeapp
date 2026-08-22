@@ -183,6 +183,7 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
                             ),
                             child: Image.network(
                               'https://lh3.googleusercontent.com/aida-public/AB6AXuB-jdvGq_Vdp1WK46DPGItomwu8mHGyX5XmpFRvufKR8wUWzCSB-bgcn0eSM6n1MWl9buBhyDEKAgpwW_lB9D-JOIiX38s0r4kNZv-MvaloAeeJyoMq_BtfqdRPuwx_PXf4YSQDXm_yQOB9UZx4emjjAo7cUT-9udn2amhlIPo2MZ74sSzniyTdAZInAt5yvLLckyCWvu9DsYZy4-Nx6DqpcE91BaIor59AP0pbVLKxU1-aMvi-_xTUtmeWo2aVAwn1vEUBGl4o7CI',
+                              cacheWidth: 720,
                               height: 180,
                               width: double.infinity,
                               fit: BoxFit.cover,

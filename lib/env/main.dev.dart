@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:vihomeapp/core/utils/firebase_options.dart';
 import '../infrastructure/services/push_notification_service.dart';
@@ -36,6 +37,10 @@ Future<void> main() async {
 
   // Inicializar Google Mobile Ads
   await getIt<vihomeapp_ads.AdManager>().initialize();
+
+  // Edge-to-edge: dibujar detrás de las barras del sistema en todas las
+  // versiones de Android (obligatorio y aplicado por defecto desde Android 15 / SDK 35).
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   runApp(const FlavorApp());
 

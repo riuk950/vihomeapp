@@ -71,7 +71,7 @@ class EnvDef {
   static String get version => _packageInfo.version;
 
   /// Número de compilación (ej: "9")
-  static String get buildNumber => _packageInfo.buildNumber;
+  //static String get buildNumber => _packageInfo.buildNumber;
 
   /// Firma de compilación
   static String get buildSignature => _packageInfo.buildSignature;
@@ -80,5 +80,5 @@ class EnvDef {
   static String? get installerStore => _packageInfo.installerStore;
 
   /// Versión completa en formato "1.0.8+9"
-  static String get appVersion => '$version+$buildNumber';
+  static String get appVersion => version;
 }

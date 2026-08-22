@@ -269,6 +269,7 @@ class _MisPropiedadesPageState extends State<MisPropiedadesPage> {
                 property.fotos.isNotEmpty
                     ? Image.network(
                         property.fotos.first,
+                        cacheWidth: 720,
                         height: 180,
                         width: double.infinity,
                         fit: BoxFit.cover,
