@@ -285,6 +285,7 @@ class _VentasPageState extends State<VentasPage> {
                       children: [
                         CachedNetworkImage(
                           imageUrl: property.fotos.first,
+                          memCacheWidth: 720,
                           height: 180,
                           width: double.infinity,
                           fit: BoxFit.cover,

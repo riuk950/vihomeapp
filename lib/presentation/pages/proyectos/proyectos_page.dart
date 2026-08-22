@@ -219,6 +219,7 @@ class _ProyectosPageState extends State<ProyectosPage> {
                   child: project.fotos.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: project.fotos.first,
+                          memCacheWidth: 720,
                           fit: BoxFit.cover,
                           placeholder: (context, url) => const Center(
                             child: CircularProgressIndicator(

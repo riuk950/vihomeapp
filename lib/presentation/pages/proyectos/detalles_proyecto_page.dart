@@ -221,6 +221,7 @@ ${widget.project.descripcion.isNotEmpty ? widget.project.descripcion : 'Excelent
                                 itemBuilder: (context, index) {
                                   return CachedNetworkImage(
                                     imageUrl: project.fotos[index],
+                                    memCacheWidth: 1080,
                                     fit: BoxFit.cover,
                                     placeholder: (context, url) => const Center(
                                       child: CircularProgressIndicator(),
@@ -500,6 +501,7 @@ ${widget.project.descripcion.isNotEmpty ? widget.project.descripcion : 'Excelent
                                         borderRadius: BorderRadius.circular(8),
                                         child: CachedNetworkImage(
                                           imageUrl: _constructora!.logoUrl!,
+                                          memCacheWidth: 100,
                                           width: 50,
                                           height: 50,
                                           fit: BoxFit.cover,

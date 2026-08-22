@@ -288,6 +288,7 @@ class _ArriendosPageState extends State<ArriendosPage> {
                       children: [
                         CachedNetworkImage(
                           imageUrl: property.fotos.first,
+                          memCacheWidth: 720,
                           height: 180,
                           width: double.infinity,
                           fit: BoxFit.cover,

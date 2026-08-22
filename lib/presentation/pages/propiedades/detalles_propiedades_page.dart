@@ -285,6 +285,7 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     child: CachedNetworkImage(
                       imageUrl: widget.property.fotos[index],
+                      memCacheWidth: 1080,
                       fit: BoxFit.cover,
                       placeholder: (context, url) =>
                           const Center(child: CircularProgressIndicator()),
