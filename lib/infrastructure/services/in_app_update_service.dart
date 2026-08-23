@@ -29,13 +29,13 @@ class InAppUpdateService {
 
       if (kDebugMode) {
         debugPrint(
-          '[InAppUpdateService] Estado: \${info.updateAvailability}',
+          '[InAppUpdateService] Estado: ${info.updateAvailability}',
         );
         debugPrint(
-          '[InAppUpdateService] Prioridad: \${info.updatePriority}',
+          '[InAppUpdateService] Prioridad: ${info.updatePriority}',
         );
         debugPrint(
-          '[InAppUpdateService] Días de espera: \${info.clientVersionStalenessDays}',
+          '[InAppUpdateService] Días de espera: ${info.clientVersionStalenessDays}',
         );
       }
 
@@ -53,7 +53,7 @@ class InAppUpdateService {
     } catch (e) {
       // En dev o cuando la app no está publicada, la API no devuelve info real.
       if (kDebugMode) {
-        debugPrint('[InAppUpdateService] No se pudo verificar actualización: \$e');
+        debugPrint('[InAppUpdateService] No se pudo verificar actualización: $e');
       }
     }
   }
@@ -71,7 +71,7 @@ class InAppUpdateService {
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[InAppUpdateService] Error en actualización inmediata: \$e');
+        debugPrint('[InAppUpdateService] Error en actualización inmediata: $e');
       }
     }
   }
@@ -85,7 +85,7 @@ class InAppUpdateService {
     try {
       final AppUpdateResult result = await InAppUpdate.startFlexibleUpdate();
       if (kDebugMode) {
-        debugPrint('[InAppUpdateService] Resultado flexible: \$result');
+        debugPrint('[InAppUpdateService] Resultado flexible: $result');
       }
       if (result == AppUpdateResult.success) {
         // Una vez descargada, aplica la actualización y reinicia la app.
@@ -96,7 +96,7 @@ class InAppUpdateService {
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[InAppUpdateService] Error en actualización flexible: \$e');
+        debugPrint('[InAppUpdateService] Error en actualización flexible: $e');
       }
     }
   }
