@@ -107,16 +107,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> resetPassword(String email) async {
     try {
-      final bool exists = await supabaseService.client.rpc<bool>(
-        'check_email_exists',
-        params: {'email_to_check': email.trim()},
+      await supabaseService.client.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'https://vihome.web.app/forgot-password',
       );
-
-      if (!exists) {
-        throw const AuthFailure('El correo electrónico no está registrado.');
-      }
-
-      await supabaseService.client.auth.resetPasswordForEmail(email);
     } on Failure {
       rethrow;
     } catch (e) {

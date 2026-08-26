@@ -28,7 +28,7 @@ GoRouter createAppRouter() {
         }
 
         // Si está autenticado y va a login/register, redirigir a home
-        if (isAuthenticated && isAuthRoute) {
+        if (isAuthenticated && (isGoingToLogin || isGoingToRegister)) {
           return '/home';
         }
       } catch (e) {

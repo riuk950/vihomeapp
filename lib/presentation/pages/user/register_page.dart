@@ -67,21 +67,44 @@ class _RegisterPageState extends State<RegisterPage> {
     );
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Cuenta creada exitosamente. Revisa tu email para verificar tu cuenta.',
+      await authProvider.signOut();
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          icon: const Icon(
+            Icons.check_circle_outline,
+            color: Colors.green,
+            size: 64,
           ),
-          backgroundColor: primaryColor,
+          title: const Text(
+            '¡Registro exitoso!',
+            textAlign: TextAlign.center,
+          ),
+          content: const Text(
+            'Cuenta creada exitosamente. Revisa tu correo para verificar tu cuenta.',
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  context.go('/login');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: const Text('Aceptar'),
+              ),
+            ),
+          ],
         ),
       );
-
-      // Esperar un momento y luego redirigir
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (mounted) {
-        context.go('/login');
-      }
     }
   }
 
