@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -7,7 +8,14 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 
 class LocationPickerPage extends StatefulWidget {
-  const LocationPickerPage({super.key});
+  final double? initialLatitude;
+  final double? initialLongitude;
+
+  const LocationPickerPage({
+    super.key,
+    this.initialLatitude,
+    this.initialLongitude,
+  });
 
   @override
   State<LocationPickerPage> createState() => _LocationPickerPageState();
@@ -16,11 +24,22 @@ class LocationPickerPage extends StatefulWidget {
 class _LocationPickerPageState extends State<LocationPickerPage> {
   MapboxMap? mapboxMap;
   Point? selectedPoint;
-  bool _isMoving = false;
+  final ValueNotifier<bool> _isMovingNotifier = ValueNotifier<bool>(false);
+  Timer? _debounceTimer;
+  late final CameraViewportState _initialViewport;
 
   @override
   void initState() {
     super.initState();
+    _initialViewport = CameraViewportState(
+      center: Point(
+        coordinates: Position(
+          widget.initialLongitude ?? -72.933,
+          widget.initialLatitude ?? 5.715,
+        ),
+      ),
+      zoom: widget.initialLatitude != null ? 15.0 : 13.0,
+    );
     if (EnvDef.mapboxAccessToken.isNotEmpty) {
       MapboxOptions.setAccessToken(EnvDef.mapboxAccessToken);
     }
@@ -28,8 +47,16 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     _requestLocationPermission();
   }
 
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _isMovingNotifier.dispose();
+    super.dispose();
+  }
+
   Future<void> _requestLocationPermission() async {
     final status = await Permission.location.request();
+    if (!mounted) return;
     if (status.isGranted) {
       debugPrint('Permiso de ubicación concedido');
       if (mapboxMap != null) {
@@ -53,26 +80,26 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
 
     // Inicializar el punto seleccionado con el centro inicial
     final cameraState = await mapboxMap.getCameraState();
+    if (!mounted) return;
     setState(() {
       selectedPoint = cameraState.center;
     });
   }
 
-  void _onCameraChange(CameraChangedEventData event) async {
-    if (mapboxMap == null) return;
-
-    final cameraState = await mapboxMap!.getCameraState();
-    setState(() {
-      selectedPoint = cameraState.center;
-      _isMoving = true;
-    });
+  void _onCameraChange(CameraChangedEventData event) {
+    if (!_isMovingNotifier.value) {
+      _isMovingNotifier.value = true;
+    }
 
     // Pequeño retraso para detectar cuando deja de moverse
-    Future.delayed(const Duration(milliseconds: 100), () async {
-      if (mounted) {
-        setState(() {
-          _isMoving = false;
-        });
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 150), () async {
+      if (!mounted) return;
+      _isMovingNotifier.value = false;
+      if (mapboxMap != null) {
+        final cameraState = await mapboxMap!.getCameraState();
+        if (!mounted) return;
+        selectedPoint = cameraState.center;
       }
     });
   }
@@ -106,31 +133,31 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     geo.LocationPermission permission = await geo.Geolocator.checkPermission();
     if (permission == geo.LocationPermission.denied) {
       permission = await geo.Geolocator.requestPermission();
+      if (!mounted) return;
       if (permission == geo.LocationPermission.denied) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Permiso de ubicación denegado')),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permiso de ubicación denegado')),
+        );
         return;
       }
     }
 
+    if (!mounted) return;
+
     if (permission == geo.LocationPermission.deniedForever) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Los permisos de ubicación están denegados permanentemente.',
-            ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Los permisos de ubicación están denegados permanentemente.',
           ),
-        );
-      }
+        ),
+      );
       return;
     }
 
     try {
       final position = await geo.Geolocator.getCurrentPosition();
+      if (!mounted) return;
 
       if (mapboxMap != null) {
         mapboxMap!.flyTo(
@@ -156,8 +183,12 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
     }
   }
 
-  void _confirmSelection() {
-    if (selectedPoint != null) {
+  Future<void> _confirmSelection() async {
+    if (mapboxMap != null) {
+      final cameraState = await mapboxMap!.getCameraState();
+      if (!mounted) return;
+      context.pop(cameraState.center);
+    } else if (selectedPoint != null) {
       context.pop(selectedPoint);
     }
   }
@@ -180,11 +211,10 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
       appBar: AppBar(
         title: const Text('Seleccionar Ubicación'),
         actions: [
-          if (selectedPoint != null)
-            IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: _confirmSelection,
-            ),
+          IconButton(
+            icon: const Icon(Icons.check),
+            onPressed: _confirmSelection,
+          ),
         ],
       ),
       body: SafeArea(
@@ -192,60 +222,61 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
           children: [
             MapWidget(
               onMapCreated: _onMapCreated,
-              viewport: CameraViewportState(
-                center: Point(coordinates: Position(-72.933, 5.715)),
-                zoom: 13.0,
-              ),
+              viewport: _initialViewport,
               onCameraChangeListener: _onCameraChange,
             ),
-            // Marcador fijo en el centro
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 35),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  transform:
-                      Matrix4.translationValues(0, _isMoving ? -10 : 0, 0),
-                  child: const Icon(
-                    Icons.location_on,
-                    size: 45,
-                    color: Colors.red,
+            // Marcador fijo en el centro con animación reactiva
+            ValueListenableBuilder<bool>(
+              valueListenable: _isMovingNotifier,
+              builder: (context, isMoving, child) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 35),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      transform:
+                          Matrix4.translationValues(0, isMoving ? -10 : 0, 0),
+                      child: const Icon(
+                        Icons.location_on,
+                        size: 45,
+                        color: Colors.red,
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
             // Punto de referencia (sombra) para el marcador
             Center(
               child: Container(
-                width: 5,
-                height: 5,
+                width: 6,
+                height: 6,
                 decoration: BoxDecoration(
-                  color: textColor,
+                  color: Colors.black.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
               ),
             ),
-            if (selectedPoint != null)
-              Positioned(
-                bottom: 30,
-                left: 20,
-                right: 20,
-                child: ElevatedButton(
-                  onPressed: _confirmSelection,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: backgroundColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Confirmar Ubicación',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Positioned(
+              bottom: 30,
+              left: 20,
+              right: 20,
+              child: ElevatedButton(
+                onPressed: _confirmSelection,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: backgroundColor,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
+                child: const Text(
+                  'Confirmar Ubicación',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
+            ),
             Positioned(
               bottom: 100,
               right: 20,

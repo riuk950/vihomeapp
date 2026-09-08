@@ -645,7 +645,12 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
           onTap: () async {
             // Note: Mapbox Point type might be exported as Point or something else.
             // Usually it is Point. Ensure correct import.
-            final dynamic result = await context.pushNamed('location-picker');
+            final dynamic result = await context.pushNamed(
+              'location-picker',
+              extra: _lat != null && _lng != null
+                  ? {'latitude': _lat, 'longitude': _lng}
+                  : null,
+            );
 
             if (result != null && result is Point) {
               setState(() {
