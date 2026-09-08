@@ -218,7 +218,13 @@ GoRouter createAppRouter() {
       GoRoute(
         path: '/location-picker',
         name: 'location-picker',
-        builder: (context, state) => const LocationPickerPage(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return LocationPickerPage(
+            initialLatitude: extra?['latitude'] as double?,
+            initialLongitude: extra?['longitude'] as double?,
+          );
+        },
       ),
       GoRoute(
         path: '/solicitud-arriendo',

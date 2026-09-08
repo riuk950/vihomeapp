@@ -657,7 +657,12 @@ class _EditarPropiedadesPageState extends State<EditarPropiedadesPage> {
         const SizedBox(height: 8),
         InkWell(
           onTap: () async {
-            final dynamic result = await context.pushNamed('location-picker');
+            final dynamic result = await context.pushNamed(
+              'location-picker',
+              extra: _lat != null && _lng != null
+                  ? {'latitude': _lat, 'longitude': _lng}
+                  : null,
+            );
 
             if (result != null && result is Point) {
               setState(() {
