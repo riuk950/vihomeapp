@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
+import 'package:vihomeapp/core/utils/file_validator.dart';
 import 'package:vihomeapp/data/models/application_model.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/presentation/helpers/phone_input_formatter.dart';
@@ -77,6 +78,23 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
       );
 
       if (result != null) {
+        for (final file in result.files) {
+          final validation = FileValidator.validate(
+            fileName: file.name,
+            sizeInBytes: file.size,
+          );
+          if (!validation.isValid) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(validation.errorMessage!),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+            return;
+          }
+        }
         setState(() {
           _documentosAdjuntos.addAll(result.files);
         });
@@ -866,7 +884,6 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -876,12 +893,15 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
           ),
         ],
       ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          initiallyExpanded: isExpanded,
-          onExpansionChanged: onExpansionChanged,
-          leading: Container(
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            initiallyExpanded: isExpanded,
+            onExpansionChanged: onExpansionChanged,
+            leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: primaryColor.withValues(alpha: 0.1),
@@ -912,8 +932,9 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTextField({
     required TextEditingController controller,

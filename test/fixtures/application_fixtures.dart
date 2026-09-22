@@ -1,3 +1,6 @@
+import 'package:vihomeapp/data/models/application_model.dart';
+import 'package:vihomeapp/domain/entities/application.dart';
+
 /// Fixtures de prueba para Solicitudes Financieras [RF-04, RF-06]
 class ApplicationFixtures {
   static const Map<String, dynamic> validPendingApplicationJson = {
@@ -37,4 +40,10 @@ class ApplicationFixtures {
     'created_at': '2026-03-17T09:15:00.000Z',
     'updated_at': '2026-03-18T10:00:00.000Z',
   };
+
+  static Application get pendingApplication =>
+      ApplicationModel.fromJson(validPendingApplicationJson);
+
+  static Application get approvedApplication =>
+      ApplicationModel.fromJson(validApprovedApplicationJson);
 }

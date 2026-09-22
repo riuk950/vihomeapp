@@ -1,16 +1,20 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/domain/repositories/application_repository.dart';
+import 'package:vihomeapp/domain/services/i_realtime_service.dart';
 import 'package:vihomeapp/infrastructure/services/supabase_service.dart';
 
 class ApplicationProvider extends ChangeNotifier {
   final ApplicationRepository repository;
+  final IRealtimeService? realtimeService;
   RealtimeChannel? _subscription;
+  StreamSubscription<dynamic>? _realtimeStreamSub;
   DateTime? _lastViewedAt;
 
-  ApplicationProvider(this.repository) {
+  ApplicationProvider(this.repository, {this.realtimeService}) {
     loadLastViewed();
   }
 
@@ -126,31 +130,64 @@ class ApplicationProvider extends ChangeNotifier {
   }
 
   void _subscribeToLandlordApplications(String landlordId) {
-    // Cancelar suscripción previa si existe
+    _realtimeStreamSub?.cancel();
+    _realtimeStreamSub = null;
     _subscription?.unsubscribe();
+    _subscription = null;
 
-    final client = SupabaseService.instance.client;
+    if (realtimeService != null) {
+      final stream = realtimeService!.subscribeToTable<Application>(
+        table: 'solicitudes',
+        filterColumn: 'arrendador_id',
+        filterValue: landlordId,
+        fromJson: (json) => Application(
+          id: json['id']?.toString() ?? '',
+          arrendatarioId: json['arrendatario_id']?.toString() ?? '',
+          arrendadorId: json['arrendador_id']?.toString() ?? '',
+          propiedadId: json['propiedad_id']?.toString() ?? '',
+          estado: json['estado']?.toString() ?? 'Pendiente',
+          createdAt: json['created_at'] != null
+              ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
+              : DateTime.now(),
+          updatedAt: json['updated_at'] != null
+              ? DateTime.tryParse(json['updated_at'].toString()) ?? DateTime.now()
+              : DateTime.now(),
+        ),
+      );
 
-    _subscription = client
-        .channel('public:solicitudes:arrendador:$landlordId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.insert,
-          schema: 'public',
-          table: 'solicitudes',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'arrendador_id',
-            value: landlordId,
-          ),
-          callback: (payload) async {
-            debugPrint('🔔 Nueva solicitud recibida en tiempo real!');
-            // Al recibir una inserción, volvemos a cargar para traer datos relacionados
-            final apps = await repository.getLandlordApplications(landlordId);
-            _applications = List<Application>.from(apps);
-            notifyListeners();
-          },
-        )
-        .subscribe();
+      _realtimeStreamSub = stream.listen((_) async {
+        debugPrint('🔔 Nueva solicitud recibida en tiempo real via IRealtimeService!');
+        final apps = await repository.getLandlordApplications(landlordId);
+        _applications = List<Application>.from(apps);
+        notifyListeners();
+      });
+      return;
+    }
+
+    try {
+      final client = SupabaseService.instance.client;
+      _subscription = client
+          .channel('public:solicitudes:arrendador:$landlordId')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            schema: 'public',
+            table: 'solicitudes',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'arrendador_id',
+              value: landlordId,
+            ),
+            callback: (payload) async {
+              debugPrint('🔔 Nueva solicitud recibida en tiempo real!');
+              final apps = await repository.getLandlordApplications(landlordId);
+              _applications = List<Application>.from(apps);
+              notifyListeners();
+            },
+          )
+          .subscribe();
+    } catch (e) {
+      debugPrint('[ApplicationProvider] Error conectando a Supabase realtime: $e');
+    }
   }
 
   Future<void> fetchTenantApplications(String tenantId) async {
@@ -173,33 +210,66 @@ class ApplicationProvider extends ChangeNotifier {
   }
 
   void _subscribeToTenantApplications(String tenantId) {
-    // Cancelar suscripción previa si existe
+    _realtimeStreamSub?.cancel();
+    _realtimeStreamSub = null;
     _subscription?.unsubscribe();
+    _subscription = null;
 
-    final client = SupabaseService.instance.client;
+    if (realtimeService != null) {
+      final stream = realtimeService!.subscribeToTable<Application>(
+        table: 'solicitudes',
+        filterColumn: 'arrendatario_id',
+        filterValue: tenantId,
+        fromJson: (json) => Application(
+          id: json['id']?.toString() ?? '',
+          arrendatarioId: json['arrendatario_id']?.toString() ?? '',
+          arrendadorId: json['arrendador_id']?.toString() ?? '',
+          propiedadId: json['propiedad_id']?.toString() ?? '',
+          estado: json['estado']?.toString() ?? 'Pendiente',
+          createdAt: json['created_at'] != null
+              ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
+              : DateTime.now(),
+          updatedAt: json['updated_at'] != null
+              ? DateTime.tryParse(json['updated_at'].toString()) ?? DateTime.now()
+              : DateTime.now(),
+        ),
+      );
 
-    _subscription = client
-        .channel('public:solicitudes:arrendatario:$tenantId')
-        .onPostgresChanges(
-          event:
-              PostgresChangeEvent.update, // Escuchar actualizaciones de estado
-          schema: 'public',
-          table: 'solicitudes',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'arrendatario_id',
-            value: tenantId,
-          ),
-          callback: (payload) async {
-            debugPrint(
-                '🔔 Estado de solicitud actualizado para el arrendatario!');
-            // Recargamos para obtener los datos actualizados con joins (nombre propiedad, etc)
-            final apps = await repository.getTenantApplications(tenantId);
-            _applications = List<Application>.from(apps);
-            notifyListeners();
-          },
-        )
-        .subscribe();
+      _realtimeStreamSub = stream.listen((_) async {
+        debugPrint('🔔 Estado de solicitud actualizado via IRealtimeService!');
+        final apps = await repository.getTenantApplications(tenantId);
+        _applications = List<Application>.from(apps);
+        notifyListeners();
+      });
+      return;
+    }
+
+    try {
+      final client = SupabaseService.instance.client;
+      _subscription = client
+          .channel('public:solicitudes:arrendatario:$tenantId')
+          .onPostgresChanges(
+            event:
+                PostgresChangeEvent.update, // Escuchar actualizaciones de estado
+            schema: 'public',
+            table: 'solicitudes',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'arrendatario_id',
+              value: tenantId,
+            ),
+            callback: (payload) async {
+              debugPrint(
+                  '🔔 Estado de solicitud actualizado para el arrendatario!');
+              final apps = await repository.getTenantApplications(tenantId);
+              _applications = List<Application>.from(apps);
+              notifyListeners();
+            },
+          )
+          .subscribe();
+    } catch (e) {
+      debugPrint('[ApplicationProvider] Error conectando a Supabase realtime: $e');
+    }
   }
 
   Future<bool> updateStatus(String applicationId, String newStatus) async {
@@ -297,6 +367,9 @@ class ApplicationProvider extends ChangeNotifier {
   }
 
   void clear() {
+    _realtimeStreamSub?.cancel();
+    _realtimeStreamSub = null;
+    realtimeService?.unsubscribeAll();
     _subscription?.unsubscribe();
     _subscription = null;
     _applications = [];
@@ -304,5 +377,15 @@ class ApplicationProvider extends ChangeNotifier {
     _isLoading = false;
     _currentFilter = 'Todas';
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _realtimeStreamSub?.cancel();
+    _realtimeStreamSub = null;
+    realtimeService?.unsubscribeAll();
+    _subscription?.unsubscribe();
+    _subscription = null;
+    super.dispose();
   }
 }

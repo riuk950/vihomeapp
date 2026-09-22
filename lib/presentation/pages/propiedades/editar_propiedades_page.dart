@@ -734,6 +734,14 @@ class _EditarPropiedadesPageState extends State<EditarPropiedadesPage> {
                         right: 16,
                         child: GestureDetector(
                           onTap: () {
+                            if (_existingImages.length + _selectedNewImages.length <= 1) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('La propiedad debe tener al menos una foto.'),
+                                ),
+                              );
+                              return;
+                            }
                             setState(() {
                               _existingImages.removeAt(index);
                             });
@@ -777,6 +785,14 @@ class _EditarPropiedadesPageState extends State<EditarPropiedadesPage> {
                         right: 16,
                         child: GestureDetector(
                           onTap: () {
+                            if (_existingImages.length + _selectedNewImages.length <= 1) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('La propiedad debe tener al menos una foto.'),
+                                ),
+                              );
+                              return;
+                            }
                             setState(() {
                               _selectedNewImages.removeAt(index);
                             });
