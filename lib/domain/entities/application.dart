@@ -30,8 +30,11 @@ class Application {
   final String? documentoUrl;
   final List<PersonalReference>? refPersonales;
 
-  // Campos opcionales para cuando se hace join
+  // Campos opcionales para cuando se hace join / snapshots de contacto (Fase 2)
   final String? nombreArrendatario;
+  final String? telefonoArrendatario;
+  final String? nombreArrendador;
+  final String? telefonoArrendador;
   final String? tituloPropiedad;
   final String? direccionPropiedad;
   final double? precioRenta;
@@ -53,6 +56,9 @@ class Application {
     this.refPersonales,
     this.datosContextuales,
     this.nombreArrendatario,
+    this.telefonoArrendatario,
+    this.nombreArrendador,
+    this.telefonoArrendador,
     this.tituloPropiedad,
     this.direccionPropiedad,
     this.precioRenta,
@@ -78,6 +84,9 @@ class Application {
     List<PersonalReference>? refPersonales,
     ApplicationContextData? datosContextuales,
     String? nombreArrendatario,
+    String? telefonoArrendatario,
+    String? nombreArrendador,
+    String? telefonoArrendador,
     String? tituloPropiedad,
     String? direccionPropiedad,
     double? precioRenta,
@@ -99,6 +108,9 @@ class Application {
       refPersonales: refPersonales ?? this.refPersonales,
       datosContextuales: datosContextuales ?? this.datosContextuales,
       nombreArrendatario: nombreArrendatario ?? this.nombreArrendatario,
+      telefonoArrendatario: telefonoArrendatario ?? this.telefonoArrendatario,
+      nombreArrendador: nombreArrendador ?? this.nombreArrendador,
+      telefonoArrendador: telefonoArrendador ?? this.telefonoArrendador,
       tituloPropiedad: tituloPropiedad ?? this.tituloPropiedad,
       direccionPropiedad: direccionPropiedad ?? this.direccionPropiedad,
       precioRenta: precioRenta ?? this.precioRenta,

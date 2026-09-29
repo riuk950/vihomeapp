@@ -30,6 +30,14 @@ class ApplicationProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  String? _refreshErrorMessage;
+  String? get refreshErrorMessage => _refreshErrorMessage;
+
+  void clearRefreshError() {
+    _refreshErrorMessage = null;
+    notifyListeners();
+  }
+
   // Contador inteligente para Arrendatario (Tenant)
   int get unreadTenantCount {
     if (_lastViewedAt == null) {
@@ -79,28 +87,56 @@ class ApplicationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Filtros UI
+  // Filtros UI y contadores dinámicos (RF-21.1, RF-21.2, RF-21.3, QA 1.17)
   String _currentFilter = 'Todas';
   String get currentFilter => _currentFilter;
 
+  int get totalCount => _applications.length;
+
+  int get pendingCount => _applications
+      .where((a) => a.estado.toLowerCase() == 'pendiente')
+      .length;
+
+  int get acceptedCount => _applications
+      .where((a) =>
+          a.estado.toLowerCase() == 'aceptada' ||
+          a.estado.toLowerCase() == 'aprobada')
+      .length;
+
+  int get rejectedCount => _applications
+      .where((a) => a.estado.toLowerCase() == 'rechazada')
+      .length;
+
   List<Application> get filteredApplications {
-    if (_currentFilter == 'Todas') return _applications;
-    if (_currentFilter == 'Pendientes') {
-      return _applications
+    List<Application> list;
+    final filterLower = _currentFilter.toLowerCase();
+
+    if (filterLower == 'todas') {
+      list = List<Application>.from(_applications);
+    } else if (filterLower == 'pendientes') {
+      list = _applications
           .where((a) => a.estado.toLowerCase() == 'pendiente')
           .toList();
-    }
-    if (_currentFilter == 'Revisadas') {
-      return _applications
+    } else if (filterLower == 'aceptadas') {
+      list = _applications
+          .where((a) =>
+              a.estado.toLowerCase() == 'aceptada' ||
+              a.estado.toLowerCase() == 'aprobada')
+          .toList();
+    } else if (filterLower == 'rechazadas') {
+      list = _applications
+          .where((a) => a.estado.toLowerCase() == 'rechazada')
+          .toList();
+    } else if (filterLower == 'revisadas') {
+      list = _applications
           .where((a) => a.estado.toLowerCase() != 'pendiente')
           .toList();
+    } else {
+      list = List<Application>.from(_applications);
     }
-    if (_currentFilter == 'Aceptadas') {
-      return _applications
-          .where((a) => a.estado.toLowerCase() == 'aceptada')
-          .toList();
-    }
-    return _applications;
+
+    list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return list;
   }
 
   void setFilter(String filter) {
@@ -110,22 +146,34 @@ class ApplicationProvider extends ChangeNotifier {
 
   void clearError() {
     _errorMessage = null;
+    _refreshErrorMessage = null;
     notifyListeners();
   }
 
   Future<void> fetchLandlordApplications(String landlordId) async {
     _isLoading = true;
-    _errorMessage = null;
+    _refreshErrorMessage = null;
+    if (_applications.isEmpty) {
+      _errorMessage = null;
+    }
     notifyListeners();
 
     try {
       final apps = await repository.getLandlordApplications(landlordId);
-      _applications = List<Application>.from(apps);
+      final sortedApps = List<Application>.from(apps)
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _applications = sortedApps;
+      _errorMessage = null;
 
       // Iniciar escucha en tiempo real después de la carga inicial
       _subscribeToLandlordApplications(landlordId);
     } catch (e) {
-      _errorMessage = e.toString();
+      if (_applications.isNotEmpty) {
+        _refreshErrorMessage =
+            'No se pudo actualizar. Mostrando datos anteriores: $e';
+      } else {
+        _errorMessage = e.toString();
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -195,17 +243,28 @@ class ApplicationProvider extends ChangeNotifier {
 
   Future<void> fetchTenantApplications(String tenantId) async {
     _isLoading = true;
-    _errorMessage = null;
+    _refreshErrorMessage = null;
+    if (_applications.isEmpty) {
+      _errorMessage = null;
+    }
     notifyListeners();
 
     try {
       final apps = await repository.getTenantApplications(tenantId);
-      _applications = List<Application>.from(apps);
+      final sortedApps = List<Application>.from(apps)
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _applications = sortedApps;
+      _errorMessage = null;
 
       // Iniciar escucha en tiempo real para el arrendatario (cambios de estado)
       _subscribeToTenantApplications(tenantId);
     } catch (e) {
-      _errorMessage = e.toString();
+      if (_applications.isNotEmpty) {
+        _refreshErrorMessage =
+            'No se pudo actualizar. Mostrando datos anteriores: $e';
+      } else {
+        _errorMessage = e.toString();
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
