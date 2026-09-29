@@ -2,7 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vihomeapp/core/utils/context_form_validator.dart';
+import 'package:vihomeapp/core/utils/property_category_resolver.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
+import 'package:vihomeapp/domain/entities/application_context_data.dart';
 import 'package:vihomeapp/domain/repositories/application_repository.dart';
 import 'package:vihomeapp/domain/services/i_realtime_service.dart';
 import 'package:vihomeapp/infrastructure/services/supabase_service.dart';
@@ -366,6 +369,210 @@ class ApplicationProvider extends ChangeNotifier {
     }
   }
 
+  // ==========================================
+  // Soporte Contextual y Validación en Vivo [RF-13, RF-14, RF-15, RF-16, RNF-08, RNF-09]
+  // ==========================================
+
+  PropertyCategory _currentCategory = PropertyCategory.residential;
+  PropertyCategory get currentCategory => _currentCategory;
+
+  // Controladores Residenciales [RF-14]
+  final TextEditingController occupantsController = TextEditingController();
+  final TextEditingController familyDescriptionController = TextEditingController();
+  bool _hasPets = false;
+  bool get hasPets => _hasPets;
+  final TextEditingController petDetailsController = TextEditingController();
+
+  void setHasPets(bool value) {
+    _hasPets = value;
+    notifyListeners();
+  }
+
+  // Controladores Individual / Habitación [RF-15]
+  String? _selectedOccupation = 'Estudiante';
+  String? get selectedOccupation => _selectedOccupation;
+  final TextEditingController workplaceOrSchoolController = TextEditingController();
+  bool _isMinor = false;
+  bool get isMinor => _isMinor;
+  final TextEditingController guardianNameController = TextEditingController();
+  final TextEditingController guardianPhoneController = TextEditingController();
+  String? _guardianRelationship = 'Padre/Madre';
+  String? get guardianRelationship => _guardianRelationship;
+
+  void setSelectedOccupation(String? value) {
+    _selectedOccupation = value;
+    notifyListeners();
+  }
+
+  void setIsMinor(bool value) {
+    _isMinor = value;
+    notifyListeners();
+  }
+
+  void setGuardianRelationship(String? value) {
+    _guardianRelationship = value;
+    notifyListeners();
+  }
+
+  // Controladores Comercial [RF-16]
+  final TextEditingController businessNameController = TextEditingController();
+  final TextEditingController nitController = TextEditingController();
+  final TextEditingController economicActivityController = TextEditingController();
+
+  /// Inicializa la categoría contextual según el tipo de inmueble
+  void initContextualForm(String? propertyType) {
+    _currentCategory = PropertyCategoryResolver.resolve(propertyType);
+    notifyListeners();
+  }
+
+  /// Notifica cambios en los campos de texto para actualizar la validación en vivo
+  void notifyValidationChange() {
+    notifyListeners();
+  }
+
+  /// Indica si el formulario contextual actual cumple todas las validaciones de negocio
+  bool get isContextualFormValid {
+    switch (_currentCategory) {
+      case PropertyCategory.residential:
+        final occErr = ContextualFormValidator.validateOccupants(occupantsController.text);
+        final descErr = ContextualFormValidator.validateFamilyDescription(familyDescriptionController.text);
+        final petErr = ContextualFormValidator.validatePetDetails(
+          hasPets: _hasPets,
+          details: petDetailsController.text,
+        );
+        return occErr == null && descErr == null && petErr == null;
+
+      case PropertyCategory.individual:
+        final occErr = ContextualFormValidator.validateOccupation(_selectedOccupation);
+        final workErr = ContextualFormValidator.validateWorkplaceOrSchool(workplaceOrSchoolController.text);
+        if (occErr != null || workErr != null) return false;
+
+        if (_isMinor) {
+          final nameErr = ContextualFormValidator.validateGuardianName(
+            isMinor: true,
+            name: guardianNameController.text,
+          );
+          final phoneErr = ContextualFormValidator.validateGuardianPhone(
+            isMinor: true,
+            phone: guardianPhoneController.text,
+          );
+          final relErr = ContextualFormValidator.validateGuardianRelationship(
+            isMinor: true,
+            relationship: _guardianRelationship,
+          );
+          return nameErr == null && phoneErr == null && relErr == null;
+        }
+        return true;
+
+      case PropertyCategory.commercial:
+        final bizErr = ContextualFormValidator.validateBusinessName(businessNameController.text);
+        final nitErr = ContextualFormValidator.validateNit(nitController.text);
+        final actErr = ContextualFormValidator.validateEconomicActivity(economicActivityController.text);
+        return bizErr == null && nitErr == null && actErr == null;
+    }
+  }
+
+  /// Construye la entidad de datos contextuales según la categoría y flags activos
+  ApplicationContextData? buildContextData() {
+    switch (_currentCategory) {
+      case PropertyCategory.residential:
+        return ResidentialContextData(
+          numeroOcupantes: int.tryParse(occupantsController.text.trim()) ?? 1,
+          descripcionFamiliar: familyDescriptionController.text.trim(),
+          tieneMascotas: _hasPets,
+          detalleMascotas: _hasPets ? petDetailsController.text.trim() : null,
+        );
+
+      case PropertyCategory.individual:
+        GuardianInfo? guardian;
+        if (_isMinor) {
+          guardian = GuardianInfo(
+            nombreCompleto: guardianNameController.text.trim(),
+            telefono: guardianPhoneController.text.trim(),
+            parentesco: _guardianRelationship ?? 'Padre/Madre',
+          );
+        }
+        return IndividualContextData(
+          ocupacion: _selectedOccupation ?? 'Estudiante',
+          entidadLaboralEducativa: workplaceOrSchoolController.text.trim(),
+          esMenorDeEdad: _isMinor,
+          acudiente: guardian,
+        );
+
+      case PropertyCategory.commercial:
+        return CommercialContextData(
+          razonSocial: businessNameController.text.trim(),
+          nit: nitController.text.trim(),
+          actividadEconomica: economicActivityController.text.trim(),
+        );
+    }
+  }
+
+  /// Envía la solicitud incorporando los datos contextuales y previniendo duplicados [CL-10, CL-13]
+  Future<bool> submitContextualApplication({
+    required String tenantId,
+    required String landlordId,
+    required String propertyId,
+    required String ingresosMensuales,
+    String? documentoUrl,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final hasActive = await hasApplicationForProperty(tenantId, propertyId);
+      if (hasActive) {
+        _errorMessage = 'Ya tienes una solicitud en proceso para esta propiedad.';
+        return false;
+      }
+
+      final contextData = buildContextData();
+      final newApp = Application(
+        id: '',
+        arrendatarioId: tenantId,
+        arrendadorId: landlordId,
+        propiedadId: propertyId,
+        estado: 'Pendiente',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        ingresosMensuales: ingresosMensuales,
+        documentoUrl: documentoUrl,
+        datosContextuales: contextData,
+      );
+
+      final created = await repository.createApplication(newApp);
+      _applications.insert(0, created);
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Reinicia los valores y controladores del formulario contextual
+  void resetContextualForm() {
+    occupantsController.clear();
+    familyDescriptionController.clear();
+    _hasPets = false;
+    petDetailsController.clear();
+
+    _selectedOccupation = 'Estudiante';
+    workplaceOrSchoolController.clear();
+    _isMinor = false;
+    guardianNameController.clear();
+    guardianPhoneController.clear();
+    _guardianRelationship = 'Padre/Madre';
+
+    businessNameController.clear();
+    nitController.clear();
+    economicActivityController.clear();
+    notifyListeners();
+  }
+
   void clear() {
     _realtimeStreamSub?.cancel();
     _realtimeStreamSub = null;
@@ -376,6 +583,7 @@ class ApplicationProvider extends ChangeNotifier {
     _errorMessage = null;
     _isLoading = false;
     _currentFilter = 'Todas';
+    resetContextualForm();
     notifyListeners();
   }
 
@@ -386,6 +594,17 @@ class ApplicationProvider extends ChangeNotifier {
     realtimeService?.unsubscribeAll();
     _subscription?.unsubscribe();
     _subscription = null;
+
+    occupantsController.dispose();
+    familyDescriptionController.dispose();
+    petDetailsController.dispose();
+    workplaceOrSchoolController.dispose();
+    guardianNameController.dispose();
+    guardianPhoneController.dispose();
+    businessNameController.dispose();
+    nitController.dispose();
+    economicActivityController.dispose();
+
     super.dispose();
   }
 }

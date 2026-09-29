@@ -1,3 +1,4 @@
+import 'package:vihomeapp/data/models/application_context_data_model.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 
 class ApplicationModel extends Application {
@@ -16,6 +17,7 @@ class ApplicationModel extends Application {
     super.otrosIngresos,
     super.documentoUrl,
     super.refPersonales,
+    super.datosContextuales,
     super.nombreArrendatario,
     super.tituloPropiedad,
     super.direccionPropiedad,
@@ -55,6 +57,12 @@ class ApplicationModel extends Application {
           .toList();
     }
 
+    // Parsear datos contextuales si existen
+    final rawContext = json['datos_contextuales'];
+    final datosContextuales = rawContext is Map<String, dynamic>
+        ? ApplicationContextDataModel.fromJson(rawContext)
+        : null;
+
     return ApplicationModel(
       id: json['id'],
       arrendatarioId: json['arrendatario_id'],
@@ -70,6 +78,7 @@ class ApplicationModel extends Application {
       otrosIngresos: json['otros_ingresos']?.toString(),
       documentoUrl: json['documento_url']?.toString(),
       refPersonales: refPersonales,
+      datosContextuales: datosContextuales,
       nombreArrendatario: nombreArrendatario,
       tituloPropiedad: tituloPropiedad,
       direccionPropiedad: direccionPropiedad,
@@ -92,6 +101,9 @@ class ApplicationModel extends Application {
       if (ingresosMensuales != null) 'ingresos_mensuales': ingresosMensuales,
       if (otrosIngresos != null) 'otros_ingresos': otrosIngresos,
       if (documentoUrl != null) 'documento_url': documentoUrl,
+      if (datosContextuales != null)
+        'datos_contextuales':
+            ApplicationContextDataModel.toJson(datosContextuales),
       if (refPersonales != null)
         'ref_personales': refPersonales!
             .map(
@@ -118,6 +130,9 @@ class ApplicationModel extends Application {
       if (ingresosMensuales != null) 'ingresos_mensuales': ingresosMensuales,
       if (otrosIngresos != null) 'otros_ingresos': otrosIngresos,
       if (documentoUrl != null) 'documento_url': documentoUrl,
+      if (datosContextuales != null)
+        'datos_contextuales':
+            ApplicationContextDataModel.toJson(datosContextuales),
       if (refPersonales != null)
         'ref_personales': refPersonales!
             .map(

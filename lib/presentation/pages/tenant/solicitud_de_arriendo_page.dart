@@ -7,9 +7,11 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/core/utils/file_validator.dart';
+import 'package:vihomeapp/core/utils/property_category_resolver.dart';
 import 'package:vihomeapp/data/models/application_model.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/presentation/helpers/phone_input_formatter.dart';
+import 'package:vihomeapp/presentation/pages/tenant/widgets/contextual_form_widgets.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/presentation/widgets/btn_primary.dart';
@@ -18,12 +20,14 @@ class SolicitudDeArriendoPage extends StatefulWidget {
   final String propertyId;
   final String propertyTitle;
   final String landlordId;
+  final String? propertyType;
 
   const SolicitudDeArriendoPage({
     super.key,
     required this.propertyId,
     required this.propertyTitle,
     required this.landlordId,
+    this.propertyType,
   });
 
   @override
@@ -53,11 +57,33 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
   bool _aceptaVerificacionDatos = false;
 
   // Estados de expansión de los paneles
+  bool _isContextualExpanded = true;
   bool _isLaboralExpanded = true;
   bool _isReferenciasExpanded = false;
   bool _isLegalExpanded = false;
 
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final categoryRaw = widget.propertyType ?? widget.propertyTitle;
+        context.read<ApplicationProvider>().initContextualForm(categoryRaw);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant SolicitudDeArriendoPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.propertyType != widget.propertyType ||
+        oldWidget.propertyTitle != widget.propertyTitle) {
+      final categoryRaw = widget.propertyType ?? widget.propertyTitle;
+      context.read<ApplicationProvider>().initContextualForm(categoryRaw);
+    }
+  }
 
   @override
   void dispose() {
@@ -203,7 +229,15 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
   }
 
   Future<void> _enviarSolicitud() async {
-    if (!_formKey.currentState!.validate()) {
+    final applicationProvider = Provider.of<ApplicationProvider>(
+      context,
+      listen: false,
+    );
+
+    final formValid = _formKey.currentState!.validate();
+    final contextualValid = applicationProvider.isContextualFormValid;
+
+    if (!formValid || !contextualValid) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Por favor complete todos los campos requeridos'),
@@ -241,13 +275,28 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final applicationProvider = Provider.of<ApplicationProvider>(
-        context,
-        listen: false,
-      );
 
       if (authProvider.user == null) {
         throw Exception('Usuario no autenticado');
+      }
+
+      final alreadyApplied = await applicationProvider.hasApplicationForProperty(
+        authProvider.user!.id,
+        widget.propertyId,
+      );
+      if (alreadyApplied) {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Ya tienes una solicitud en proceso para esta propiedad.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
       }
 
       // Convertir referencias a objetos PersonalReference
@@ -316,6 +365,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
             : _otrosIngresosController.text.replaceAll(RegExp(r'\D'), ''),
         documentoUrl: documentoUrlsString,
         refPersonales: refPersonales,
+        datosContextuales: applicationProvider.buildContextData(),
       );
 
       final result = await applicationProvider.createApplication(application);
@@ -326,6 +376,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
         });
 
         if (result != null) {
+          applicationProvider.resetContextualForm();
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -398,9 +449,11 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
       body: SafeArea(
         child: Form(
           key: _formKey,
-          child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
             // Información de la propiedad
             Container(
               padding: const EdgeInsets.all(16),
@@ -645,6 +698,55 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
 
             const SizedBox(height: 16),
 
+            // Formulario Contextual según Categoría del Inmueble [RF-13, RF-14, RF-15, RF-16]
+            Consumer<ApplicationProvider>(
+              builder: (context, appProvider, child) {
+                Widget contextualFormWidget;
+                String panelTitle;
+                String panelSubtitle;
+                IconData panelIcon;
+
+                switch (appProvider.currentCategory) {
+                  case PropertyCategory.residential:
+                    panelTitle = 'Composición Familiar y Mascotas';
+                    panelSubtitle = 'Número de ocupantes y datos de convivencia';
+                    panelIcon = Icons.family_restroom;
+                    contextualFormWidget = const FormResidencialWidget();
+                    break;
+                  case PropertyCategory.individual:
+                    panelTitle = 'Información de Ocupación';
+                    panelSubtitle = 'Datos de estudio o trabajo y acudiente';
+                    panelIcon = Icons.person_pin;
+                    contextualFormWidget = const FormIndividualWidget();
+                    break;
+                  case PropertyCategory.commercial:
+                    panelTitle = 'Información Comercial';
+                    panelSubtitle = 'Razón social, NIT y actividad económica';
+                    panelIcon = Icons.storefront;
+                    contextualFormWidget = const FormComercialWidget();
+                    break;
+                }
+
+                return _buildExpansionPanel(
+                  title: panelTitle,
+                  subtitle: panelSubtitle,
+                  icon: panelIcon,
+                  isExpanded: _isContextualExpanded,
+                  onExpansionChanged: (expanded) {
+                    setState(() {
+                      _isContextualExpanded = expanded;
+                    });
+                  },
+                  children: [
+                    const SizedBox(height: 8),
+                    contextualFormWidget,
+                  ],
+                );
+              },
+            ),
+
+            const SizedBox(height: 16),
+
             // 2. Referencias Personales
             _buildExpansionPanel(
               title: 'Referencias Personales',
@@ -867,12 +969,13 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
             ),
 
             const SizedBox(height: 24),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildExpansionPanel({
     required String title,

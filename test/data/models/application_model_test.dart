@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vihomeapp/data/models/application_model.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
+import 'package:vihomeapp/domain/entities/application_context_data.dart';
 import '../../fixtures/fixtures.dart';
 
 void main() {
@@ -40,6 +41,32 @@ void main() {
       expect(jsonCreate.containsKey('updated_at'), isFalse);
       expect(jsonCreate['arrendatario_id'], model.arrendatarioId);
       expect(jsonCreate['ingresos_mensuales'], '8500000');
+    });
+
+    test('should correctly deserialize and serialize application with datosContextuales [RF-14, RF-15, RF-16, RF-17]', () {
+      final jsonWithContext = Map<String, dynamic>.from(ApplicationFixtures.validPendingApplicationJson)
+        ..['datos_contextuales'] = {
+          'tipo_categoria': 'residencial',
+          'numero_ocupantes': 3,
+          'descripcion_familiar': 'Familia de 3 integrantes',
+          'tiene_mascotas': true,
+          'detalle_mascotas': 'Un perro',
+        };
+
+      final model = ApplicationModel.fromJson(jsonWithContext);
+      expect(model.datosContextuales, isNotNull);
+      expect(model.datosContextuales, isA<ResidentialContextData>());
+      final residential = model.datosContextuales as ResidentialContextData;
+      expect(residential.numeroOcupantes, equals(3));
+      expect(residential.tieneMascotas, isTrue);
+
+      final jsonResult = model.toJson();
+      expect(jsonResult['datos_contextuales'], isNotNull);
+      expect(jsonResult['datos_contextuales']['tipo_categoria'], equals('residencial'));
+
+      final jsonCreate = model.toJsonCreate();
+      expect(jsonCreate['datos_contextuales'], isNotNull);
+      expect(jsonCreate['datos_contextuales']['tipo_categoria'], equals('residencial'));
     });
   });
 }

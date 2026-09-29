@@ -1,3 +1,5 @@
+import 'package:vihomeapp/domain/entities/application_context_data.dart';
+
 class PersonalReference {
   final String nombre;
   final String telefono;
@@ -49,11 +51,15 @@ class Application {
     this.otrosIngresos,
     this.documentoUrl,
     this.refPersonales,
+    this.datosContextuales,
     this.nombreArrendatario,
     this.tituloPropiedad,
     this.direccionPropiedad,
     this.precioRenta,
   });
+
+  // Datos contextuales según el tipo de inmueble [RF-13.2]
+  final ApplicationContextData? datosContextuales;
 
   Application copyWith({
     String? id,
@@ -70,6 +76,7 @@ class Application {
     String? otrosIngresos,
     String? documentoUrl,
     List<PersonalReference>? refPersonales,
+    ApplicationContextData? datosContextuales,
     String? nombreArrendatario,
     String? tituloPropiedad,
     String? direccionPropiedad,
@@ -90,6 +97,7 @@ class Application {
       otrosIngresos: otrosIngresos ?? this.otrosIngresos,
       documentoUrl: documentoUrl ?? this.documentoUrl,
       refPersonales: refPersonales ?? this.refPersonales,
+      datosContextuales: datosContextuales ?? this.datosContextuales,
       nombreArrendatario: nombreArrendatario ?? this.nombreArrendatario,
       tituloPropiedad: tituloPropiedad ?? this.tituloPropiedad,
       direccionPropiedad: direccionPropiedad ?? this.direccionPropiedad,
