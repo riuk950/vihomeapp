@@ -6,6 +6,7 @@ import 'package:vihomeapp/core/utils/external_contact_launcher.dart';
 import 'package:vihomeapp/core/utils/text_sanitizer.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/presentation/widgets/contact_actions_row.dart';
+import 'package:vihomeapp/presentation/widgets/rating_bottom_sheet_modal.dart';
 
 /// Tarjeta estructurada de alta densidad para postulaciones enviadas por el Arrendatario.
 /// Incluye bloque visual distintivo de "Paso siguiente" (RF-18.1, RF-18.3, RF-19, RF-20.1, RF-20.2, CL-15, CL-16, QA 1.6).
@@ -213,23 +214,56 @@ class ApplicationCardTenant extends StatelessWidget {
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 const SizedBox(height: 8),
 
-                // Fila inferior: Acción contextual 'Ver detalles'
+                // Fila inferior: Acción contextual 'Ver detalles' y 'Calificar Propietario' si está aceptada
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Ver detalle',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: primaryColor,
-                      ),
-                    ),
-                    const SizedBox(width: 2),
-                    const Icon(
-                      Icons.chevron_right,
-                      size: 16,
-                      color: primaryColor,
+                    if (statusLower == 'aceptada' || statusLower == 'aprobada')
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                          foregroundColor: const Color(0xFFD97706),
+                        ),
+                        icon: const Icon(Icons.star, size: 14),
+                        label: const Text(
+                          'Calificar Propietario',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () {
+                          RatingBottomSheetModal.show(
+                            context,
+                            solicitudId: application.id,
+                            reviewerId: application.arrendatarioId,
+                            targetUserId: application.arrendadorId,
+                            targetUserName: application.nombreArrendador,
+                            targetRoleTitle: 'Propietario',
+                          );
+                        },
+                      )
+                    else
+                      const SizedBox.shrink(),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Ver detalle',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: primaryColor,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        const Icon(
+                          Icons.chevron_right,
+                          size: 16,
+                          color: primaryColor,
+                        ),
+                      ],
                     ),
                   ],
                 ),

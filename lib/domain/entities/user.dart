@@ -5,6 +5,7 @@ class User {
   final String? name;
   final String? role;
   final bool isPremium;
+  final bool isVerified;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -14,6 +15,7 @@ class User {
     this.name,
     this.role,
     this.isPremium = false,
+    this.isVerified = false,
     this.createdAt,
     this.updatedAt,
   });
@@ -24,6 +26,7 @@ class User {
     String? name,
     String? role,
     bool? isPremium,
+    bool? isVerified,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -33,6 +36,7 @@ class User {
       name: name ?? this.name,
       role: role ?? this.role,
       isPremium: isPremium ?? this.isPremium,
+      isVerified: isVerified ?? this.isVerified,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -47,6 +51,7 @@ class User {
         other.name == name &&
         other.role == role &&
         other.isPremium == isPremium &&
+        other.isVerified == isVerified &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt;
   }
@@ -58,6 +63,7 @@ class User {
       (name?.hashCode ?? 0) ^
       (role?.hashCode ?? 0) ^
       isPremium.hashCode ^
+      isVerified.hashCode ^
       (createdAt?.hashCode ?? 0) ^
       (updatedAt?.hashCode ?? 0);
 }

@@ -6,6 +6,7 @@ import 'package:vihomeapp/core/utils/external_contact_launcher.dart';
 import 'package:vihomeapp/core/utils/text_sanitizer.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/presentation/widgets/contact_actions_row.dart';
+import 'package:vihomeapp/presentation/widgets/rating_bottom_sheet_modal.dart';
 
 /// Tarjeta de alta densidad para postulaciones recibidas por el Arrendador.
 /// (RF-18.1, RF-18.2, RF-18.4, RF-20.1, RF-20.2, CL-15, CL-16, QA 1.5, QA 1.7).
@@ -209,7 +210,7 @@ class ApplicationCardLandlord extends StatelessWidget {
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 const SizedBox(height: 8),
 
-                // Fila inferior: Botones directos de contacto + Enlace 'Ver detalle'
+                // Fila inferior: Botones directos de contacto + Calificar + Enlace 'Ver detalle'
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -222,6 +223,33 @@ class ApplicationCardLandlord extends StatelessWidget {
                       isTenantView: false,
                       launcher: launcher,
                     ),
+
+                    if (statusLower == 'aceptada' || statusLower == 'aprobada')
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                          foregroundColor: const Color(0xFFD97706),
+                        ),
+                        icon: const Icon(Icons.star, size: 14),
+                        label: const Text(
+                          'Calificar Postulante',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () {
+                          RatingBottomSheetModal.show(
+                            context,
+                            solicitudId: application.id,
+                            reviewerId: application.arrendadorId,
+                            targetUserId: application.arrendatarioId,
+                            targetUserName: application.nombreArrendatario,
+                            targetRoleTitle: 'Postulante / Inquilino',
+                          );
+                        },
+                      ),
 
                     // Botón contextual ver detalles
                     Row(

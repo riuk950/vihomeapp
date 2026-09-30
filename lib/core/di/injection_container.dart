@@ -8,10 +8,13 @@ import '../network/network_info.dart';
 import '../../data/datasources/datasources.dart';
 import '../../data/datasources/property_local_datasource.dart';
 import '../../data/datasources/application_datasource.dart';
+import '../../data/datasources/review_remote_datasource.dart';
+import '../../data/datasources/review_remote_datasource_impl.dart';
 
 //Repositorios
 import '../../domain/repositories/repositories.dart';
 import '../../domain/repositories/application_repository.dart';
+import '../../domain/repositories/review_repository.dart';
 
 //Casos de uso
 import '../../domain/usecases/usecases.dart';
@@ -31,6 +34,7 @@ import '../ads/ad_manager.dart';
 //Repositorios Data
 import '../../data/repositories/repositories.dart';
 import '../../data/repositories/application_repository_impl.dart';
+import '../../data/repositories/review_repository_impl.dart';
 
 final getIt = GetIt.instance;
 
@@ -70,6 +74,9 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton<ProjectRemoteDataSource>(
     () => ProjectRemoteDataSourceImpl(getIt<SupabaseService>()),
   );
+  getIt.registerLazySingleton<ReviewRemoteDataSource>(
+    () => ReviewRemoteDataSourceImpl(getIt<SupabaseService>()),
+  );
 
   // Repositories
   getIt.registerLazySingleton<AuthRepository>(
@@ -93,6 +100,9 @@ Future<void> setupDependencyInjection() async {
   );
   getIt.registerLazySingleton<ProjectRepository>(
     () => ProjectRepositoryImpl(getIt<ProjectRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<ReviewRepository>(
+    () => ReviewRepositoryImpl(getIt<ReviewRemoteDataSource>()),
   );
 
   // Use cases
@@ -196,6 +206,9 @@ Future<void> setupDependencyInjection() async {
   );
   getIt.registerFactory(
     () => SubscriptionProvider(),
+  );
+  getIt.registerFactory(
+    () => ReviewProvider(getIt<ReviewRepository>()),
   );
   getIt.registerLazySingleton<AdManager>(() => AdManager());
   getIt.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
