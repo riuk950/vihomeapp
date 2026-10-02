@@ -3,8 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/presentation/widgets/btn_primary.dart';
 import '../../../domain/entities/tenant.dart';
+import '../../../domain/entities/landlord.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/tenant_provider.dart';
+import '../../providers/landlord_provider.dart';
 import '../../providers/review_provider.dart';
 import 'package:flutter/services.dart';
 import '../../helpers/phone_input_formatter.dart';
@@ -33,7 +35,79 @@ class _CompleteTenantProfilePageState extends State<CompleteTenantProfilePage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<TenantProvider>(context, listen: false).clearError();
+      _preloadUserData();
     });
+  }
+
+  void _preloadUserData() {
+    if (!mounted) return;
+    Tenant? tenant;
+    try {
+      final tenantProvider =
+          Provider.of<TenantProvider>(context, listen: false);
+      tenant = tenantProvider.tenant;
+    } catch (_) {}
+
+    Landlord? landlord;
+    try {
+      final landlordProvider =
+          Provider.of<LandlordProvider>(context, listen: false);
+      landlord = landlordProvider.landlord;
+    } catch (_) {}
+
+    final primerNombre = tenant?.primerNombre ?? landlord?.primerNombre;
+    final segundoNombre = tenant?.segundoNombre ?? landlord?.segundoNombre;
+    final primerApellido = tenant?.primerApellido ?? landlord?.primerApellido;
+    final segundoApellido =
+        tenant?.segundoApellido ?? landlord?.segundoApellido;
+    final tipoDocumento = tenant?.tipoDocumento ?? landlord?.tipoDocumento;
+    final documento = tenant?.documento ?? landlord?.documento;
+    final direccion =
+        tenant?.direccionContacto ?? landlord?.direccionContacto;
+    final telefono = tenant?.telefonoContacto ?? landlord?.telefonoContacto;
+
+    if (primerNombre != null &&
+        primerNombre.isNotEmpty &&
+        _primerNombreController.text.isEmpty) {
+      _primerNombreController.text = primerNombre;
+    }
+    if (segundoNombre != null &&
+        segundoNombre.isNotEmpty &&
+        _segundoNombreController.text.isEmpty) {
+      _segundoNombreController.text = segundoNombre;
+    }
+    if (primerApellido != null &&
+        primerApellido.isNotEmpty &&
+        _primerApellidoController.text.isEmpty) {
+      _primerApellidoController.text = primerApellido;
+    }
+    if (segundoApellido != null &&
+        segundoApellido.isNotEmpty &&
+        _segundoApellidoController.text.isEmpty) {
+      _segundoApellidoController.text = segundoApellido;
+    }
+    if (tipoDocumento != null && tipoDocumento.isNotEmpty) {
+      setState(() {
+        _tipoDocumento = tipoDocumento;
+      });
+    }
+    if (documento != null &&
+        documento.isNotEmpty &&
+        _documentoController.text.isEmpty) {
+      _documentoController.text = documento;
+    }
+    if (direccion != null &&
+        direccion.isNotEmpty &&
+        _direccionContactoController.text.isEmpty) {
+      _direccionContactoController.text = direccion;
+    }
+    if (telefono != null &&
+        telefono.isNotEmpty &&
+        (_telefonoContactoController.text == '57' ||
+            _telefonoContactoController.text.isEmpty)) {
+      _telefonoContactoController.text =
+          telefono.startsWith('57') ? telefono : '57$telefono';
+    }
   }
 
   @override

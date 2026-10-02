@@ -210,6 +210,86 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await supabaseService.client.from('profiles').update({
         'role': role,
       }).eq('id', user.id);
+
+      // 3. Sincronización automática de perfil personal entre roles (RF-37)
+      try {
+        if (role == 'arrendador') {
+          // Consultar origen: info_arrendatarios
+          final tenantData = await supabaseService.client
+              .from('info_arrendatarios')
+              .select()
+              .eq('id', user.id)
+              .maybeSingle();
+
+          if (tenantData != null &&
+              tenantData['primer_nombre'] != null &&
+              (tenantData['primer_nombre'] as String).isNotEmpty) {
+            // Consultar si ya existe perfil en info_arrendadores
+            final landlordData = await supabaseService.client
+                .from('info_arrendadores')
+                .select()
+                .eq('id', user.id)
+                .maybeSingle();
+
+            if (landlordData == null ||
+                landlordData['primer_nombre'] == null ||
+                (landlordData['primer_nombre'] as String).isEmpty) {
+              await supabaseService.client.from('info_arrendadores').upsert({
+                'id': user.id,
+                'primer_nombre': tenantData['primer_nombre'],
+                'segundo_nombre': tenantData['segundo_nombre'],
+                'primer_apellido': tenantData['primer_apellido'],
+                'segundo_apellido': tenantData['segundo_apellido'],
+                'tipo_documento': tenantData['tipo_documento'] ?? 'CC',
+                'documento': tenantData['documento'] ?? '',
+                'telefono_contacto': tenantData['telefono_contacto'] ?? '',
+                'direccion_contacto': tenantData['direccion_contacto'] ?? '',
+                if (tenantData['fcm_token'] != null)
+                  'fcm_token': tenantData['fcm_token'],
+              });
+            }
+          }
+        } else if (role == 'arrendatario') {
+          // Consultar origen: info_arrendadores
+          final landlordData = await supabaseService.client
+              .from('info_arrendadores')
+              .select()
+              .eq('id', user.id)
+              .maybeSingle();
+
+          if (landlordData != null &&
+              landlordData['primer_nombre'] != null &&
+              (landlordData['primer_nombre'] as String).isNotEmpty) {
+            // Consultar si ya existe perfil en info_arrendatarios
+            final tenantData = await supabaseService.client
+                .from('info_arrendatarios')
+                .select()
+                .eq('id', user.id)
+                .maybeSingle();
+
+            if (tenantData == null ||
+                tenantData['primer_nombre'] == null ||
+                (tenantData['primer_nombre'] as String).isEmpty) {
+              await supabaseService.client.from('info_arrendatarios').upsert({
+                'id': user.id,
+                'primer_nombre': landlordData['primer_nombre'],
+                'segundo_nombre': landlordData['segundo_nombre'],
+                'primer_apellido': landlordData['primer_apellido'],
+                'segundo_apellido': landlordData['segundo_apellido'],
+                'tipo_documento': landlordData['tipo_documento'] ?? 'CC',
+                'documento': landlordData['documento'] ?? '',
+                'telefono_contacto': landlordData['telefono_contacto'] ?? '',
+                'direccion_contacto': landlordData['direccion_contacto'] ?? '',
+                if (landlordData['fcm_token'] != null)
+                  'fcm_token': landlordData['fcm_token'],
+              });
+            }
+          }
+        }
+      } catch (e) {
+        // La sincronización de perfil no bloquea el cambio de rol del usuario
+        // pero se registra para auditoría técnica
+      }
     } catch (e) {
       throw SupabaseErrorHandler.handle(e);
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/domain/entities/landlord.dart';
+import 'package:vihomeapp/domain/entities/tenant.dart';
 import 'package:vihomeapp/presentation/providers/providers.dart';
 import 'package:vihomeapp/presentation/widgets/widgets.dart';
 import 'package:flutter/services.dart';
@@ -33,7 +34,79 @@ class _CompleteLandlordProfilePageState
     _telefonoContactoController.text = '57';
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<LandlordProvider>(context, listen: false).clearError();
+      _preloadUserData();
     });
+  }
+
+  void _preloadUserData() {
+    if (!mounted) return;
+    Landlord? landlord;
+    try {
+      final landlordProvider =
+          Provider.of<LandlordProvider>(context, listen: false);
+      landlord = landlordProvider.landlord;
+    } catch (_) {}
+
+    Tenant? tenant;
+    try {
+      final tenantProvider =
+          Provider.of<TenantProvider>(context, listen: false);
+      tenant = tenantProvider.tenant;
+    } catch (_) {}
+
+    final primerNombre = landlord?.primerNombre ?? tenant?.primerNombre;
+    final segundoNombre = landlord?.segundoNombre ?? tenant?.segundoNombre;
+    final primerApellido = landlord?.primerApellido ?? tenant?.primerApellido;
+    final segundoApellido =
+        landlord?.segundoApellido ?? tenant?.segundoApellido;
+    final tipoDocumento = landlord?.tipoDocumento ?? tenant?.tipoDocumento;
+    final documento = landlord?.documento ?? tenant?.documento;
+    final direccion =
+        landlord?.direccionContacto ?? tenant?.direccionContacto;
+    final telefono = landlord?.telefonoContacto ?? tenant?.telefonoContacto;
+
+    if (primerNombre != null &&
+        primerNombre.isNotEmpty &&
+        _primerNombreController.text.isEmpty) {
+      _primerNombreController.text = primerNombre;
+    }
+    if (segundoNombre != null &&
+        segundoNombre.isNotEmpty &&
+        _segundoNombreController.text.isEmpty) {
+      _segundoNombreController.text = segundoNombre;
+    }
+    if (primerApellido != null &&
+        primerApellido.isNotEmpty &&
+        _primerApellidoController.text.isEmpty) {
+      _primerApellidoController.text = primerApellido;
+    }
+    if (segundoApellido != null &&
+        segundoApellido.isNotEmpty &&
+        _segundoApellidoController.text.isEmpty) {
+      _segundoApellidoController.text = segundoApellido;
+    }
+    if (tipoDocumento != null && tipoDocumento.isNotEmpty) {
+      setState(() {
+        _tipoDocumento = tipoDocumento;
+      });
+    }
+    if (documento != null &&
+        documento.isNotEmpty &&
+        _documentoController.text.isEmpty) {
+      _documentoController.text = documento;
+    }
+    if (direccion != null &&
+        direccion.isNotEmpty &&
+        _direccionContactoController.text.isEmpty) {
+      _direccionContactoController.text = direccion;
+    }
+    if (telefono != null &&
+        telefono.isNotEmpty &&
+        (_telefonoContactoController.text == '57' ||
+            _telefonoContactoController.text.isEmpty)) {
+      _telefonoContactoController.text =
+          telefono.startsWith('57') ? telefono : '57$telefono';
+    }
   }
 
   @override
