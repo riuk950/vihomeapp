@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/presentation/pages/pages.dart';
 import 'package:vihomeapp/presentation/providers/providers.dart';
+import 'package:vihomeapp/core/router/app_router.dart';
 import 'package:vihomeapp/infrastructure/services/push_notification_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -12,7 +13,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with RouteAware {
   int _currentIndex = 0;
   String? _lastRole;
   AuthProvider? _authProvider;
@@ -27,6 +28,10 @@ class _HomePageState extends State<HomePage> {
       _lastRole = user?.role;
       _loadApplicationsForRole(user?.role, user?.id);
 
+      if (_currentIndex == 3) {
+        _syncReputationForCurrentUser();
+      }
+
       // Procesar notificación inicial si la app se abrió desde una
       PushNotificationService.handleInitialMessage();
 
@@ -36,9 +41,28 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     _authProvider?.removeListener(_onAuthChanged);
     super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    // Al regresar a HomePage desde otra pantalla, sincronizar si estamos en la pestaña 3
+    if (_currentIndex == 3) {
+      _syncReputationForCurrentUser();
+    }
   }
 
   void _onAuthChanged() {
@@ -51,6 +75,34 @@ class _HomePageState extends State<HomePage> {
       _lastRole = newRole;
       _loadApplicationsForRole(newRole, user?.id);
     }
+  }
+
+  void _syncReputationForCurrentUser() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    if (user == null) return;
+
+    try {
+      final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
+      bool isVerified = false;
+      if (user.role == 'arrendador') {
+        try {
+          isVerified =
+              Provider.of<LandlordProvider>(context, listen: false).isVerified;
+        } catch (_) {}
+      } else {
+        try {
+          isVerified =
+              Provider.of<TenantProvider>(context, listen: false).isVerified;
+        } catch (_) {}
+      }
+      reviewProvider.fetchUserReputation(
+        user.id,
+        isVerified: isVerified,
+        userName: user.email,
+      );
+      reviewProvider.fetchUserReviews(user.id);
+    } catch (_) {}
   }
 
   void _loadApplicationsForRole(String? role, String? userId) {
@@ -97,6 +149,9 @@ class _HomePageState extends State<HomePage> {
               setState(() {
                 _currentIndex = index;
               });
+              if (index == 3) {
+                _syncReputationForCurrentUser();
+              }
             },
             type: BottomNavigationBarType.fixed,
             selectedItemColor: primaryColor,

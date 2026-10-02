@@ -3,7 +3,7 @@ import '../../core/errors/review_exceptions.dart';
 /// Entidad inmutable de Calificación del dominio
 class Review {
   final String id;
-  final String solicitudId;
+  final String? solicitudId;
   final String reviewerId;
   final String? reviewerName;
   final String targetUserId;
@@ -13,7 +13,7 @@ class Review {
 
   Review({
     required this.id,
-    required this.solicitudId,
+    this.solicitudId,
     required this.reviewerId,
     this.reviewerName,
     required this.targetUserId,
@@ -21,7 +21,7 @@ class Review {
     this.comment,
     required this.createdAt,
   }) {
-    if (reviewerId == targetUserId) {
+    if (solicitudId != null && reviewerId == targetUserId) {
       throw const SelfRatingNotAllowedException();
     }
     if (rating < 1 || rating > 5) {

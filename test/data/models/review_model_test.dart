@@ -51,6 +51,32 @@ void main() {
       expect(model.reviewerName, isNull);
     });
 
+    test('deserializes and serializes verified user review with null solicitudId', () {
+      final verifiedJson = {
+        'id': 'rev-verified-10',
+        'solicitud_id': null,
+        'reviewer_id': 'usr-user-01',
+        'reviewer_name': 'Sistema ViHome',
+        'target_user_id': 'usr-user-01',
+        'rating': 3,
+        'comment': 'Usuario verificado',
+        'created_at': '2026-09-30T14:35:00.000Z',
+      };
+
+      final model = ReviewModel.fromJson(verifiedJson);
+      expect(model.id, equals('rev-verified-10'));
+      expect(model.solicitudId, isNull);
+      expect(model.reviewerId, equals('usr-user-01'));
+      expect(model.targetUserId, equals('usr-user-01'));
+      expect(model.rating, equals(3));
+      expect(model.comment, equals('Usuario verificado'));
+
+      final jsonOut = model.toJson();
+      expect(jsonOut['solicitud_id'], isNull);
+      expect(jsonOut['rating'], equals(3));
+      expect(jsonOut['comment'], equals('Usuario verificado'));
+    });
+
     test('serializes to JSON correctly', () {
       final model = ReviewModel.fromJson(jsonMap);
       final serialized = model.toJson();

@@ -23,7 +23,7 @@ void main() {
       expect(review.comment, equals('Excelente experiencia.'));
     });
 
-    test('throws SelfRatingNotAllowedException when reviewerId equals targetUserId', () {
+    test('throws SelfRatingNotAllowedException when reviewerId equals targetUserId and solicitudId is not null', () {
       expect(
         () => Review(
           id: 'rev-2',
@@ -35,6 +35,23 @@ void main() {
         ),
         throwsA(isA<SelfRatingNotAllowedException>()),
       );
+    });
+
+    test('allows review when solicitudId is null (verified user initial review)', () {
+      final review = Review(
+        id: 'rev-verified',
+        solicitudId: null,
+        reviewerId: 'usr-same',
+        targetUserId: 'usr-same',
+        rating: 3,
+        comment: 'Usuario verificado',
+        createdAt: now,
+      );
+
+      expect(review.id, equals('rev-verified'));
+      expect(review.solicitudId, isNull);
+      expect(review.rating, equals(3));
+      expect(review.comment, equals('Usuario verificado'));
     });
 
     test('throws ReviewValidationException when rating is less than 1 or greater than 5', () {

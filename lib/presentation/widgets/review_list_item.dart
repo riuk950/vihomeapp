@@ -4,7 +4,7 @@ import '../../domain/entities/review.dart';
 import 'rating_stars_bar.dart';
 
 /// Elemento visual de lista para representar una opinión o reseña individual
-class ReviewListItem extends StatelessWidget {
+class ReviewListItem extends StatefulWidget {
   final Review review;
 
   const ReviewListItem({
@@ -13,12 +13,22 @@ class ReviewListItem extends StatelessWidget {
   });
 
   @override
+  State<ReviewListItem> createState() => _ReviewListItemState();
+}
+
+class _ReviewListItemState extends State<ReviewListItem> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
+    final review = widget.review;
     final authorName = (review.reviewerName != null && review.reviewerName!.trim().isNotEmpty)
         ? review.reviewerName!.trim()
         : 'Usuario';
     final initial = authorName.isNotEmpty ? authorName[0].toUpperCase() : 'U';
     final formattedDate = ApplicationDateFormatter.format(review.createdAt);
+    final comment = review.comment?.trim() ?? '';
+    final isLongComment = comment.length > 100;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6.0),
@@ -77,16 +87,36 @@ class ReviewListItem extends StatelessWidget {
               ),
             ],
           ),
-          if (review.comment != null && review.comment!.trim().isNotEmpty) ...[
+          if (comment.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              review.comment!.trim(),
+              comment,
+              maxLines: _isExpanded ? null : 3,
+              overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 13,
                 color: Color(0xFF374151),
                 height: 1.35,
               ),
             ),
+            if (isLongComment) ...[
+              const SizedBox(height: 4),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+                child: Text(
+                  _isExpanded ? 'Ver menos' : 'Ver más',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2563EB),
+                  ),
+                ),
+              ),
+            ],
           ],
         ],
       ),

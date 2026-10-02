@@ -5,6 +5,7 @@ import 'package:vihomeapp/presentation/widgets/btn_primary.dart';
 import '../../../domain/entities/tenant.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/tenant_provider.dart';
+import '../../providers/review_provider.dart';
 import 'package:flutter/services.dart';
 import '../../helpers/phone_input_formatter.dart';
 
@@ -76,13 +77,30 @@ class _CompleteTenantProfilePageState extends State<CompleteTenantProfilePage> {
     final success = await tenantProvider.saveTenantProfile(tenant);
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Perfil completado exitosamente'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      context.pop();
+      // Registrar calificación inicial de usuario verificado en Supabase (RF-36)
+      try {
+        final reviewProvider =
+            Provider.of<ReviewProvider>(context, listen: false);
+        final fullName =
+            '${tenant.primerNombre} ${tenant.primerApellido}'.trim();
+        await reviewProvider.registerVerifiedUserReview(
+          userId: user.id,
+          userName: fullName.isNotEmpty ? fullName : null,
+        );
+      } catch (e) {
+        debugPrint(
+            'Error al enviar calificación de verificación para arrendatario: $e');
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Perfil completado exitosamente'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.pop();
+      }
     }
   }
 

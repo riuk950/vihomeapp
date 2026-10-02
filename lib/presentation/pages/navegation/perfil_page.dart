@@ -11,7 +11,11 @@ import '../../providers/auth_provider.dart';
 import '../../providers/tenant_provider.dart';
 import '../../providers/landlord_provider.dart';
 import '../../providers/application_provider.dart';
+import '../../providers/review_provider.dart';
+import '../../widgets/user_reputation_header.dart';
+import '../../../domain/entities/user_reputation.dart';
 import '../../../env/env_def.dart';
+import '../../../core/router/app_router.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -20,7 +24,8 @@ class PerfilPage extends StatefulWidget {
   State<PerfilPage> createState() => _PerfilPageState();
 }
 
-class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
+class _PerfilPageState extends State<PerfilPage>
+    with WidgetsBindingObserver, RouteAware {
   @override
   void initState() {
     super.initState();
@@ -40,13 +45,56 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
           tenantProvider.loadTenantProfile(user!.id);
         }
       }
+
+      _syncUserReputation();
     });
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    _syncUserReputation();
+  }
+
+  void _syncUserReputation() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    if (user != null) {
+      try {
+        final reviewProvider = Provider.of<ReviewProvider>(
+          context,
+          listen: false,
+        );
+        bool isVerified = false;
+        try {
+          isVerified = user.role == 'arrendador'
+              ? Provider.of<LandlordProvider>(context, listen: false).isVerified
+              : Provider.of<TenantProvider>(context, listen: false).isVerified;
+        } catch (_) {}
+        reviewProvider.fetchUserReputation(
+          user.id,
+          isVerified: isVerified,
+          userName: user.email,
+        );
+        reviewProvider.fetchUserReviews(user.id);
+      } catch (_) {}
+    }
   }
 
   @override
@@ -58,6 +106,7 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
       if (authProvider.user?.isPremium == true) {
         authProvider.reloadUser();
       }
+      _syncUserReputation();
     }
   }
 
@@ -82,11 +131,34 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
         child: Consumer<AuthProvider>(
           builder: (context, authProvider, child) {
             final user = authProvider.user;
-            final isVerified = user?.role == 'arrendador'
-                ? Provider.of<LandlordProvider>(context).isVerified
-                : Provider.of<TenantProvider>(context).isVerified;
-            return SingleChildScrollView(
-              child: Column(
+            bool isVerified = false;
+            try {
+              isVerified = user?.role == 'arrendador'
+                  ? Provider.of<LandlordProvider>(context).isVerified
+                  : Provider.of<TenantProvider>(context).isVerified;
+            } catch (_) {}
+            return RefreshIndicator(
+              onRefresh: () async {
+                if (user != null) {
+                  try {
+                    final reviewProvider = Provider.of<ReviewProvider>(
+                      context,
+                      listen: false,
+                    );
+                    await Future.wait([
+                      reviewProvider.fetchUserReputation(
+                        user.id,
+                        isVerified: isVerified,
+                        userName: user.email,
+                      ),
+                      reviewProvider.fetchUserReviews(user.id),
+                    ]);
+                  } catch (_) {}
+                }
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
                 children: [
                   // Profile Section
                   Padding(
@@ -156,6 +228,73 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
                       ],
                     ),
                   ),
+
+                  // Sección de Reputación y Reseñas
+                  if (user != null) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Consumer<ReviewProvider>(
+                        builder: (context, reviewProvider, child) {
+                          final reputation = reviewProvider.getReputationFor(user.id);
+                          final reviews = reviewProvider.getReviewsFor(user.id) ?? [];
+
+                          if (reputation == null && reviewProvider.isLoading) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24.0),
+                              child: Center(
+                                child: SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              ),
+                            );
+                          }
+
+                          final displayReputation = reputation ??
+                              UserReputation(
+                                userId: user.id,
+                                userName: user.email,
+                                isVerified: isVerified,
+                              );
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              UserReputationHeader(reputation: displayReputation),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Mis Opiniones Recibidas',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${reviews.length} ${reviews.length == 1 ? "opinión" : "opiniones"}',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              UserReviewsListWidget(reviews: reviews),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   const SizedBox(height: 24),
 
@@ -488,8 +627,9 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
                   const SizedBox(height: 16),
                 ],
               ),
-            );
-          },
+            ),
+          );
+        },
         ),
       ),
     );

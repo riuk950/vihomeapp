@@ -42,42 +42,63 @@ class RatingBadge extends StatelessWidget {
       showStar = true;
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
-      decoration: BoxDecoration(
-        color: showStar
-            ? const Color(0xFFFEF3C7) // Ámbar muy suave
-            : const Color(0xFFF3F4F6), // Gris suave
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
+    final String semanticLabel;
+    if (reputation.totalReviews == 0) {
+      if (reputation.isVerified) {
+        semanticLabel = 'Calificación inicial de confianza: 3.0 de 5 estrellas';
+      } else {
+        semanticLabel = 'Sin calificaciones aún';
+      }
+    } else {
+      semanticLabel =
+          'Calificación: ${reputation.formattedRating} de 5 estrellas basado en ${reputation.totalReviews} reseñas';
+    }
+
+    return Semantics(
+      container: true,
+      excludeSemantics: true,
+      label: semanticLabel,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+        decoration: BoxDecoration(
           color: showStar
-              ? const Color(0xFFFDE68A)
-              : const Color(0xFFE5E7EB),
-          width: 0.8,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (showStar) ...[
-            Icon(
-              Icons.star,
-              size: fontSize + 2.0,
-              color: starColor,
-            ),
-            const SizedBox(width: 4.0),
-          ],
-          Text(
-            textToDisplay,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.w600,
-              color: showStar
-                  ? const Color(0xFF92400E) // Ámbar oscuro legible
-                  : const Color(0xFF4B5563), // Gris legible
-            ),
+              ? const Color(0xFFFEF3C7) // Ámbar muy suave
+              : const Color(0xFFF3F4F6), // Gris suave
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(
+            color: showStar
+                ? const Color(0xFFFDE68A)
+                : const Color(0xFFE5E7EB),
+            width: 0.8,
           ),
-        ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showStar) ...[
+              Icon(
+                Icons.star,
+                size: fontSize + 2.0,
+                color: starColor,
+              ),
+              const SizedBox(width: 4.0),
+            ],
+            Flexible(
+              child: Text(
+                textToDisplay,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w600,
+                  color: showStar
+                      ? const Color(0xFF92400E) // Ámbar oscuro legible
+                      : const Color(0xFF4B5563), // Gris legible
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

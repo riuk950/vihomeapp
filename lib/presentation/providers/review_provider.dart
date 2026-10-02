@@ -172,4 +172,22 @@ class ReviewProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  /// Registra la calificación de usuario verificado al completar sus datos (RF-36)
+  Future<void> registerVerifiedUserReview({
+    required String userId,
+    String? userName,
+  }) async {
+    try {
+      await repository.registerVerifiedUserReview(
+        userId: userId,
+        userName: userName,
+      );
+      // Inmediatamente actualiza reputación y opiniones en memoria y notifica a los escuchas
+      await fetchUserReputation(userId, isVerified: true, userName: userName);
+      await fetchUserReviews(userId);
+    } catch (e) {
+      debugPrint('Error al registrar calificación de usuario verificado: $e');
+    }
+  }
 }

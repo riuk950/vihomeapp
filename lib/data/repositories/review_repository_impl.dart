@@ -81,4 +81,15 @@ class ReviewRepositoryImpl implements ReviewRepository {
     );
     return !hasAlreadyRated;
   }
+
+  @override
+  Future<Review> registerVerifiedUserReview({
+    required String userId,
+    String? userName,
+  }) async {
+    return await remoteDataSource.registerVerifiedUserReview(
+      userId: userId,
+      userName: userName,
+    );
+  }
 }

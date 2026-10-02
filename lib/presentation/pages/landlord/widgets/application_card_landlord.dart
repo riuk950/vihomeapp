@@ -244,6 +244,7 @@ class ApplicationCardLandlord extends StatelessWidget {
                             context,
                             solicitudId: application.id,
                             reviewerId: application.arrendadorId,
+                            reviewerName: application.nombreArrendador,
                             targetUserId: application.arrendatarioId,
                             targetUserName: application.nombreArrendatario,
                             targetRoleTitle: 'Postulante / Inquilino',

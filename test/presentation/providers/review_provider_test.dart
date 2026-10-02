@@ -80,6 +80,31 @@ class MockReviewRepository implements ReviewRepository {
     );
     return !already;
   }
+
+  @override
+  Future<Review> registerVerifiedUserReview({
+    required String userId,
+    String? userName,
+  }) async {
+    final existing = createdReviews.cast<Review?>().firstWhere(
+      (r) => r?.solicitudId == null && r?.targetUserId == userId,
+      orElse: () => null,
+    );
+    if (existing != null) return existing;
+
+    final review = Review(
+      id: 'rev-verified-${createdReviews.length + 1}',
+      solicitudId: null,
+      reviewerId: userId,
+      reviewerName: userName ?? 'Sistema ViHome',
+      targetUserId: userId,
+      rating: 3,
+      comment: 'Usuario verificado',
+      createdAt: DateTime.now(),
+    );
+    createdReviews.add(review);
+    return review;
+  }
 }
 
 void main() {
@@ -173,6 +198,27 @@ void main() {
       expect(rep.userId, equals('usr-landlord'));
       expect(rep.isVerified, isTrue);
       expect(provider.getReputationFor('usr-landlord'), equals(rep));
+    });
+
+    test('registerVerifiedUserReview registers review and updates cached reputation and reviews', () async {
+      await provider.registerVerifiedUserReview(
+        userId: 'usr-new-user',
+        userName: 'Elena Gómez',
+      );
+
+      expect(repository.createdReviews.length, equals(1));
+      expect(repository.createdReviews.first.rating, equals(3));
+      expect(repository.createdReviews.first.comment, equals('Usuario verificado'));
+
+      final rep = provider.getReputationFor('usr-new-user');
+      expect(rep, isNotNull);
+      expect(rep!.isVerified, isTrue);
+      expect(rep.averageRating, equals(3.0));
+
+      final reviews = provider.getReviewsFor('usr-new-user');
+      expect(reviews, isNotNull);
+      expect(reviews!.length, equals(1));
+      expect(reviews.first.comment, equals('Usuario verificado'));
     });
   });
 }

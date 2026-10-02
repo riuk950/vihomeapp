@@ -4,7 +4,7 @@ import '../../domain/entities/review.dart';
 class ReviewModel extends Review {
   ReviewModel({
     required super.id,
-    required super.solicitudId,
+    super.solicitudId,
     required super.reviewerId,
     super.reviewerName,
     required super.targetUserId,
@@ -23,7 +23,7 @@ class ReviewModel extends Review {
 
     return ReviewModel(
       id: json['id'] as String,
-      solicitudId: json['solicitud_id'] as String,
+      solicitudId: json['solicitud_id'] as String?,
       reviewerId: json['reviewer_id'] as String,
       reviewerName: json['reviewer_name'] as String?,
       targetUserId: json['target_user_id'] as String,

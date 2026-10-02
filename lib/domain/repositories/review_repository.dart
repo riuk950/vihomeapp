@@ -29,4 +29,10 @@ abstract class ReviewRepository {
     required String solicitudId,
     required String userId,
   });
+
+  /// Registra la calificación inicial de usuario verificado (3 estrellas, comentario 'Usuario verificado')
+  Future<Review> registerVerifiedUserReview({
+    required String userId,
+    String? userName,
+  });
 }

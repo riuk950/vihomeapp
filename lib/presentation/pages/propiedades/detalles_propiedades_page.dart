@@ -14,6 +14,9 @@ import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 
 import 'package:vihomeapp/presentation/providers/tenant_provider.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
+import 'package:vihomeapp/presentation/providers/review_provider.dart';
+import 'package:vihomeapp/presentation/widgets/rating_badge.dart';
+import 'package:vihomeapp/presentation/widgets/landlord_reputation_bottom_sheet.dart';
 import 'package:vihomeapp/presentation/widgets/btn_primary.dart';
 import 'package:vihomeapp/core/di/injection_container.dart';
 import 'package:vihomeapp/domain/usecases/landlord/get_landlord_profile_usecase.dart';
@@ -21,6 +24,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vihomeapp/core/ads/ad_manager.dart';
 import 'package:vihomeapp/domain/entities/user.dart';
+import 'package:vihomeapp/core/router/app_router.dart';
 
 class DetallesPropiedadesPage extends StatefulWidget {
   final Property property;
@@ -34,7 +38,8 @@ class DetallesPropiedadesPage extends StatefulWidget {
       _DetallesPropiedadesPageState();
 }
 
-class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
+class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage>
+    with RouteAware {
   final PageController _pageController = PageController();
   int _currentImageIndex = 0;
   bool _isLoadingLandlord = true;
@@ -46,18 +51,48 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       Provider.of<TenantProvider>(context, listen: false).clearError();
       Provider.of<ApplicationProvider>(context, listen: false).clearError();
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final isPremium = authProvider.user?.isPremium ?? false;
       getIt<AdManager>().showInterstitialAd(isPremium: isPremium);
+
+      _syncLandlordReputation();
     });
     if (EnvDef.mapboxAccessToken.isNotEmpty) {
       MapboxOptions.setAccessToken(EnvDef.mapboxAccessToken);
     }
     _fetchLandlordInfo();
     _checkExistingApplication();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    _syncLandlordReputation();
+  }
+
+  void _syncLandlordReputation() {
+    final landlordId = widget.property.arrendadorId;
+    if (landlordId.isNotEmpty) {
+      try {
+        final reviewProvider =
+            Provider.of<ReviewProvider>(context, listen: false);
+        reviewProvider.fetchUserReputation(landlordId);
+        reviewProvider.fetchUserReviews(landlordId);
+      } catch (_) {}
+    }
   }
 
   Future<void> _fetchLandlordInfo() async {
@@ -169,6 +204,7 @@ class _DetallesPropiedadesPageState extends State<DetallesPropiedadesPage> {
 
   @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     _pageController.dispose();
     super.dispose();
   }
@@ -541,28 +577,63 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
                 ),
               ],
             )
-          : Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          : Consumer<ReviewProvider>(
+              builder: (context, reviewProvider, _) {
+                final landlordId = widget.property.arrendadorId;
+                final reputation = reviewProvider.getReputationFor(landlordId);
+                final reviews = reviewProvider.getReviewsFor(landlordId) ?? [];
+                final landlordName = _landlord != null
+                    ? '${_landlord!.primerNombre} ${_landlord!.primerApellido}'.trim()
+                    : 'Propietario';
+
+                return InkWell(
+                  onTap: () {
+                    if (reputation != null) {
+                      LandlordReputationBottomSheet.show(
+                        context,
+                        landlordName: landlordName,
+                        reputation: reputation,
+                        reviews: reviews,
+                      );
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Row(
                     children: [
-                      Text(
-                        _landlord != null
-                            ? '${_landlord!.primerNombre} ${_landlord!.primerApellido}'
-                            : 'Propietario',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              landlordName,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            Text(
+                              'Propietario',
+                              style: TextStyle(
+                                  color: Colors.grey[600], fontSize: 14),
+                            ),
+                            const SizedBox(height: 6),
+                            if (reputation != null)
+                              RatingBadge(reputation: reputation)
+                            else
+                              const SizedBox(
+                                height: 16,
+                                width: 70,
+                                child: LinearProgressIndicator(
+                                  backgroundColor: Color(0xFFF3F4F6),
+                                  color: Color(0xFFFDE68A),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                      Text(
-                        'Propietario',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                      ),
+                      const Icon(Icons.chevron_right, color: Colors.grey),
                     ],
                   ),
-                ),
-                const Icon(Icons.check_circle_outline, color: primaryColor),
-              ],
+                );
+              },
             ),
     );
   }

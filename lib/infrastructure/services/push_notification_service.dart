@@ -153,11 +153,13 @@ class PushNotificationService {
   /// Procesa la notificación que abrió la app (si existe).
   /// Debe llamarse cuando el router y el contexto estén listos.
   static Future<void> handleInitialMessage() async {
-    RemoteMessage? initialMessage = await _messaging.getInitialMessage();
-    if (initialMessage != null) {
-      debugPrint('📲 App abierta desde notificación: ${initialMessage.data}');
-      _handleNotificationNavigation(initialMessage);
-    }
+    try {
+      RemoteMessage? initialMessage = await _messaging.getInitialMessage();
+      if (initialMessage != null) {
+        debugPrint('📲 App abierta desde notificación: ${initialMessage.data}');
+        _handleNotificationNavigation(initialMessage);
+      }
+    } catch (_) {}
   }
 
   static void _handleNotificationNavigation(RemoteMessage message) {

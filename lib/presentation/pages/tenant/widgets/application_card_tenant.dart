@@ -238,6 +238,7 @@ class ApplicationCardTenant extends StatelessWidget {
                             context,
                             solicitudId: application.id,
                             reviewerId: application.arrendatarioId,
+                            reviewerName: application.nombreArrendatario,
                             targetUserId: application.arrendadorId,
                             targetUserName: application.nombreArrendador,
                             targetRoleTitle: 'Propietario',

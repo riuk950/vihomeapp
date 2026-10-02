@@ -21,6 +21,20 @@ class DummyReviewRemoteDataSource implements ReviewRemoteDataSource {
 
   @override
   Future<bool> hasUserRatedApplication({required String solicitudId, required String reviewerId}) async => false;
+
+  @override
+  Future<ReviewModel> registerVerifiedUserReview({required String userId, String? userName}) async {
+    return ReviewModel(
+      id: 'rev-dummy',
+      solicitudId: null,
+      reviewerId: userId,
+      reviewerName: userName,
+      targetUserId: userId,
+      rating: 3,
+      comment: 'Usuario verificado',
+      createdAt: DateTime.now(),
+    );
+  }
 }
 
 void main() {

@@ -21,4 +21,10 @@ abstract class ReviewRemoteDataSource {
     required String solicitudId,
     required String reviewerId,
   });
+
+  /// Registra la calificación de verificación inicial (3 estrellas, comentario 'Usuario verificado')
+  Future<ReviewModel> registerVerifiedUserReview({
+    required String userId,
+    String? userName,
+  });
 }

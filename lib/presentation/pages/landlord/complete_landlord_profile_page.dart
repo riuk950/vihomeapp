@@ -80,13 +80,30 @@ class _CompleteLandlordProfilePageState
     final success = await landlordProvider.saveLandlordProfile(landlord);
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Perfil de arrendador completado exitosamente'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      context.pop();
+      // Registrar calificación inicial de usuario verificado en Supabase (RF-36)
+      try {
+        final reviewProvider =
+            Provider.of<ReviewProvider>(context, listen: false);
+        final fullName =
+            '${landlord.primerNombre} ${landlord.primerApellido}'.trim();
+        await reviewProvider.registerVerifiedUserReview(
+          userId: user.id,
+          userName: fullName.isNotEmpty ? fullName : null,
+        );
+      } catch (e) {
+        debugPrint(
+            'Error al enviar calificación de verificación para arrendador: $e');
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Perfil de arrendador completado exitosamente'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.pop();
+      }
     }
   }
 

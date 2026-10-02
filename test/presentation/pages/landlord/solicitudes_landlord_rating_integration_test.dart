@@ -38,6 +38,19 @@ class MockRatingLandlordRepository implements ReviewRepository {
 
   @override
   Future<bool> canUserRateApplication({required String solicitudId, required String userId}) async => true;
+
+  @override
+  Future<Review> registerVerifiedUserReview({required String userId, String? userName}) async =>
+      Review(
+        id: 'rev-verified',
+        solicitudId: null,
+        reviewerId: userId,
+        reviewerName: userName,
+        targetUserId: userId,
+        rating: 3,
+        comment: 'Usuario verificado',
+        createdAt: DateTime.now(),
+      );
 }
 
 void main() {

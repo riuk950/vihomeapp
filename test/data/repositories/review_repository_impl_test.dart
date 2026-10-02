@@ -66,6 +66,34 @@ class FakeReviewRemoteDataSource implements ReviewRemoteDataSource {
       (r) => r.solicitudId == solicitudId && r.reviewerId == reviewerId,
     );
   }
+
+  @override
+  Future<ReviewModel> registerVerifiedUserReview({
+    required String userId,
+    String? userName,
+  }) async {
+    if (shouldThrowNetworkError) {
+      throw Exception('Network error');
+    }
+    final existing = _storedReviews.cast<ReviewModel?>().firstWhere(
+      (r) => r?.solicitudId == null && r?.targetUserId == userId,
+      orElse: () => null,
+    );
+    if (existing != null) return existing;
+
+    final review = ReviewModel(
+      id: 'rev-verified-${_storedReviews.length + 1}',
+      solicitudId: null,
+      reviewerId: userId,
+      reviewerName: userName ?? 'Sistema ViHome',
+      targetUserId: userId,
+      rating: 3,
+      comment: 'Usuario verificado',
+      createdAt: DateTime.now(),
+    );
+    _storedReviews.add(review);
+    return review;
+  }
 }
 
 void main() {
@@ -179,6 +207,27 @@ void main() {
       );
 
       expect(canOtherUserRate, isTrue);
+    });
+
+    test('registerVerifiedUserReview creates initial 3-star verified review with idempotency', () async {
+      final review1 = await repository.registerVerifiedUserReview(
+        userId: 'usr-new-landlord',
+        userName: 'Carlos Arrendador',
+      );
+
+      expect(review1.rating, equals(3));
+      expect(review1.comment, equals('Usuario verificado'));
+      expect(review1.solicitudId, isNull);
+      expect(review1.targetUserId, equals('usr-new-landlord'));
+
+      // Invocación subsiguiente (idempotencia)
+      final review2 = await repository.registerVerifiedUserReview(
+        userId: 'usr-new-landlord',
+        userName: 'Carlos Arrendador',
+      );
+
+      expect(review2.id, equals(review1.id));
+      expect(review2.rating, equals(3));
     });
   });
 }

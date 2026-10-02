@@ -8,7 +8,11 @@ import 'package:vihomeapp/presentation/providers/providers.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_complete.dart';
 import 'package:vihomeapp/presentation/widgets/msn_user_verificado.dart';
 import 'package:vihomeapp/presentation/widgets/alert_dialog.dart';
+import 'package:vihomeapp/presentation/widgets/user_reputation_header.dart';
+import 'package:vihomeapp/presentation/widgets/landlord_reputation_bottom_sheet.dart';
+import 'package:vihomeapp/domain/entities/user_reputation.dart';
 import 'package:vihomeapp/env/env_def.dart';
+import 'package:vihomeapp/core/router/app_router.dart';
 
 class PanelPage extends StatefulWidget {
   const PanelPage({super.key});
@@ -17,7 +21,8 @@ class PanelPage extends StatefulWidget {
   State<PanelPage> createState() => _PanelPageState();
 }
 
-class _PanelPageState extends State<PanelPage> with WidgetsBindingObserver {
+class _PanelPageState extends State<PanelPage>
+    with WidgetsBindingObserver, RouteAware {
   @override
   void initState() {
     super.initState();
@@ -48,14 +53,56 @@ class _PanelPageState extends State<PanelPage> with WidgetsBindingObserver {
             appProvider.fetchTenantApplications(user.id);
           }
         }
+
+        _syncLandlordReputation();
       }
     });
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    _syncLandlordReputation();
+  }
+
+  void _syncLandlordReputation() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    if (user != null && user.role == 'arrendador') {
+      try {
+        final landlordProvider = Provider.of<LandlordProvider>(
+          context,
+          listen: false,
+        );
+        final reviewProvider = Provider.of<ReviewProvider>(
+          context,
+          listen: false,
+        );
+        final isVerified = landlordProvider.isVerified;
+        reviewProvider.fetchUserReputation(
+          user.id,
+          isVerified: isVerified,
+          userName: user.email,
+        );
+        reviewProvider.fetchUserReviews(user.id);
+      } catch (_) {}
+    }
   }
 
   @override
@@ -65,6 +112,7 @@ class _PanelPageState extends State<PanelPage> with WidgetsBindingObserver {
       if (authProvider.user?.isPremium == true) {
         authProvider.reloadUser();
       }
+      _syncLandlordReputation();
     }
   }
 
@@ -89,223 +137,370 @@ class _PanelPageState extends State<PanelPage> with WidgetsBindingObserver {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Welcome Section
-              Container(
-                width: double.infinity,
-                color: backgroundColor,
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Bienvenido ${user?.role == 'arrendador' ? 'Arrendador' : 'Arrendatario'}',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            if (user != null) {
+              final landlordProvider = Provider.of<LandlordProvider>(
+                context,
+                listen: false,
+              );
+              final appProvider = Provider.of<ApplicationProvider>(
+                context,
+                listen: false,
+              );
+              final futures = <Future>[];
+              futures.add(landlordProvider.loadLandlordProfile(user.id));
+              if (user.role == 'arrendador') {
+                futures.add(appProvider.fetchLandlordApplications(user.id));
+                try {
+                  final reviewProvider = Provider.of<ReviewProvider>(
+                    context,
+                    listen: false,
+                  );
+                  final isVerified = landlordProvider.isVerified;
+                  futures.add(reviewProvider.fetchUserReputation(
+                    user.id,
+                    isVerified: isVerified,
+                    userName: user.email,
+                  ));
+                  futures.add(reviewProvider.fetchUserReviews(user.id));
+                } catch (_) {}
+              } else {
+                futures.add(appProvider.fetchTenantApplications(user.id));
+              }
+              await Future.wait(futures);
+            }
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Welcome Section
+                Container(
+                  width: double.infinity,
+                  color: backgroundColor,
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Bienvenido ${user?.role == 'arrendador' ? 'Arrendador' : 'Arrendatario'}',
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      user?.email ?? 'Usuario',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
+                      const SizedBox(height: 8),
+                      Text(
+                        user?.email ?? 'Usuario',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
                       ),
-                    ),
-                    const Text(
-                      'Gestiona tus propiedades y solicitudes',
-                      style: TextStyle(fontSize: 16, color: Color(0xFF617589)),
-                    ),
-                  ],
+                      const Text(
+                        'Gestiona tus propiedades y solicitudes',
+                        style:
+                            TextStyle(fontSize: 16, color: Color(0xFF617589)),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
 
-              // Verification Status Banner
-              Consumer<LandlordProvider>(
-                builder: (context, landlordProvider, child) {
-                  if (landlordProvider.isLoading) {
-                    return const SizedBox.shrink();
-                  }
-
-                  final isVerified = landlordProvider.isVerified;
-
-                  if (isVerified) {
-                    return MsnUserVerificado();
-                  } else {
-                    return MsnUserComplete(
-                      onPressed: () {
-                        context.push('/complete-landlord-profile');
-                      },
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 24),
-
-              // Quick Actions Grid
-              Consumer<LandlordProvider>(
-                builder: (context, landlordProvider, child) {
-                  final isVerified = landlordProvider.isVerified;
-
-                  void requireProfile(VoidCallback action) {
-                    if (!isVerified) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text(
-                            'Debes completar tu perfil de arrendador primero.',
-                          ),
-                          backgroundColor: Colors.orange,
-                          action: SnackBarAction(
-                            label: 'Completar',
-                            textColor: Colors.white,
-                            onPressed: () =>
-                                context.push('/complete-landlord-profile'),
-                          ),
-                        ),
-                      );
-                    } else {
-                      action();
+                // Verification Status Banner
+                Consumer<LandlordProvider>(
+                  builder: (context, landlordProvider, child) {
+                    if (landlordProvider.isLoading) {
+                      return const SizedBox.shrink();
                     }
-                  }
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Acciones Rápidas',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF111418),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildQuickActionCard(
+                    final isVerified = landlordProvider.isVerified;
+
+                    if (isVerified) {
+                      return MsnUserVerificado();
+                    } else {
+                      return MsnUserComplete(
+                        onPressed: () {
+                          context.push('/complete-landlord-profile');
+                        },
+                      );
+                    }
+                  },
+                ),
+                SizedBox(height: 16),
+                // Landlord Reputation & Ranking Section (RF-34)
+                if (user != null && user.role == 'arrendador') ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Consumer<ReviewProvider>(
+                      builder: (context, reviewProvider, child) {
+                        bool isVerified = false;
+                        try {
+                          isVerified =
+                              Provider.of<LandlordProvider>(context).isVerified;
+                        } catch (_) {}
+
+                        final reputation =
+                            reviewProvider.getReputationFor(user.id);
+                        final reviews =
+                            reviewProvider.getReviewsFor(user.id) ?? [];
+
+                        if (reputation == null && reviewProvider.isLoading) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            child: Center(
+                              child: SizedBox(
+                                height: 24,
+                                width: 24,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                          );
+                        }
+
+                        final displayReputation = reputation ??
+                            UserReputation(
+                              userId: user.id,
+                              userName: user.email,
+                              isVerified: isVerified,
+                            );
+
+                        return InkWell(
+                          onTap: () {
+                            String landlordName = user.email.isNotEmpty
+                                ? user.email
+                                : 'Arrendador';
+                            try {
+                              final landlord = Provider.of<LandlordProvider>(
                                 context,
-                                icon: Icons.description_outlined,
-                                title: 'Mis Documentos',
-                                subtitle: 'Accede a tus documentos',
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Esta funcionalidad estara disponible proximamente.',
+                                listen: false,
+                              ).landlord;
+                              if (landlord != null) {
+                                landlordName =
+                                    '${landlord.primerNombre} ${landlord.primerApellido}'
+                                        .trim();
+                              }
+                            } catch (_) {}
+
+                            LandlordReputationBottomSheet.show(
+                              context,
+                              landlordName: landlordName,
+                              reputation: displayReputation,
+                              reviews: reviews,
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Mi Reputación como Arrendador',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0F172A),
                                       ),
-                                      backgroundColor: Colors.blue,
                                     ),
-                                  );
-                                },
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '${reviews.length} ${reviews.length == 1 ? "opinión" : "opiniones"}',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF64748B),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Icon(
+                                        Icons.chevron_right,
+                                        size: 18,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
+                              const SizedBox(height: 8),
+                              UserReputationHeader(
+                                  reputation: displayReputation),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                // Quick Actions Grid
+                Consumer<LandlordProvider>(
+                  builder: (context, landlordProvider, child) {
+                    final isVerified = landlordProvider.isVerified;
+
+                    void requireProfile(VoidCallback action) {
+                      if (!isVerified) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              'Debes completar tu perfil de arrendador primero.',
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildQuickActionCard(
-                                context,
-                                icon: Icons.person_outline,
-                                title: 'Información Personal',
-                                locked: !isVerified,
-                                subtitle: 'Actualiza tus datos',
-                                onTap: () {
-                                  context.push('/personal-info-landlord');
-                                },
-                              ),
+                            backgroundColor: Colors.orange,
+                            action: SnackBarAction(
+                              label: 'Completar',
+                              textColor: Colors.white,
+                              onPressed: () =>
+                                  context.push('/complete-landlord-profile'),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildQuickActionCard(
-                                context,
-                                icon: Icons.home_outlined,
-                                title: 'Mis Propiedades',
-                                subtitle: 'Accede a tus propiedades',
-                                locked: !isVerified,
-                                onTap: () => requireProfile(
-                                  () => context.push('/mis-propiedades'),
+                          ),
+                        );
+                      } else {
+                        action();
+                      }
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Acciones Rápidas',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF111418),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildQuickActionCard(
+                                  context,
+                                  icon: Icons.description_outlined,
+                                  title: 'Mis Documentos',
+                                  subtitle: 'Accede a tus documentos',
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Esta funcionalidad estara disponible proximamente.',
+                                        ),
+                                        backgroundColor: Colors.blue,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildQuickActionCard(
-                                context,
-                                icon: Icons.list_alt_outlined,
-                                title: 'Solicitudes',
-                                subtitle: 'Revisa tus solicitudes',
-                                locked: !isVerified,
-                                onTap: () => requireProfile(() {
-                                  final role = user?.role;
-                                  if (role == 'arrendador') {
-                                    context.push('/solicitudes-arrendador');
-                                  } else {
-                                    context.push('/solicitudes-arrendatario');
-                                  }
-                                }),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildQuickActionCard(
+                                  context,
+                                  icon: Icons.person_outline,
+                                  title: 'Información Personal',
+                                  locked: !isVerified,
+                                  subtitle: 'Actualiza tus datos',
+                                  onTap: () {
+                                    context.push('/personal-info-landlord');
+                                  },
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildQuickActionCard(
+                                  context,
+                                  icon: Icons.home_outlined,
+                                  title: 'Mis Propiedades',
+                                  subtitle: 'Accede a tus propiedades',
+                                  locked: !isVerified,
+                                  onTap: () => requireProfile(
+                                    () => context.push('/mis-propiedades'),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildQuickActionCard(
+                                  context,
+                                  icon: Icons.list_alt_outlined,
+                                  title: 'Solicitudes',
+                                  subtitle: 'Revisa tus solicitudes',
+                                  locked: !isVerified,
+                                  onTap: () => requireProfile(() {
+                                    final role = user?.role;
+                                    if (role == 'arrendador') {
+                                      context.push('/solicitudes-arrendador');
+                                    } else {
+                                      context.push('/solicitudes-arrendatario');
+                                    }
+                                  }),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
 
-              // Application Status Card
-              _buildApplicationStatusCard(context),
-              const SizedBox(height: 16),
+                // Application Status Card
+                _buildApplicationStatusCard(context),
+                const SizedBox(height: 16),
 
-              // Contracts Card
-              //_buildContractsCard(context),
-              //const SizedBox(height: 16),
+                // Contracts Card
+                //_buildContractsCard(context),
+                //const SizedBox(height: 16),
 
-              _buildMenuConfig(context),
-              const SizedBox(height: 16),
-              if (EnvDef.flavor == 'dev')
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Versión ${EnvDef.appVersion} (${EnvDef.flavor})',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.red[500],
-                      fontWeight: FontWeight.w500,
+                _buildMenuConfig(context),
+                const SizedBox(height: 16),
+                if (EnvDef.flavor == 'dev')
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Versión ${EnvDef.appVersion} (${EnvDef.flavor})',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red[500],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                ),
-              if (EnvDef.flavor == 'prod')
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Versión ${EnvDef.appVersion}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[500],
-                      fontWeight: FontWeight.w500,
+                if (EnvDef.flavor == 'prod')
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Versión ${EnvDef.appVersion}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[500],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                ),
-              const SizedBox(height: 16),
-            ],
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),
