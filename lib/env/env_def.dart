@@ -40,23 +40,27 @@ class EnvDef {
 
   static String title = 'Vihome Dev';
 
-  static String get appName => dotenv.env['APP_NAME'] ?? _packageInfo.appName;
-  static String get apiBaseUrl => dotenv.env['API_BASE_URL'] ?? '';
-  static String get apiVersion => dotenv.env['API_VERSION'] ?? 'v1';
-  static String get authTokenKey =>
-      dotenv.env['AUTH_TOKEN_KEY'] ?? 'auth_token';
-  static String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
-  static String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
-  static String get mapboxAccessToken =>
-      dotenv.env['MAPBOX_ACCESS_TOKEN'] ?? '';
+  static String _safeGetEnv(String key, [String defaultValue = '']) {
+    try {
+      return dotenv.env[key] ?? defaultValue;
+    } catch (_) {
+      return defaultValue;
+    }
+  }
+
+  static String get appName => _safeGetEnv('APP_NAME', _packageInfo.appName);
+  static String get apiBaseUrl => _safeGetEnv('API_BASE_URL');
+  static String get apiVersion => _safeGetEnv('API_VERSION', 'v1');
+  static String get authTokenKey => _safeGetEnv('AUTH_TOKEN_KEY', 'auth_token');
+  static String get supabaseUrl => _safeGetEnv('SUPABASE_URL');
+  static String get supabaseAnonKey => _safeGetEnv('SUPABASE_ANON_KEY');
+  static String get mapboxAccessToken => _safeGetEnv('MAPBOX_ACCESS_TOKEN');
   static bool get isDebugMode => _isDebugMode;
-  static String get googleWebClientId =>
-      dotenv.env['GOOGLE_WEB_CLIENT_ID'] ?? '';
+  static String get googleWebClientId => _safeGetEnv('GOOGLE_WEB_CLIENT_ID');
 
-  static String get admobBannerId => dotenv.env['ADMOB_BANNER_ID'] ?? '';
+  static String get admobBannerId => _safeGetEnv('ADMOB_BANNER_ID');
 
-  static String get admobInterstitialId =>
-      dotenv.env['ADMOB_INTERSTITIAL_ID'] ?? '';
+  static String get admobInterstitialId => _safeGetEnv('ADMOB_INTERSTITIAL_ID');
 
   static bool get isProduction => _flavor == 'prod';
   static bool get isDevelopment => _flavor == 'dev';

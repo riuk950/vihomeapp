@@ -217,7 +217,13 @@ GoRouter createAppRouter() {
       GoRoute(
         path: '/mapa',
         name: 'mapa',
-        builder: (context, state) => const MapaPage(),
+        builder: (context, state) {
+          final tipo = state.uri.queryParameters['tipo'] ??
+              (state.extra is Map
+                  ? (state.extra as Map)['tipo'] as String?
+                  : null);
+          return MapaPage(tipo: tipo);
+        },
       ),
       GoRoute(
         path: '/location-picker',

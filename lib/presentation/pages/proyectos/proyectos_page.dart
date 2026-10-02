@@ -54,6 +54,13 @@ class _ProyectosPageState extends State<ProyectosPage> {
         shadowColor: backgroundColor,
         centerTitle: false,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.map_outlined, color: Colors.black),
+            tooltip: 'Ver Proyectos en Mapa',
+            onPressed: () {
+              context.push('/mapa?tipo=proyectos');
+            },
+          ),
           Consumer<ApplicationProvider>(
             builder: (context, appProvider, child) {
               final authProvider =
