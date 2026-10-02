@@ -4,6 +4,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vihomeapp/core/di/injection_container.dart';
+import 'package:vihomeapp/domain/services/i_iap_service.dart';
 import 'package:vihomeapp/infrastructure/services/analytics_service.dart';
 import 'package:vihomeapp/presentation/pages/suscripciones/subscription_ids.dart';
 
@@ -17,14 +18,17 @@ class SubscriptionProvider with ChangeNotifier {
   /// Úsalo para recargar el AuthProvider y refrescar isPremium en la UI.
   VoidCallback? onPurchaseSuccess;
 
-  final InAppPurchase _iap = InAppPurchase.instance;
-  StreamSubscription<List<PurchaseDetails>>? _subscription;
+  final IIapService? iapService;
+  InAppPurchase? _iap;
+  StreamSubscription<dynamic>? _subscription;
   List<ProductDetails> _products = [];
+  List<IapProduct> _iapProducts = [];
 
   bool get isSubscribed => _isSubscribed;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   List<ProductDetails> get products => _products;
+  List<IapProduct> get iapProducts => _iapProducts;
 
   static const String monthlySubscriptionId = SubscriptionIds.mensual;
   static const String sixMonthSubscriptionId = SubscriptionIds.semestral;
@@ -36,13 +40,25 @@ class SubscriptionProvider with ChangeNotifier {
     yearlySubscriptionId,
   };
 
-  SubscriptionProvider() {
-    final purchaseUpdated = _iap.purchaseStream;
-    _subscription = purchaseUpdated.listen(
-      _onPurchaseUpdate,
-      onDone: () => _subscription?.cancel(),
-      onError: (error) => _setError('Error en el stream de compras: $error'),
-    );
+  SubscriptionProvider({this.iapService}) {
+    if (iapService != null) {
+      _subscription = iapService!.purchaseStream.listen(
+        _onIapPurchaseUpdate,
+        onError: (error) => _setError('Error en el stream de compras: $error'),
+      );
+    } else {
+      try {
+        _iap = InAppPurchase.instance;
+        final purchaseUpdated = _iap!.purchaseStream;
+        _subscription = purchaseUpdated.listen(
+          _onPurchaseUpdate,
+          onDone: () => _subscription?.cancel(),
+          onError: (error) => _setError('Error en el stream de compras: $error'),
+        );
+      } catch (_) {
+        // En tests unitarios sin plugin mocked
+      }
+    }
   }
 
   @override
@@ -56,7 +72,21 @@ class SubscriptionProvider with ChangeNotifier {
     if (kIsWeb) return;
     _userId = userId;
 
-    final bool available = await _iap.isAvailable();
+    if (iapService != null) {
+      final bool available = await iapService!.isAvailable();
+      if (!available) {
+        _setError('La tienda no está disponible en este momento.');
+        return;
+      }
+      _setLoading(true);
+      await fetchAvailableProducts();
+      await checkSubscriptionStatus();
+      _setLoading(false);
+      return;
+    }
+
+    if (_iap == null) return;
+    final bool available = await _iap!.isAvailable();
     if (!available) {
       _setError('La tienda no está disponible en este momento.');
       debugPrint('[IAP] ❌ Google Play Store no disponible.');
@@ -126,7 +156,7 @@ class SubscriptionProvider with ChangeNotifier {
         // Necesitamos el purchaseToken actual → usamos restorePurchases
         // para que el stream reciba el token actualizado de Google.
         // Esto actualiza is_premium via la Edge Function automáticamente.
-        await _iap.restorePurchases();
+        await _iap?.restorePurchases();
         debugPrint('[IAP] 🔄 restorePurchases lanzado para re-verificación al inicio.');
         // El resultado llega via _onPurchaseUpdate (stream)
       } else {
@@ -144,29 +174,18 @@ class SubscriptionProvider with ChangeNotifier {
   /// Obtiene los productos disponibles desde Google Play
   Future<void> fetchAvailableProducts() async {
     try {
+      if (iapService != null) {
+        _iapProducts = await iapService!.getProducts(_productIds);
+        notifyListeners();
+        return;
+      }
+      if (_iap == null) return;
       debugPrint('[IAP] Consultando productos: $_productIds');
       final ProductDetailsResponse response =
-          await _iap.queryProductDetails(_productIds);
+          await _iap!.queryProductDetails(_productIds);
 
       if (response.error != null) {
         debugPrint('[IAP] ❌ Error al consultar productos: ${response.error}');
-      }
-
-      if (response.notFoundIDs.isNotEmpty) {
-        debugPrint(
-            '[IAP] ⚠️ Productos NO encontrados en Play Store: ${response.notFoundIDs}');
-        debugPrint(
-            '[IAP] Verifica que los IDs existan en Play Console y que la app esté en un track (Internal Testing).');
-      }
-
-      if (response.productDetails.isNotEmpty) {
-        debugPrint('[IAP] ✅ Productos encontrados: ${response.productDetails.map((p) => '${p.id}=${p.price}').join(', ')}');
-      } else {
-        debugPrint('[IAP] ⚠️ No se encontraron productos. Verifica:');
-        debugPrint('[IAP]   1. La app está publicada en Internal Testing en Play Console.');
-        debugPrint('[IAP]   2. La cuenta del dispositivo es un License Tester en Play Console.');
-        debugPrint('[IAP]   3. Los IDs de suscripción están activos (no borrador).');
-        debugPrint('[IAP]   4. El package ID del APK coincide con el de Play Console.');
       }
 
       _products = response.productDetails;
@@ -177,18 +196,37 @@ class SubscriptionProvider with ChangeNotifier {
     }
   }
 
+  /// Inicia la compra directamente por ID de producto (útil para pruebas y desacoplamiento)
+  Future<bool> purchaseById(String productId) async {
+    if (iapService != null) {
+      _setLoading(true);
+      clearError();
+      final result = await iapService!.buyProduct(productId);
+      if (!result) {
+        _setLoading(false);
+      }
+      return result;
+    }
+
+    if (_products.any((p) => p.id == productId)) {
+      final product = _products.firstWhere((p) => p.id == productId);
+      return purchaseProduct(product);
+    }
+    return false;
+  }
+
   /// Inicia el proceso de compra de un producto (suscripción)
   Future<bool> purchaseProduct(ProductDetails product) async {
     try {
       _setLoading(true);
       clearError();
 
-      await getIt<AnalyticsService>().logSubscriptionStarted(product.id);
+      try {
+        await getIt<AnalyticsService>().logSubscriptionStarted(product.id);
+      } catch (_) {}
 
       PurchaseParam purchaseParam;
 
-      // En Android, usamos GooglePlayPurchaseParam para suscripciones
-      // y pasamos el offerToken del producto seleccionado
       if (defaultTargetPlatform == TargetPlatform.android) {
         final androidDetails = product as GooglePlayProductDetails;
         final offerToken = androidDetails.offerToken;
@@ -201,15 +239,15 @@ class SubscriptionProvider with ChangeNotifier {
           purchaseParam = GooglePlayPurchaseParam(
             productDetails: product,
             offerToken: offerToken,
-            changeSubscriptionParam: null, // null si es nueva suscripción
+            changeSubscriptionParam: null,
           );
         }
       } else {
         purchaseParam = PurchaseParam(productDetails: product);
       }
 
-      // buyNonConsumable es correcto para suscripciones con in_app_purchase
-      bool success = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+      if (_iap == null) return false;
+      bool success = await _iap!.buyNonConsumable(purchaseParam: purchaseParam);
 
       if (!success) {
         debugPrint('[IAP] ❌ buyNonConsumable retornó false para ${product.id}');
@@ -231,7 +269,13 @@ class SubscriptionProvider with ChangeNotifier {
       _setLoading(true);
       clearError();
       debugPrint('[IAP] 🔄 Restaurando compras...');
-      await _iap.restorePurchases();
+      if (iapService != null) {
+        await iapService!.restorePurchases();
+        return true;
+      }
+      if (_iap != null) {
+        await _iap!.restorePurchases();
+      }
       return true;
     } catch (e) {
       _setError('Error al restaurar compras: $e');
@@ -239,6 +283,26 @@ class SubscriptionProvider with ChangeNotifier {
       _setLoading(false);
       return false;
     }
+  }
+
+  void _onIapPurchaseUpdate(IapPurchaseEvent event) {
+    if (event.status == IapPurchaseStatus.pending) {
+      _setLoading(true);
+      return;
+    }
+
+    if (event.status == IapPurchaseStatus.error) {
+      _setError(event.errorMessage ?? 'Error desconocido');
+      _setLoading(false);
+    } else if (event.status == IapPurchaseStatus.canceled) {
+      _setLoading(false);
+    } else if (event.status == IapPurchaseStatus.purchased ||
+        event.status == IapPurchaseStatus.restored) {
+      _isSubscribed = true;
+      _setLoading(false);
+      onPurchaseSuccess?.call();
+    }
+    notifyListeners();
   }
 
   /// Maneja las actualizaciones de compras del stream
@@ -288,7 +352,7 @@ class SubscriptionProvider with ChangeNotifier {
 
         if (purchase.pendingCompletePurchase) {
           debugPrint('[IAP] 🏁 Completando compra pendiente: ${purchase.productID}');
-          await _iap.completePurchase(purchase);
+          await _iap?.completePurchase(purchase);
         }
         _setLoading(false);
       }

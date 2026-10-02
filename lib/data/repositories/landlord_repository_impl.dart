@@ -17,7 +17,11 @@ class LandlordRepositoryImpl implements LandlordRepository {
           .from('info_arrendadores')
           .select()
           .eq('id', userId)
-          .single();
+          .maybeSingle();
+
+      if (response == null) {
+        return const Left(ServerFailure('Perfil de arrendador no encontrado'));
+      }
 
       return Right(LandlordModel.fromJson(response));
     } catch (e) {

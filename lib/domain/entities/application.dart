@@ -1,3 +1,5 @@
+import 'package:vihomeapp/domain/entities/application_context_data.dart';
+
 class PersonalReference {
   final String nombre;
   final String telefono;
@@ -28,8 +30,11 @@ class Application {
   final String? documentoUrl;
   final List<PersonalReference>? refPersonales;
 
-  // Campos opcionales para cuando se hace join
+  // Campos opcionales para cuando se hace join / snapshots de contacto (Fase 2)
   final String? nombreArrendatario;
+  final String? telefonoArrendatario;
+  final String? nombreArrendador;
+  final String? telefonoArrendador;
   final String? tituloPropiedad;
   final String? direccionPropiedad;
   final double? precioRenta;
@@ -49,11 +54,18 @@ class Application {
     this.otrosIngresos,
     this.documentoUrl,
     this.refPersonales,
+    this.datosContextuales,
     this.nombreArrendatario,
+    this.telefonoArrendatario,
+    this.nombreArrendador,
+    this.telefonoArrendador,
     this.tituloPropiedad,
     this.direccionPropiedad,
     this.precioRenta,
   });
+
+  // Datos contextuales según el tipo de inmueble [RF-13.2]
+  final ApplicationContextData? datosContextuales;
 
   Application copyWith({
     String? id,
@@ -70,7 +82,11 @@ class Application {
     String? otrosIngresos,
     String? documentoUrl,
     List<PersonalReference>? refPersonales,
+    ApplicationContextData? datosContextuales,
     String? nombreArrendatario,
+    String? telefonoArrendatario,
+    String? nombreArrendador,
+    String? telefonoArrendador,
     String? tituloPropiedad,
     String? direccionPropiedad,
     double? precioRenta,
@@ -90,7 +106,11 @@ class Application {
       otrosIngresos: otrosIngresos ?? this.otrosIngresos,
       documentoUrl: documentoUrl ?? this.documentoUrl,
       refPersonales: refPersonales ?? this.refPersonales,
+      datosContextuales: datosContextuales ?? this.datosContextuales,
       nombreArrendatario: nombreArrendatario ?? this.nombreArrendatario,
+      telefonoArrendatario: telefonoArrendatario ?? this.telefonoArrendatario,
+      nombreArrendador: nombreArrendador ?? this.nombreArrendador,
+      telefonoArrendador: telefonoArrendador ?? this.telefonoArrendador,
       tituloPropiedad: tituloPropiedad ?? this.tituloPropiedad,
       direccionPropiedad: direccionPropiedad ?? this.direccionPropiedad,
       precioRenta: precioRenta ?? this.precioRenta,

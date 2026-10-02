@@ -9,8 +9,12 @@ import 'package:vihomeapp/presentation/pages/pages.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
 import 'package:vihomeapp/domain/entities/project.dart';
 
+final RouteObserver<ModalRoute<void>> appRouteObserver =
+    RouteObserver<ModalRoute<void>>();
+
 GoRouter createAppRouter() {
   return GoRouter(
+    observers: [appRouteObserver],
     debugLogDiagnostics: EnvDef.isDebugMode,
     initialLocation: '/',
     redirect: (context, state) {
@@ -213,7 +217,13 @@ GoRouter createAppRouter() {
       GoRoute(
         path: '/mapa',
         name: 'mapa',
-        builder: (context, state) => const MapaPage(),
+        builder: (context, state) {
+          final tipo = state.uri.queryParameters['tipo'] ??
+              (state.extra is Map
+                  ? (state.extra as Map)['tipo'] as String?
+                  : null);
+          return MapaPage(tipo: tipo);
+        },
       ),
       GoRoute(
         path: '/location-picker',

@@ -231,12 +231,16 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> becomeLandlord() async {
+  Future<bool> switchRole(String newRole) async {
+    if (_user?.role == newRole) {
+      return true;
+    }
+
     try {
       _setLoading(true);
       _clearError();
 
-      final result = await updateUserRoleUseCase('arrendador');
+      final result = await updateUserRoleUseCase(newRole);
 
       final bool success = result.fold(
         (failure) {
@@ -246,7 +250,7 @@ class AuthProvider with ChangeNotifier {
         },
         (_) {
           if (_user != null) {
-            _user = _user!.copyWith(role: 'arrendador');
+            _user = _user!.copyWith(role: newRole);
           }
           _setLoading(false);
           notifyListeners();
@@ -259,6 +263,14 @@ class AuthProvider with ChangeNotifier {
       _setLoading(false);
       return false;
     }
+  }
+
+  Future<bool> becomeLandlord() async {
+    return switchRole('arrendador');
+  }
+
+  Future<bool> becomeTenant() async {
+    return switchRole('arrendatario');
   }
 
   void _setLoading(bool value) {

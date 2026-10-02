@@ -6,3 +6,4 @@ export './landlord_properties_provider.dart';
 export './application_provider.dart';
 export './project_provider.dart';
 export './subscription_provider.dart';
+export './review_provider.dart';

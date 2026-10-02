@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 import 'package:vihomeapp/domain/entities/tenant.dart';
+import 'package:vihomeapp/presentation/pages/landlord/widgets/detalle_solicitud_contextual_card.dart';
 import 'package:vihomeapp/presentation/providers/application_provider.dart';
 import 'package:vihomeapp/presentation/providers/tenant_provider.dart';
 
@@ -201,6 +202,13 @@ class _DetalleSolicitudArrendadorPageState
                       _buildStatusBadge(widget.application.estado),
                     ],
                   ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Tarjeta Contextual según categoría de inmueble [RF-17.1, RF-17.2]
+                DetalleSolicitudContextualCard(
+                  contextData: widget.application.datosContextuales,
                 ),
 
                 const SizedBox(height: 24),

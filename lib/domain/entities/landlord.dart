@@ -1,3 +1,5 @@
+import 'tenant.dart';
+
 class Landlord {
   final String id;
   final String primerNombre;
@@ -22,6 +24,64 @@ class Landlord {
     required this.telefonoContacto,
     this.fcmToken,
   });
+
+  String get nombre => '$primerNombre $primerApellido';
+
+  Landlord copyWith({
+    String? id,
+    String? primerNombre,
+    String? segundoNombre,
+    String? primerApellido,
+    String? segundoApellido,
+    String? documento,
+    String? direccionContacto,
+    String? tipoDocumento,
+    String? telefonoContacto,
+    String? fcmToken,
+  }) {
+    return Landlord(
+      id: id ?? this.id,
+      primerNombre: primerNombre ?? this.primerNombre,
+      segundoNombre: segundoNombre ?? this.segundoNombre,
+      primerApellido: primerApellido ?? this.primerApellido,
+      segundoApellido: segundoApellido ?? this.segundoApellido,
+      documento: documento ?? this.documento,
+      direccionContacto: direccionContacto ?? this.direccionContacto,
+      tipoDocumento: tipoDocumento ?? this.tipoDocumento,
+      telefonoContacto: telefonoContacto ?? this.telefonoContacto,
+      fcmToken: fcmToken ?? this.fcmToken,
+    );
+  }
+
+  Tenant toTenant() {
+    return Tenant(
+      id: id,
+      primerNombre: primerNombre,
+      segundoNombre: segundoNombre,
+      primerApellido: primerApellido,
+      segundoApellido: segundoApellido,
+      documento: documento,
+      direccionContacto: direccionContacto,
+      tipoDocumento: tipoDocumento,
+      telefonoContacto: telefonoContacto,
+      fcmToken: fcmToken,
+    );
+  }
+
+  factory Landlord.fromTenant(Tenant tenant) {
+    return Landlord(
+      id: tenant.id,
+      primerNombre: tenant.primerNombre,
+      segundoNombre: tenant.segundoNombre,
+      primerApellido: tenant.primerApellido,
+      segundoApellido: tenant.segundoApellido,
+      documento: tenant.documento,
+      direccionContacto: tenant.direccionContacto,
+      tipoDocumento: tenant.tipoDocumento,
+      telefonoContacto: tenant.telefonoContacto,
+      fcmToken: tenant.fcmToken,
+    );
+  }
 
   List<Object?> get props => [
         id,

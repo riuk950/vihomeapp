@@ -1,3 +1,4 @@
+import 'package:vihomeapp/data/models/application_context_data_model.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
 
 class ApplicationModel extends Application {
@@ -16,29 +17,63 @@ class ApplicationModel extends Application {
     super.otrosIngresos,
     super.documentoUrl,
     super.refPersonales,
+    super.datosContextuales,
     super.nombreArrendatario,
+    super.telefonoArrendatario,
+    super.nombreArrendador,
+    super.telefonoArrendador,
     super.tituloPropiedad,
     super.direccionPropiedad,
     super.precioRenta,
   });
 
   factory ApplicationModel.fromJson(Map<String, dynamic> json) {
-    // Intentar extraer datos anidados si vienen del join
-    String? nombreArrendatario;
+    // Intentar extraer datos de arrendatario directos o desde join
+    String? nombreArrendatario = json['nombre_arrendatario']?.toString();
+    String? telefonoArrendatario = json['telefono_arrendatario']?.toString();
     if (json['arrendatario'] != null && json['arrendatario'] is Map) {
       final userData = json['arrendatario'];
-      nombreArrendatario = userData['nombre'] ?? userData['email'];
+      nombreArrendatario ??= userData['nombre']?.toString() ??
+          userData['primer_nombre']?.toString() ??
+          userData['email']?.toString();
+      telefonoArrendatario ??= userData['telefono']?.toString() ??
+          userData['telefono_contacto']?.toString();
     }
 
-    String? tituloPropiedad;
-    String? direccionPropiedad;
-    double? precioRenta;
+    // Intentar extraer datos de arrendador directos o desde join
+    String? nombreArrendador = json['nombre_arrendador']?.toString();
+    String? telefonoArrendador = json['telefono_arrendador']?.toString();
+    if (json['arrendador'] != null && json['arrendador'] is Map) {
+      final landlordData = json['arrendador'];
+      nombreArrendador ??= landlordData['nombre']?.toString() ??
+          landlordData['email']?.toString();
+      telefonoArrendador ??= landlordData['telefono']?.toString() ??
+          landlordData['telefono_contacto']?.toString();
+    }
+
+    // Intentar extraer datos de propiedad directos o desde join
+    String? tituloPropiedad = json['titulo_propiedad']?.toString();
+    String? direccionPropiedad = json['direccion_propiedad']?.toString();
+    double? precioRenta = (json['precio_renta'] as num?)?.toDouble();
 
     if (json['propiedades'] != null && json['propiedades'] is Map) {
       final propData = json['propiedades'];
-      tituloPropiedad = propData['titulo'];
-      direccionPropiedad = propData['direccion'];
-      precioRenta = (propData['precio_renta'] as num?)?.toDouble();
+      tituloPropiedad ??= propData['titulo']?.toString();
+      direccionPropiedad ??= propData['direccion']?.toString();
+      precioRenta ??= (propData['precio_renta'] as num?)?.toDouble();
+    }
+
+    // Fallbacks defensivos para resiliencia (QA 1.10, QA 1.11, CL-15, CL-16)
+    if (tituloPropiedad == null || tituloPropiedad.trim().isEmpty) {
+      tituloPropiedad = 'Inmueble no disponible';
+    }
+
+    if (nombreArrendatario == null || nombreArrendatario.trim().isEmpty) {
+      nombreArrendatario = 'Usuario no disponible';
+    }
+
+    if (nombreArrendador == null || nombreArrendador.trim().isEmpty) {
+      nombreArrendador = 'Usuario no disponible';
     }
 
     // Parsear referencias personales
@@ -55,14 +90,41 @@ class ApplicationModel extends Application {
           .toList();
     }
 
+    // Parsear datos contextuales si existen
+    final rawContext = json['datos_contextuales'];
+    final datosContextuales = rawContext is Map<String, dynamic>
+        ? ApplicationContextDataModel.fromJson(rawContext)
+        : null;
+
+    final String rawEstado = json['estado']?.toString() ?? 'desconocido';
+    final String estado = rawEstado.trim().isNotEmpty ? rawEstado.trim() : 'desconocido';
+
+    DateTime createdAt;
+    try {
+      createdAt = json['created_at'] != null
+          ? DateTime.parse(json['created_at'].toString())
+          : DateTime.now();
+    } catch (_) {
+      createdAt = DateTime.now();
+    }
+
+    DateTime updatedAt;
+    try {
+      updatedAt = json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'].toString())
+          : DateTime.now();
+    } catch (_) {
+      updatedAt = DateTime.now();
+    }
+
     return ApplicationModel(
-      id: json['id'],
-      arrendatarioId: json['arrendatario_id'],
-      arrendadorId: json['arrendador_id'],
-      propiedadId: json['propiedad_id'],
-      estado: json['estado'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      id: json['id']?.toString() ?? '',
+      arrendatarioId: json['arrendatario_id']?.toString() ?? '',
+      arrendadorId: json['arrendador_id']?.toString() ?? '',
+      propiedadId: json['propiedad_id']?.toString() ?? '',
+      estado: estado,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
       empresa: json['empresa']?.toString(),
       cargo: json['cargo']?.toString(),
       tiempoEmpleo: json['tiempo_empleo']?.toString(),
@@ -70,7 +132,11 @@ class ApplicationModel extends Application {
       otrosIngresos: json['otros_ingresos']?.toString(),
       documentoUrl: json['documento_url']?.toString(),
       refPersonales: refPersonales,
+      datosContextuales: datosContextuales,
       nombreArrendatario: nombreArrendatario,
+      telefonoArrendatario: telefonoArrendatario,
+      nombreArrendador: nombreArrendador,
+      telefonoArrendador: telefonoArrendador,
       tituloPropiedad: tituloPropiedad,
       direccionPropiedad: direccionPropiedad,
       precioRenta: precioRenta,
@@ -92,6 +158,16 @@ class ApplicationModel extends Application {
       if (ingresosMensuales != null) 'ingresos_mensuales': ingresosMensuales,
       if (otrosIngresos != null) 'otros_ingresos': otrosIngresos,
       if (documentoUrl != null) 'documento_url': documentoUrl,
+      if (datosContextuales != null)
+        'datos_contextuales':
+            ApplicationContextDataModel.toJson(datosContextuales),
+      if (nombreArrendatario != null) 'nombre_arrendatario': nombreArrendatario,
+      if (telefonoArrendatario != null) 'telefono_arrendatario': telefonoArrendatario,
+      if (nombreArrendador != null) 'nombre_arrendador': nombreArrendador,
+      if (telefonoArrendador != null) 'telefono_arrendador': telefonoArrendador,
+      if (tituloPropiedad != null) 'titulo_propiedad': tituloPropiedad,
+      if (direccionPropiedad != null) 'direccion_propiedad': direccionPropiedad,
+      if (precioRenta != null) 'precio_renta': precioRenta,
       if (refPersonales != null)
         'ref_personales': refPersonales!
             .map(
@@ -118,6 +194,9 @@ class ApplicationModel extends Application {
       if (ingresosMensuales != null) 'ingresos_mensuales': ingresosMensuales,
       if (otrosIngresos != null) 'otros_ingresos': otrosIngresos,
       if (documentoUrl != null) 'documento_url': documentoUrl,
+      if (datosContextuales != null)
+        'datos_contextuales':
+            ApplicationContextDataModel.toJson(datosContextuales),
       if (refPersonales != null)
         'ref_personales': refPersonales!
             .map(

@@ -11,7 +11,11 @@ import '../../providers/auth_provider.dart';
 import '../../providers/tenant_provider.dart';
 import '../../providers/landlord_provider.dart';
 import '../../providers/application_provider.dart';
+import '../../providers/review_provider.dart';
+import '../../widgets/user_reputation_header.dart';
+import '../../../domain/entities/user_reputation.dart';
 import '../../../env/env_def.dart';
+import '../../../core/router/app_router.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -20,7 +24,8 @@ class PerfilPage extends StatefulWidget {
   State<PerfilPage> createState() => _PerfilPageState();
 }
 
-class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
+class _PerfilPageState extends State<PerfilPage>
+    with WidgetsBindingObserver, RouteAware {
   @override
   void initState() {
     super.initState();
@@ -40,13 +45,56 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
           tenantProvider.loadTenantProfile(user!.id);
         }
       }
+
+      _syncUserReputation();
     });
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    _syncUserReputation();
+  }
+
+  void _syncUserReputation() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    if (user != null) {
+      try {
+        final reviewProvider = Provider.of<ReviewProvider>(
+          context,
+          listen: false,
+        );
+        bool isVerified = false;
+        try {
+          isVerified = user.role == 'arrendador'
+              ? Provider.of<LandlordProvider>(context, listen: false).isVerified
+              : Provider.of<TenantProvider>(context, listen: false).isVerified;
+        } catch (_) {}
+        reviewProvider.fetchUserReputation(
+          user.id,
+          isVerified: isVerified,
+          userName: user.email,
+        );
+        reviewProvider.fetchUserReviews(user.id);
+      } catch (_) {}
+    }
   }
 
   @override
@@ -58,6 +106,7 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
       if (authProvider.user?.isPremium == true) {
         authProvider.reloadUser();
       }
+      _syncUserReputation();
     }
   }
 
@@ -82,11 +131,34 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
         child: Consumer<AuthProvider>(
           builder: (context, authProvider, child) {
             final user = authProvider.user;
-            final isVerified = user?.role == 'arrendador'
-                ? Provider.of<LandlordProvider>(context).isVerified
-                : Provider.of<TenantProvider>(context).isVerified;
-            return SingleChildScrollView(
-              child: Column(
+            bool isVerified = false;
+            try {
+              isVerified = user?.role == 'arrendador'
+                  ? Provider.of<LandlordProvider>(context).isVerified
+                  : Provider.of<TenantProvider>(context).isVerified;
+            } catch (_) {}
+            return RefreshIndicator(
+              onRefresh: () async {
+                if (user != null) {
+                  try {
+                    final reviewProvider = Provider.of<ReviewProvider>(
+                      context,
+                      listen: false,
+                    );
+                    await Future.wait([
+                      reviewProvider.fetchUserReputation(
+                        user.id,
+                        isVerified: isVerified,
+                        userName: user.email,
+                      ),
+                      reviewProvider.fetchUserReviews(user.id),
+                    ]);
+                  } catch (_) {}
+                }
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
                 children: [
                   // Profile Section
                   Padding(
@@ -144,7 +216,7 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
 
                               if (isVerified) {
                                 return MsnUserVerificado();
-                              } else {}
+                              }
                               return MsnUserComplete(
                                 onPressed: () {
                                   context.push('/complete-profile');
@@ -152,10 +224,102 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
                               );
                             },
                           ),
-                        ]
+                        ] else if (user?.role == 'arrendador') ...[
+                          Consumer<LandlordProvider>(
+                            builder: (context, landlordProvider, child) {
+                              if (landlordProvider.isLoading) {
+                                return const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                );
+                              }
+
+                              final isVerified = landlordProvider.isVerified;
+
+                              if (isVerified) {
+                                return MsnUserVerificado();
+                              }
+                              return MsnUserComplete(
+                                onPressed: () {
+                                  context.push('/complete-landlord-profile');
+                                },
+                              );
+                            },
+                          ),
+                        ],
                       ],
                     ),
                   ),
+
+                  // Sección de Reputación y Reseñas
+                  if (user != null) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Consumer<ReviewProvider>(
+                        builder: (context, reviewProvider, child) {
+                          final reputation = reviewProvider.getReputationFor(user.id);
+                          final reviews = reviewProvider.getReviewsFor(user.id) ?? [];
+
+                          if (reputation == null && reviewProvider.isLoading) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24.0),
+                              child: Center(
+                                child: SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              ),
+                            );
+                          }
+
+                          final displayReputation = reputation ??
+                              UserReputation(
+                                userId: user.id,
+                                userName: user.email,
+                                isVerified: isVerified,
+                              );
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              UserReputationHeader(reputation: displayReputation),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Mis Opiniones Recibidas',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${reviews.length} ${reviews.length == 1 ? "opinión" : "opiniones"}',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              UserReviewsListWidget(reviews: reviews),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   const SizedBox(height: 24),
 
@@ -307,6 +471,67 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
                                     const SizedBox(height: 4),
                                     Text(
                                       'Publica tus propiedades y gestiona tus arriendos.',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right,
+                                color: primaryColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Become Tenant Banner (para Arrendador)
+                  if (user?.role == 'arrendador')
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: InkWell(
+                        onTap: () => _showBecomeTenantDialog(context),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: primaryColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.person_search,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Cambiar a rol Arrendatario',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Explora inmuebles y gestiona tus solicitudes de arriendo.',
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: Colors.grey[600],
@@ -488,8 +713,9 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
                   const SizedBox(height: 16),
                 ],
               ),
-            );
-          },
+            ),
+          );
+        },
         ),
       ),
     );
@@ -563,26 +789,107 @@ class _PerfilPageState extends State<PerfilPage> with WidgetsBindingObserver {
       );
 
       final success = await authProvider.becomeLandlord();
+      await Future.delayed(Duration.zero);
 
       if (context.mounted) {
-        Navigator.of(context).pop(); // Cerrar loading
+        Navigator.of(context, rootNavigator: true).pop(); // Cerrar loading de forma segura
 
         if (success) {
-          // Cargar perfil de arrendador (puede que no exista aún)
+          // Cargar perfil de arrendador (puede que ya venga sincronizado)
           final userId = authProvider.user?.id;
           if (userId != null) {
             await landlordProvider.loadLandlordProfile(userId);
           }
 
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('¡Ahora eres Arrendador!'),
-                backgroundColor: Colors.green,
+            if (landlordProvider.isVerified) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('¡Tu rol ahora es Arrendador! Ya puedes publicar propiedades'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              // No redirigir forzosamente a completar perfil si ya está verificado
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('¡Ahora eres Arrendador! Por favor completa tu información personal'),
+                  backgroundColor: Colors.blue,
+                ),
+              );
+              context.push('/complete-landlord-profile');
+            }
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                authProvider.errorMessage ?? 'Error al cambiar de rol',
               ),
-            );
-            // Redirigir a completar perfil de arrendador
-            context.push('/complete-landlord-profile');
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _showBecomeTenantDialog(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => const AlertDialogWidget(
+        icon: Icons.person_search,
+        title: 'Cambiar a rol Arrendatario',
+        content:
+            '¿Estás seguro de que deseas cambiar al rol de Arrendatario? Podrás explorar propiedades y enviar solicitudes de arriendo.',
+        cancelText: 'Cancelar',
+        acceptText: 'Confirmar',
+      ),
+    );
+
+    if (confirm == true && context.mounted) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final tenantProvider =
+          Provider.of<TenantProvider>(context, listen: false);
+
+      // Mostrar loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final success = await authProvider.becomeTenant();
+      await Future.delayed(Duration.zero);
+
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop(); // Cerrar loading de forma segura
+
+        if (success) {
+          // Cargar perfil de arrendatario (puede que ya venga sincronizado)
+          final userId = authProvider.user?.id;
+          if (userId != null) {
+            await tenantProvider.loadTenantProfile(userId);
+          }
+
+          if (context.mounted) {
+            if (tenantProvider.isVerified) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('¡Tu rol ahora es Arrendatario! Ya puedes explorar y solicitar arriendos'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              // No redirigir forzosamente a completar perfil si ya está verificado
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('¡Ahora eres Arrendatario! Por favor completa tu información personal'),
+                  backgroundColor: Colors.blue,
+                ),
+              );
+              context.push('/complete-profile');
+            }
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

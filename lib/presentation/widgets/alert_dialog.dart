@@ -25,8 +25,12 @@ class AlertDialogWidget extends StatelessWidget {
         children: [
           Icon(icon, color: primaryColor),
           const SizedBox(width: 10),
-          Text(title,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
       content: Text(content),

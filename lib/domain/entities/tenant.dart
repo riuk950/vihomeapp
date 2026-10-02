@@ -1,3 +1,5 @@
+import 'landlord.dart';
+
 class Tenant {
   final String id;
   final String primerNombre;
@@ -24,6 +26,62 @@ class Tenant {
   });
 
   String get nombre => '$primerNombre $primerApellido';
+
+  Tenant copyWith({
+    String? id,
+    String? primerNombre,
+    String? segundoNombre,
+    String? primerApellido,
+    String? segundoApellido,
+    String? documento,
+    String? direccionContacto,
+    String? tipoDocumento,
+    String? telefonoContacto,
+    String? fcmToken,
+  }) {
+    return Tenant(
+      id: id ?? this.id,
+      primerNombre: primerNombre ?? this.primerNombre,
+      segundoNombre: segundoNombre ?? this.segundoNombre,
+      primerApellido: primerApellido ?? this.primerApellido,
+      segundoApellido: segundoApellido ?? this.segundoApellido,
+      documento: documento ?? this.documento,
+      direccionContacto: direccionContacto ?? this.direccionContacto,
+      tipoDocumento: tipoDocumento ?? this.tipoDocumento,
+      telefonoContacto: telefonoContacto ?? this.telefonoContacto,
+      fcmToken: fcmToken ?? this.fcmToken,
+    );
+  }
+
+  Landlord toLandlord() {
+    return Landlord(
+      id: id,
+      primerNombre: primerNombre,
+      segundoNombre: segundoNombre,
+      primerApellido: primerApellido,
+      segundoApellido: segundoApellido,
+      documento: documento,
+      direccionContacto: direccionContacto,
+      tipoDocumento: tipoDocumento,
+      telefonoContacto: telefonoContacto,
+      fcmToken: fcmToken,
+    );
+  }
+
+  factory Tenant.fromLandlord(Landlord landlord) {
+    return Tenant(
+      id: landlord.id,
+      primerNombre: landlord.primerNombre,
+      segundoNombre: landlord.segundoNombre,
+      primerApellido: landlord.primerApellido,
+      segundoApellido: landlord.segundoApellido,
+      documento: landlord.documento,
+      direccionContacto: landlord.direccionContacto,
+      tipoDocumento: landlord.tipoDocumento,
+      telefonoContacto: landlord.telefonoContacto,
+      fcmToken: landlord.fcmToken,
+    );
+  }
 
   List<Object?> get props => [
         id,
