@@ -459,6 +459,7 @@ class _MapaPageState extends State<MapaPage> {
   void _showProjectDetails(Project project) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
@@ -474,106 +475,111 @@ class _MapaPageState extends State<MapaPage> {
             ? project.ubicacionPrincipal
             : project.tipoPropiedad;
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          height: 360,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return SafeArea(
+          top: false,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      project.estado,
-                      style: const TextStyle(
-                        color: primaryColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          project.estado,
+                          style: const TextStyle(
+                            color: primaryColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                project.descripcion.isNotEmpty
-                    ? project.descripcion
-                    : project.tipoPropiedad,
-                style: const TextStyle(color: Colors.grey),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _infoItem(Icons.bed, '${project.habitaciones} Hab'),
-                  _infoItem(Icons.bathtub, '${project.banos} Baños'),
-                  _infoItem(
-                    Icons.aspect_ratio,
-                    '${project.area} m²',
-                  ),
-                  if (project.estrato > 0)
-                    _infoItem(Icons.layers, 'Estrato ${project.estrato}'),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 12),
-              const Text(
-                'Precio Desde',
-                style: TextStyle(color: disabledColor, fontSize: 12),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                  const SizedBox(height: 8),
                   Text(
-                    priceText,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
+                    project.descripcion.isNotEmpty
+                        ? project.descripcion
+                        : project.tipoPropiedad,
+                    style: const TextStyle(color: Colors.grey),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Cerrar modal
-                      context.push('/proyecto-detalle', extra: project);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: backgroundColor,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _infoItem(Icons.bed, '${project.habitaciones} Hab'),
+                      _infoItem(Icons.bathtub, '${project.banos} Baños'),
+                      _infoItem(
+                        Icons.aspect_ratio,
+                        '${project.area} m²',
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      if (project.estrato > 0)
+                        _infoItem(Icons.layers, 'Estrato ${project.estrato}'),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Precio Desde',
+                    style: TextStyle(color: disabledColor, fontSize: 12),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        priceText,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
                       ),
-                    ),
-                    child: const Text('Ver Detalles'),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Cerrar modal
+                          context.push('/proyecto-detalle', extra: project);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: backgroundColor,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Ver Detalles'),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         );
       },
@@ -583,6 +589,7 @@ class _MapaPageState extends State<MapaPage> {
   void _showPropertyDetails(Property property) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
@@ -597,77 +604,82 @@ class _MapaPageState extends State<MapaPage> {
         final String priceText =
             price != null ? currencyFormat.format(price) : 'N/A';
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          height: 350,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                property.titulo,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                property.direccion,
-                style: const TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _infoItem(Icons.bed, '${property.habitaciones} Hab'),
-                  _infoItem(Icons.bathtub, '${property.banos} Baños'),
-                  _infoItem(
-                    Icons.aspect_ratio,
-                    '${property.metrosCuadrados} m²',
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 16),
-              Text(
-                isArriendo ? 'Precio de Arriendo' : 'Precio de Venta',
-                style: const TextStyle(color: disabledColor, fontSize: 12),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return SafeArea(
+          top: false,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    priceText,
+                    property.titulo,
                     style: const TextStyle(
-                      fontSize: 24,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: primaryColor,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Cerrar modal
-                      context.push('/property-details', extra: property);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: backgroundColor,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+                  const SizedBox(height: 8),
+                  Text(
+                    property.direccion,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _infoItem(Icons.bed, '${property.habitaciones} Hab'),
+                      _infoItem(Icons.bathtub, '${property.banos} Baños'),
+                      _infoItem(
+                        Icons.aspect_ratio,
+                        '${property.metrosCuadrados} m²',
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  Text(
+                    isArriendo ? 'Precio de Arriendo' : 'Precio de Venta',
+                    style: const TextStyle(color: disabledColor, fontSize: 12),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        priceText,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
                       ),
-                    ),
-                    child: const Text('Ver Detalles'),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Cerrar modal
+                          context.push('/property-details', extra: property);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: backgroundColor,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Ver Detalles'),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         );
       },

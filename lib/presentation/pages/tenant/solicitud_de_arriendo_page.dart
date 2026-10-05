@@ -450,6 +450,7 @@ class _SolicitudDeArriendoPageState extends State<SolicitudDeArriendoPage> {
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

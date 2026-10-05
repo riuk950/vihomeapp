@@ -184,6 +184,7 @@ class _CompleteTenantProfilePageState extends State<CompleteTenantProfilePage> {
       appBar: AppBar(title: const Text('Completar Perfil'), centerTitle: true),
       body: SafeArea(
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,

@@ -83,6 +83,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   default-flavor: dev
+  config:
+    enable-swift-package-manager: false
   uses-material-design: true
   assets:
     - assets/fonts/

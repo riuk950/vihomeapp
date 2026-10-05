@@ -35,6 +35,7 @@ class RatingBottomSheetModal extends StatefulWidget {
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (modalContext) => RatingBottomSheetModal(
         solicitudId: solicitudId,
@@ -111,7 +112,9 @@ class _RatingBottomSheetModalState extends State<RatingBottomSheetModal> {
         top: 20,
         left: 20,
         right: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom +
+            24,
       ),
       decoration: const BoxDecoration(
         color: Colors.white,
