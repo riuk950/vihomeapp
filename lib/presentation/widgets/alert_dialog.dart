@@ -7,6 +7,7 @@ class AlertDialogWidget extends StatelessWidget {
   final String content;
   final String cancelText;
   final String acceptText;
+  final bool isDestructive;
 
   const AlertDialogWidget({
     super.key,
@@ -15,6 +16,7 @@ class AlertDialogWidget extends StatelessWidget {
     required this.content,
     required this.cancelText,
     required this.acceptText,
+    this.isDestructive = false,
   });
 
   @override
@@ -23,12 +25,16 @@ class AlertDialogWidget extends StatelessWidget {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Icon(icon, color: primaryColor),
+          Icon(icon, color: isDestructive ? Colors.red : primaryColor),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isDestructive ? Colors.red : null,
+              ),
             ),
           ),
         ],
@@ -37,9 +43,18 @@ class AlertDialogWidget extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text(cancelText, style: TextStyle(color: primaryColor)),
+          child: Text(
+            cancelText,
+            style: TextStyle(color: isDestructive ? Colors.grey[700] : primaryColor),
+          ),
         ),
         ElevatedButton(
+          style: isDestructive
+              ? ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                )
+              : null,
           onPressed: () => Navigator.of(context).pop(true),
           child: Text(acceptText),
         ),

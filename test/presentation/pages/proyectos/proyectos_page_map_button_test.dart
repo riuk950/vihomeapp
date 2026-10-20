@@ -89,6 +89,12 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, void>> deleteAccount() async {
+    user = null;
+    return const Right(null);
+  }
+
+  @override
   Future<Either<Failure, User>> signInWithGoogle() async =>
       const Left(AuthFailure('error'));
   @override

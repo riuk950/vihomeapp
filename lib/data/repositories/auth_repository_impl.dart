@@ -122,6 +122,18 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, void>> deleteAccount() async {
+    try {
+      await remoteDataSource.deleteAccount();
+      return const Right(null);
+    } on Failure catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(AppErrorHandler.handle(e));
+    }
+  }
+
+  @override
   Stream<Either<Failure, User?>> authStateChanges() {
     try {
       return remoteDataSource.authStateChanges().map((user) {

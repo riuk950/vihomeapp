@@ -35,6 +35,9 @@ abstract class AuthRepository {
   /// Actualiza el rol del usuario
   Future<Either<Failure, void>> updateUserRole(String role);
   
+  /// Elimina permanentemente la cuenta del usuario actual y todos sus datos asociados
+  Future<Either<Failure, void>> deleteAccount();
+  
   /// Stream de cambios en el estado de autenticación
   Stream<Either<Failure, User?>> authStateChanges();
 }

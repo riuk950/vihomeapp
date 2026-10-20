@@ -3,6 +3,7 @@ export './auth/reset_password_usecase.dart';
 export './auth/sign_in_usecase.dart';
 export './auth/sign_in_with_google_usecase.dart';
 export './auth/sign_out_usecase.dart';
+export './auth/delete_account_usecase.dart';
 export './auth/sign_up_usecase.dart';
 export './auth/update_user_role_usecase.dart';
 export './property/get_properties_usecase.dart';
