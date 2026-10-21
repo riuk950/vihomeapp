@@ -32,6 +32,9 @@ abstract class AuthRemoteDataSource {
 
   Future<void> updateUserRole(String role);
 
+  /// Elimina permanentemente la cuenta del usuario actual y todos sus datos asociados
+  Future<void> deleteAccount();
+
   Stream<entity.User?> authStateChanges();
 }
 
@@ -290,6 +293,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         // La sincronización de perfil no bloquea el cambio de rol del usuario
         // pero se registra para auditoría técnica
       }
+    } catch (e) {
+      throw SupabaseErrorHandler.handle(e);
+    }
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    try {
+      await supabaseService.client.rpc('delete_user_account');
     } catch (e) {
       throw SupabaseErrorHandler.handle(e);
     }

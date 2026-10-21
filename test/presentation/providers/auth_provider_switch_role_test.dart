@@ -54,6 +54,9 @@ class MockAuthRepoForRoleSwitch implements AuthRepository {
   Future<Either<Failure, void>> signOut() async => throw UnimplementedError();
 
   @override
+  Future<Either<Failure, void>> deleteAccount() async => throw UnimplementedError();
+
+  @override
   Future<Either<Failure, User>> signInWithGoogle() async =>
       throw UnimplementedError();
 

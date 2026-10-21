@@ -792,7 +792,7 @@ class _PanelPageState extends State<PanelPage>
               leading: const Icon(Icons.description),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () async {
-                final url = Uri.parse('https://vihome.web.app/#/terms');
+                final url = Uri.parse('https://vihome.web.app/terms');
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url, mode: LaunchMode.inAppWebView);
                 }
@@ -804,7 +804,7 @@ class _PanelPageState extends State<PanelPage>
               leading: const Icon(Icons.description),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () async {
-                final url = Uri.parse('https://vihome.web.app/#/privacy');
+                final url = Uri.parse('https://vihome.web.app/privacy');
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url, mode: LaunchMode.inAppWebView);
                 }
@@ -816,7 +816,7 @@ class _PanelPageState extends State<PanelPage>
               leading: const Icon(Icons.question_mark),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () async {
-                final url = Uri.parse('https://vihome.web.app/#/faq');
+                final url = Uri.parse('https://vihome.web.app/faq');
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url, mode: LaunchMode.inAppWebView);
                 }
@@ -829,6 +829,22 @@ class _PanelPageState extends State<PanelPage>
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () {
                 _handleLogout(context);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              key: const Key('delete_account_button_panel'),
+              title: const Text(
+                'Eliminar cuenta',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              leading: const Icon(Icons.delete_forever, color: Colors.red),
+              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.red),
+              onTap: () {
+                _handleDeleteAccount(context);
               },
             ),
           ],
@@ -999,6 +1015,83 @@ class _PanelPageState extends State<PanelPage>
 
       if (context.mounted) {
         context.go('/login');
+      }
+    }
+  }
+
+  Future<void> _handleDeleteAccount(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialogWidget(
+        icon: Icons.warning_amber_rounded,
+        title: 'Eliminar cuenta',
+        content:
+            '¿Estás seguro? Esta acción eliminará permanentemente tu cuenta, todas tus propiedades publicadas, solicitudes y datos personales. Esta acción no se puede deshacer.',
+        cancelText: 'Cancelar',
+        acceptText: 'Eliminar definitivamente',
+        isDestructive: true,
+      ),
+    );
+
+    if (confirm != true || !context.mounted) return;
+
+    // Mostrar diálogo de progreso bloqueante
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return const PopScope(
+          canPop: false,
+          child: AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Expanded(child: Text('Eliminando cuenta y datos...')),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final tenantProvider = Provider.of<TenantProvider>(context, listen: false);
+    final landlordProvider =
+        Provider.of<LandlordProvider>(context, listen: false);
+    final appProvider =
+        Provider.of<ApplicationProvider>(context, listen: false);
+
+    final success = await authProvider.deleteAccount();
+
+    if (context.mounted) {
+      Navigator.of(context, rootNavigator: true)
+          .pop(); // Cerrar loading de forma segura
+
+      if (success) {
+        tenantProvider.clear();
+        landlordProvider.clear();
+        appProvider.clear();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('Tu cuenta y datos han sido eliminados correctamente.'),
+            backgroundColor: Colors.black87,
+          ),
+        );
+        context.go('/login');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              authProvider.errorMessage ??
+                  'Ocurrió un error al intentar eliminar la cuenta. Intenta de nuevo.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

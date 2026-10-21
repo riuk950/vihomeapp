@@ -159,172 +159,178 @@ class _PerfilPageState extends State<PerfilPage>
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
-                children: [
-                  // Profile Section
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          color: Color(0xFFF6F7F8),
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Bienvenido ${user?.role == 'arrendatario' ? 'Arrendatario' : 'Propietario'}',
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                user?.email ?? 'Usuario',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Gestiona tus propiedades y solicitudes',
-                                style: TextStyle(
-                                    fontSize: 16, color: Color(0xFF617589)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        if (user?.role == 'arrendatario') ...[
-                          Consumer<TenantProvider>(
-                            builder: (context, tenantProvider, child) {
-                              if (tenantProvider.isLoading) {
-                                return const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                );
-                              }
-
-                              final isVerified = tenantProvider.isVerified;
-
-                              if (isVerified) {
-                                return MsnUserVerificado();
-                              }
-                              return MsnUserComplete(
-                                onPressed: () {
-                                  context.push('/complete-profile');
-                                },
-                              );
-                            },
-                          ),
-                        ] else if (user?.role == 'arrendador') ...[
-                          Consumer<LandlordProvider>(
-                            builder: (context, landlordProvider, child) {
-                              if (landlordProvider.isLoading) {
-                                return const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                );
-                              }
-
-                              final isVerified = landlordProvider.isVerified;
-
-                              if (isVerified) {
-                                return MsnUserVerificado();
-                              }
-                              return MsnUserComplete(
-                                onPressed: () {
-                                  context.push('/complete-landlord-profile');
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  // Sección de Reputación y Reseñas
-                  if (user != null) ...[
+                  children: [
+                    // Profile Section
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Consumer<ReviewProvider>(
-                        builder: (context, reviewProvider, child) {
-                          final reputation = reviewProvider.getReputationFor(user.id);
-                          final reviews = reviewProvider.getReviewsFor(user.id) ?? [];
-
-                          if (reputation == null && reviewProvider.isLoading) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 24.0),
-                              child: Center(
-                                child: SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            color: Color(0xFFF6F7F8),
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Bienvenido ${user?.role == 'arrendatario' ? 'Arrendatario' : 'Propietario'}',
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
                                 ),
-                              ),
-                            );
-                          }
-
-                          final displayReputation = reputation ??
-                              UserReputation(
-                                userId: user.id,
-                                userName: user.email,
-                                isVerified: isVerified,
-                              );
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              UserReputationHeader(reputation: displayReputation),
-                              const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Expanded(
-                                    child: Text(
-                                      'Mis Opiniones Recibidas',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0F172A),
-                                      ),
-                                    ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  user?.email ?? 'Usuario',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
                                   ),
-                                  Text(
-                                    '${reviews.length} ${reviews.length == 1 ? "opinión" : "opiniones"}',
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xFF64748B),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Gestiona tus propiedades y solicitudes',
+                                  style: TextStyle(
+                                      fontSize: 16, color: Color(0xFF617589)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          if (user?.role == 'arrendatario') ...[
+                            Consumer<TenantProvider>(
+                              builder: (context, tenantProvider, child) {
+                                if (tenantProvider.isLoading) {
+                                  return const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              UserReviewsListWidget(reviews: reviews),
-                            ],
-                          );
-                        },
+                                  );
+                                }
+
+                                final isVerified = tenantProvider.isVerified;
+
+                                if (isVerified) {
+                                  return MsnUserVerificado();
+                                }
+                                return MsnUserComplete(
+                                  onPressed: () {
+                                    context.push('/complete-profile');
+                                  },
+                                );
+                              },
+                            ),
+                          ] else if (user?.role == 'arrendador') ...[
+                            Consumer<LandlordProvider>(
+                              builder: (context, landlordProvider, child) {
+                                if (landlordProvider.isLoading) {
+                                  return const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  );
+                                }
+
+                                final isVerified = landlordProvider.isVerified;
+
+                                if (isVerified) {
+                                  return MsnUserVerificado();
+                                }
+                                return MsnUserComplete(
+                                  onPressed: () {
+                                    context.push('/complete-landlord-profile');
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                  ],
 
-                  const SizedBox(height: 24),
+                    // Sección de Reputación y Reseñas
+                    if (user != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Consumer<ReviewProvider>(
+                          builder: (context, reviewProvider, child) {
+                            final reputation =
+                                reviewProvider.getReputationFor(user.id);
+                            final reviews =
+                                reviewProvider.getReviewsFor(user.id) ?? [];
 
-                  // Last Activity Card
-                  /*  Padding(
+                            if (reputation == null &&
+                                reviewProvider.isLoading) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 24.0),
+                                child: Center(
+                                  child: SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            final displayReputation = reputation ??
+                                UserReputation(
+                                  userId: user.id,
+                                  userName: user.email,
+                                  isVerified: isVerified,
+                                );
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                UserReputationHeader(
+                                    reputation: displayReputation),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Expanded(
+                                      child: Text(
+                                        'Mis Opiniones Recibidas',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF0F172A),
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${reviews.length} ${reviews.length == 1 ? "opinión" : "opiniones"}',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                UserReviewsListWidget(reviews: reviews),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    const SizedBox(height: 24),
+
+                    // Last Activity Card
+                    /*  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Container(
                       decoration: BoxDecoration(
@@ -428,294 +434,336 @@ class _PerfilPageState extends State<PerfilPage>
 
                   const SizedBox(height: 24), */
 
-                  // Become Landlord Banner
-                  if (user?.role == 'arrendatario')
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: InkWell(
-                        onTap: () => _showBecomeLandlordDialog(context),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: primaryColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: primaryColor,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.real_estate_agent,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Conviértete en Arrendador',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0F172A),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Publica tus propiedades y gestiona tus arriendos.',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(
-                                Icons.chevron_right,
-                                color: primaryColor,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // Become Tenant Banner (para Arrendador)
-                  if (user?.role == 'arrendador')
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: InkWell(
-                        onTap: () => _showBecomeTenantDialog(context),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: primaryColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: primaryColor,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.person_search,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Cambiar a rol Arrendatario',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0F172A),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Explora inmuebles y gestiona tus solicitudes de arriendo.',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(
-                                Icons.chevron_right,
-                                color: primaryColor,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  const SizedBox(height: 16),
-
-                  // Menu Options
-                  _buildMenuOption(
-                    context,
-                    Icons.person_outline,
-                    'Información Personal',
-                    route: '/personal-info',
-                    locked: !isVerified,
-                  ),
-                  _buildMenuOption(
-                    context,
-                    Icons.history,
-                    'Historial de Solicitudes',
-                    route: '/solicitudes-arrendatario',
-                    locked: !isVerified,
-                  ),
-                  // _buildMenuOption(
-                  //   context,
-                  //   Icons.description_outlined,
-                  //   'Mis Contratos',
-                  // ),
-                  _buildMenuOption(
-                    context,
-                    Icons.notifications_none,
-                    'Notificaciones',
-                    route: user?.role == 'arrendador'
-                        ? '/notifications_landlord'
-                        : '/notifications_tenant',
-                    locked: !isVerified,
-                  ),
-                  _buildMenuOption(
-                    context,
-                    (user?.isPremium ?? false)
-                        ? Icons.workspace_premium
-                        : Icons.block,
-                    (user?.isPremium ?? false)
-                        ? 'Mi Suscripción Premium'
-                        : 'Quitar anuncios',
-                    // Si ya es premium → abre el gestor de suscripciones de Play Store
-                    // Si no es premium → navega a la página de suscripción
-                    onTap: (user?.isPremium ?? false)
-                        ? () async {
-                            final packageName = 'com.vihomeapp.vihomeapp';
-                            final url = Uri.parse(
-                              'https://play.google.com/store/account/subscriptions?package=$packageName',
-                            );
-                            if (await canLaunchUrl(url)) {
-                              await launchUrl(
-                                url,
-                                mode: LaunchMode.externalApplication,
-                              );
-                            }
-                          }
-                        : null,
-                    route: (user?.isPremium ?? false) ? null : '/subscription',
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
-                    child: Divider(),
-                  ),
-                  _buildMenuOption(
-                    context,
-                    Icons.help_outline,
-                    'Preguntas Frecuentes',
-                    onTap: () async {
-                      final url = Uri.parse('https://vihome.web.app/#/faq');
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.inAppWebView);
-                      }
-                    },
-                  ),
-                  _buildMenuOption(
-                    context,
-                    Icons.description_outlined,
-                    'Terminos y Condiciones',
-                    onTap: () async {
-                      final url = Uri.parse('https://vihome.web.app/#/terms');
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.inAppWebView);
-                      }
-                    },
-                  ),
-                  _buildMenuOption(
-                    context,
-                    Icons.description_outlined,
-                    'Politicas de tratamiento de datos',
-                    onTap: () async {
-                      final url = Uri.parse('https://vihome.web.app/#/privacy');
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.inAppWebView);
-                      }
-                    },
-                  ),
-                  // Logout Option
-                  InkWell(
-                    onTap: () => _handleLogout(context),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 12.0,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
+                    // Become Landlord Banner
+                    if (user?.role == 'arrendatario')
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: InkWell(
+                          onTap: () => _showBecomeLandlordDialog(context),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              color: primaryColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.logout, color: Colors.red),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: primaryColor,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.real_estate_agent,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Conviértete en Arrendador',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF0F172A),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Publica tus propiedades y gestiona tus arriendos.',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.chevron_right,
+                                  color: primaryColor,
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 16),
-                          const Expanded(
-                            child: Text(
-                              'Cerrar sesión',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.red,
-                                fontWeight: FontWeight.w500,
+                        ),
+                      ),
+
+                    // Become Tenant Banner (para Arrendador)
+                    if (user?.role == 'arrendador')
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: InkWell(
+                          onTap: () => _showBecomeTenantDialog(context),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: primaryColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: primaryColor,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.person_search,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Cambiar a rol Arrendatario',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF0F172A),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Explora inmuebles y gestiona tus solicitudes de arriendo.',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.chevron_right,
+                                  color: primaryColor,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 16),
+
+                    // Menu Options
+                    _buildMenuOption(
+                      context,
+                      Icons.person_outline,
+                      'Información Personal',
+                      route: '/personal-info',
+                      locked: !isVerified,
+                    ),
+                    _buildMenuOption(
+                      context,
+                      Icons.history,
+                      'Historial de Solicitudes',
+                      route: '/solicitudes-arrendatario',
+                      locked: !isVerified,
+                    ),
+                    // _buildMenuOption(
+                    //   context,
+                    //   Icons.description_outlined,
+                    //   'Mis Contratos',
+                    // ),
+                    _buildMenuOption(
+                      context,
+                      Icons.notifications_none,
+                      'Notificaciones',
+                      route: user?.role == 'arrendador'
+                          ? '/notifications_landlord'
+                          : '/notifications_tenant',
+                      locked: !isVerified,
+                    ),
+                    _buildMenuOption(
+                      context,
+                      (user?.isPremium ?? false)
+                          ? Icons.workspace_premium
+                          : Icons.block,
+                      (user?.isPremium ?? false)
+                          ? 'Mi Suscripción Premium'
+                          : 'Quitar anuncios',
+                      // Si ya es premium → abre el gestor de suscripciones de Play Store
+                      // Si no es premium → navega a la página de suscripción
+                      onTap: (user?.isPremium ?? false)
+                          ? () async {
+                              final packageName = 'com.vihomeapp.vihomeapp';
+                              final url = Uri.parse(
+                                'https://play.google.com/store/account/subscriptions?package=$packageName',
+                              );
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(
+                                  url,
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              }
+                            }
+                          : null,
+                      route:
+                          (user?.isPremium ?? false) ? null : '/subscription',
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      child: Divider(),
+                    ),
+                    _buildMenuOption(
+                      context,
+                      Icons.help_outline,
+                      'Preguntas Frecuentes',
+                      onTap: () async {
+                        final url = Uri.parse('https://vihome.web.app/faq');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.inAppWebView);
+                        }
+                      },
+                    ),
+                    _buildMenuOption(
+                      context,
+                      Icons.description_outlined,
+                      'Terminos y Condiciones',
+                      onTap: () async {
+                        final url = Uri.parse('https://vihome.web.app/terms');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.inAppWebView);
+                        }
+                      },
+                    ),
+                    _buildMenuOption(
+                      context,
+                      Icons.description_outlined,
+                      'Politicas de tratamiento de datos',
+                      onTap: () async {
+                        final url = Uri.parse('https://vihome.web.app/privacy');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.inAppWebView);
+                        }
+                      },
+                    ),
+                    // Logout Option
+                    InkWell(
+                      onTap: () => _handleLogout(context),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 12.0,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.red.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child:
+                                  const Icon(Icons.logout, color: Colors.red),
+                            ),
+                            const SizedBox(width: 16),
+                            const Expanded(
+                              child: Text(
+                                'Cerrar sesión',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Delete Account Option
+                    InkWell(
+                      key: const Key('delete_account_button_perfil'),
+                      onTap: () => _handleDeleteAccount(context),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 12.0,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.red.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.delete_forever,
+                                color: Colors.red,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Expanded(
+                              child: Text(
+                                'Eliminar cuenta',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (EnvDef.flavor == 'dev')
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Versión ${EnvDef.appVersion} (${EnvDef.flavor})',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red[500],
+                            fontWeight: FontWeight.w500,
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (EnvDef.flavor == 'dev')
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Versión ${EnvDef.appVersion} (${EnvDef.flavor})',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.red[500],
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ),
-                  if (EnvDef.flavor == 'prod')
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Versión ${EnvDef.appVersion}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[500],
-                          fontWeight: FontWeight.w500,
+                    if (EnvDef.flavor == 'prod')
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Versión ${EnvDef.appVersion}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
         ),
       ),
     );
@@ -763,6 +811,83 @@ class _PerfilPageState extends State<PerfilPage>
     }
   }
 
+  Future<void> _handleDeleteAccount(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialogWidget(
+        icon: Icons.warning_amber_rounded,
+        title: 'Eliminar cuenta',
+        content:
+            '¿Estás seguro? Esta acción eliminará permanentemente tu cuenta, todas tus propiedades publicadas, solicitudes y datos personales. Esta acción no se puede deshacer.',
+        cancelText: 'Cancelar',
+        acceptText: 'Eliminar definitivamente',
+        isDestructive: true,
+      ),
+    );
+
+    if (confirm != true || !context.mounted) return;
+
+    // Mostrar diálogo de progreso bloqueante
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return const PopScope(
+          canPop: false,
+          child: AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Expanded(child: Text('Eliminando cuenta y datos...')),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final tenantProvider = Provider.of<TenantProvider>(context, listen: false);
+    final landlordProvider =
+        Provider.of<LandlordProvider>(context, listen: false);
+    final appProvider =
+        Provider.of<ApplicationProvider>(context, listen: false);
+
+    final success = await authProvider.deleteAccount();
+
+    if (context.mounted) {
+      Navigator.of(context, rootNavigator: true)
+          .pop(); // Cerrar loading de forma segura
+
+      if (success) {
+        tenantProvider.clear();
+        landlordProvider.clear();
+        appProvider.clear();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('Tu cuenta y datos han sido eliminados correctamente.'),
+            backgroundColor: Colors.black87,
+          ),
+        );
+        context.go('/login');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              authProvider.errorMessage ??
+                  'Ocurrió un error al intentar eliminar la cuenta. Intenta de nuevo.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _showBecomeLandlordDialog(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -792,7 +917,8 @@ class _PerfilPageState extends State<PerfilPage>
       await Future.delayed(Duration.zero);
 
       if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop(); // Cerrar loading de forma segura
+        Navigator.of(context, rootNavigator: true)
+            .pop(); // Cerrar loading de forma segura
 
         if (success) {
           // Cargar perfil de arrendador (puede que ya venga sincronizado)
@@ -805,7 +931,8 @@ class _PerfilPageState extends State<PerfilPage>
             if (landlordProvider.isVerified) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('¡Tu rol ahora es Arrendador! Ya puedes publicar propiedades'),
+                  content: Text(
+                      '¡Tu rol ahora es Arrendador! Ya puedes publicar propiedades'),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -813,7 +940,8 @@ class _PerfilPageState extends State<PerfilPage>
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('¡Ahora eres Arrendador! Por favor completa tu información personal'),
+                  content: Text(
+                      '¡Ahora eres Arrendador! Por favor completa tu información personal'),
                   backgroundColor: Colors.blue,
                 ),
               );
@@ -863,7 +991,8 @@ class _PerfilPageState extends State<PerfilPage>
       await Future.delayed(Duration.zero);
 
       if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop(); // Cerrar loading de forma segura
+        Navigator.of(context, rootNavigator: true)
+            .pop(); // Cerrar loading de forma segura
 
         if (success) {
           // Cargar perfil de arrendatario (puede que ya venga sincronizado)
@@ -876,7 +1005,8 @@ class _PerfilPageState extends State<PerfilPage>
             if (tenantProvider.isVerified) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('¡Tu rol ahora es Arrendatario! Ya puedes explorar y solicitar arriendos'),
+                  content: Text(
+                      '¡Tu rol ahora es Arrendatario! Ya puedes explorar y solicitar arriendos'),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -884,7 +1014,8 @@ class _PerfilPageState extends State<PerfilPage>
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('¡Ahora eres Arrendatario! Por favor completa tu información personal'),
+                  content: Text(
+                      '¡Ahora eres Arrendatario! Por favor completa tu información personal'),
                   backgroundColor: Colors.blue,
                 ),
               );

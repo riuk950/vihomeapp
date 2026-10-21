@@ -283,6 +283,8 @@ class _CrearPropiedadPageState extends State<CrearPropiedadPage> {
             return Stack(
               children: [
                 SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: const EdgeInsets.all(16.0),
                   child: Form(
                     key: _formKey,

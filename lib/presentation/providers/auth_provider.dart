@@ -5,6 +5,7 @@ import '../../domain/usecases/auth/get_current_user_usecase.dart';
 import '../../domain/usecases/auth/sign_in_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_google_usecase.dart';
 import '../../domain/usecases/auth/sign_out_usecase.dart';
+import '../../domain/usecases/auth/delete_account_usecase.dart';
 import '../../domain/usecases/auth/sign_up_usecase.dart';
 import '../../domain/usecases/auth/reset_password_usecase.dart';
 import '../../domain/usecases/auth/update_user_role_usecase.dart';
@@ -20,6 +21,7 @@ class AuthProvider with ChangeNotifier {
   final SignOutUseCase signOutUseCase;
   final ResetPasswordUseCase resetPasswordUseCase;
   final UpdateUserRoleUseCase updateUserRoleUseCase;
+  final DeleteAccountUseCase? deleteAccountUseCase;
   final NetworkInfo? networkInfo;
 
   User? _user;
@@ -41,6 +43,7 @@ class AuthProvider with ChangeNotifier {
     required this.signOutUseCase,
     required this.resetPasswordUseCase,
     required this.updateUserRoleUseCase,
+    this.deleteAccountUseCase,
     this.networkInfo,
   }) {
     _initializeAuth();
@@ -202,6 +205,55 @@ class AuthProvider with ChangeNotifier {
       _user = null;
       _setLoading(false);
       notifyListeners();
+    }
+  }
+
+  /// Elimina de forma permanente la cuenta del usuario en Supabase,
+  /// limpia la caché local y cierra la sesión.
+  Future<bool> deleteAccount() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      if (deleteAccountUseCase != null) {
+        final result = await deleteAccountUseCase!();
+        final success = result.fold(
+          (failure) {
+            _setError(failure.message);
+            _setLoading(false);
+            return false;
+          },
+          (_) => true,
+        );
+
+        if (!success) {
+          return false;
+        }
+      }
+
+      // Limpieza de almacenamiento local (SharedPreferences)
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+      } catch (e) {
+        debugPrint('Error al limpiar caché local tras eliminar cuenta: $e');
+      }
+
+      // Cerrar sesión a nivel de cliente Supabase si aún persistiese
+      try {
+        await SupabaseService.instance.client.auth.signOut();
+      } catch (e) {
+        debugPrint('Error al cerrar sesión remota tras eliminar cuenta: $e');
+      }
+
+      _user = null;
+      _setLoading(false);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
     }
   }
 

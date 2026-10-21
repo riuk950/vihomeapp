@@ -8,6 +8,7 @@ import 'package:vihomeapp/domain/usecases/auth/reset_password_usecase.dart';
 import 'package:vihomeapp/domain/usecases/auth/sign_in_usecase.dart';
 import 'package:vihomeapp/domain/usecases/auth/sign_in_with_google_usecase.dart';
 import 'package:vihomeapp/domain/usecases/auth/sign_out_usecase.dart';
+import 'package:vihomeapp/domain/usecases/auth/delete_account_usecase.dart';
 import 'package:vihomeapp/domain/usecases/auth/sign_up_usecase.dart';
 import 'package:vihomeapp/domain/usecases/auth/update_user_role_usecase.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
@@ -56,6 +57,13 @@ class MockAuthRepo implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, void>> deleteAccount() async {
+    if (failure != null) return Left(failure!);
+    currentUser = null;
+    return const Right(null);
+  }
+
+  @override
   Future<Either<Failure, User>> signInWithGoogle() async =>
       const Left(AuthFailure('Google auth no implementado'));
 
@@ -81,9 +89,11 @@ void main() {
 
   late MockAuthRepo mockRepo;
   late AuthProvider authProvider;
+  late DeleteAccountUseCase deleteAccountUseCase;
 
   setUp(() {
     mockRepo = MockAuthRepo();
+    deleteAccountUseCase = DeleteAccountUseCase(mockRepo);
     authProvider = AuthProvider(
       getCurrentUserUseCase: GetCurrentUserUseCase(mockRepo),
       signInUseCase: SignInUseCase(mockRepo),
@@ -92,6 +102,7 @@ void main() {
       signOutUseCase: SignOutUseCase(mockRepo),
       resetPasswordUseCase: ResetPasswordUseCase(mockRepo),
       updateUserRoleUseCase: UpdateUserRoleUseCase(mockRepo),
+      deleteAccountUseCase: deleteAccountUseCase,
     );
   });
 
@@ -146,6 +157,38 @@ void main() {
       await authProvider.signOut();
       expect(authProvider.isAuthenticated, isFalse);
       expect(authProvider.user, isNull);
+    });
+
+    test('deleteAccount should clear user and return true on success [RF-56, CA-4]', () async {
+      await authProvider.signInWithEmail(
+        email: 'user@vihome.app',
+        password: 'pass123',
+      );
+      expect(authProvider.isAuthenticated, isTrue);
+
+      final result = await authProvider.deleteAccount();
+
+      expect(result, isTrue);
+      expect(authProvider.isAuthenticated, isFalse);
+      expect(authProvider.user, isNull);
+      expect(authProvider.errorMessage, isNull);
+    });
+
+    test('deleteAccount should keep user authenticated and return false on failure [RF-57, CA-5]', () async {
+      await authProvider.signInWithEmail(
+        email: 'user@vihome.app',
+        password: 'pass123',
+      );
+      expect(authProvider.isAuthenticated, isTrue);
+
+      mockRepo.failure = const ServerFailure('Error eliminando cuenta');
+
+      final result = await authProvider.deleteAccount();
+
+      expect(result, isFalse);
+      expect(authProvider.isAuthenticated, isTrue);
+      expect(authProvider.user, isNotNull);
+      expect(authProvider.errorMessage, 'Error eliminando cuenta');
     });
   });
 }

@@ -30,12 +30,16 @@ class LandlordReputationBottomSheet extends StatelessWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => LandlordReputationBottomSheet(
-        landlordName: landlordName,
-        reputation: reputation,
-        reviews: reviews,
-        isLoading: isLoading,
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: LandlordReputationBottomSheet(
+          landlordName: landlordName,
+          reputation: reputation,
+          reviews: reviews,
+          isLoading: isLoading,
+        ),
       ),
     );
   }
