@@ -90,6 +90,7 @@ flutter:
     - assets/fonts/
     - assets/lottie/
     - assets/images/
+    - assets/images/onboarding/
     - assets/icons/
     - .env.dev
     - .env.prod

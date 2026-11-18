@@ -7,3 +7,4 @@ export './application_provider.dart';
 export './project_provider.dart';
 export './subscription_provider.dart';
 export './review_provider.dart';
+export './onboarding_provider.dart';

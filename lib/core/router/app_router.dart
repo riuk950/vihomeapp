@@ -23,16 +23,21 @@ GoRouter createAppRouter() {
         final isAuthenticated = authProvider.isAuthenticated;
         final isGoingToLogin = state.matchedLocation == '/login';
         final isGoingToRegister = state.matchedLocation == '/register';
+        final isGoingToOnboarding = state.matchedLocation == '/onboarding';
         final isGoingToSplash = state.matchedLocation == '/';
-        final isAuthRoute = isGoingToLogin || isGoingToRegister;
+        final isPublicRoute = isGoingToLogin ||
+            isGoingToRegister ||
+            isGoingToOnboarding ||
+            isGoingToSplash;
 
         // Si no está autenticado y va a una ruta protegida
-        if (!isAuthenticated && !isAuthRoute && !isGoingToSplash) {
+        if (!isAuthenticated && !isPublicRoute) {
           return '/login';
         }
 
-        // Si está autenticado y va a login/register, redirigir a home
-        if (isAuthenticated && (isGoingToLogin || isGoingToRegister)) {
+        // Si está autenticado y va a login/register/onboarding, redirigir a home
+        if (isAuthenticated &&
+            (isGoingToLogin || isGoingToRegister || isGoingToOnboarding)) {
           return '/home';
         }
       } catch (e) {
@@ -46,6 +51,11 @@ GoRouter createAppRouter() {
         path: '/',
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingPage(),
       ),
       GoRoute(
         path: '/login',

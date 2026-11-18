@@ -12,6 +12,7 @@ import '../../domain/usecases/auth/update_user_role_usecase.dart';
 import '../../infrastructure/services/push_notification_service.dart';
 import '../../infrastructure/services/supabase_service.dart';
 import '../../core/network/network_info.dart';
+import '../../core/constants/storage_keys.dart';
 
 class AuthProvider with ChangeNotifier {
   final GetCurrentUserUseCase getCurrentUserUseCase;
@@ -197,7 +198,11 @@ class AuthProvider with ChangeNotifier {
     } finally {
       try {
         final prefs = await SharedPreferences.getInstance();
+        final onboardingBackup = prefs.getString(kOnboardingStateKey);
         await prefs.clear();
+        if (onboardingBackup != null) {
+          await prefs.setString(kOnboardingStateKey, onboardingBackup);
+        }
       } catch (e) {
         debugPrint('Error al limpiar caché: $e');
       }
@@ -231,10 +236,14 @@ class AuthProvider with ChangeNotifier {
         }
       }
 
-      // Limpieza de almacenamiento local (SharedPreferences)
+      // Limpieza de almacenamiento local (SharedPreferences) preservando estado de onboarding
       try {
         final prefs = await SharedPreferences.getInstance();
+        final onboardingBackup = prefs.getString(kOnboardingStateKey);
         await prefs.clear();
+        if (onboardingBackup != null) {
+          await prefs.setString(kOnboardingStateKey, onboardingBackup);
+        }
       } catch (e) {
         debugPrint('Error al limpiar caché local tras eliminar cuenta: $e');
       }

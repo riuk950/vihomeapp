@@ -8,6 +8,11 @@ import 'package:vihomeapp/domain/entities/user.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:vihomeapp/domain/entities/property_type.dart';
 
+import 'package:vihomeapp/domain/entities/onboarding_state.dart';
+import 'package:vihomeapp/domain/repositories/onboarding_repository.dart';
+import 'package:vihomeapp/domain/usecases/onboarding/complete_onboarding_usecase.dart';
+import 'package:vihomeapp/domain/usecases/onboarding/get_onboarding_status_usecase.dart';
+
 // Mocks
 class MockAuthProvider extends ChangeNotifier implements AuthProvider {
   @override
@@ -86,6 +91,44 @@ class MockApplicationProvider extends ChangeNotifier
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class MockProjectProvider extends ChangeNotifier implements ProjectProvider {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockSubscriptionProvider extends ChangeNotifier
+    implements SubscriptionProvider {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockReviewProvider extends ChangeNotifier implements ReviewProvider {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockOnboardingRepository implements OnboardingRepository {
+  @override
+  Future<OnboardingState> getOnboardingState() async =>
+      const OnboardingState(hasSeenOnboarding: true, completionReason: OnboardingCompletionReason.completed, lastCompletedStep: 4);
+  @override
+  Future<bool> markOnboardingSeen({
+    required OnboardingCompletionReason reason,
+    required int lastStep,
+  }) async =>
+      true;
+}
+
+class MockOnboardingProvider extends OnboardingProvider {
+  MockOnboardingProvider()
+      : super(
+          getOnboardingStatusUseCase:
+              GetOnboardingStatusUseCase(MockOnboardingRepository()),
+          completeOnboardingUseCase:
+              CompleteOnboardingUseCase(MockOnboardingRepository()),
+        );
+}
+
 void main() {
   final getIt = GetIt.instance;
 
@@ -104,6 +147,15 @@ void main() {
     getIt.registerFactory<LandlordPropertiesProvider>(
         () => MockLandlordPropertiesProvider());
     getIt.registerFactory<ApplicationProvider>(() => MockApplicationProvider());
+    getIt.registerFactory<ProjectProvider>(() => MockProjectProvider());
+    getIt.registerFactory<SubscriptionProvider>(() => MockSubscriptionProvider());
+    getIt.registerFactory<ReviewProvider>(() => MockReviewProvider());
+    getIt.registerFactory<OnboardingProvider>(() => MockOnboardingProvider());
+    final mockOnboardingRepo = MockOnboardingRepository();
+    getIt.registerLazySingleton<GetOnboardingStatusUseCase>(
+        () => GetOnboardingStatusUseCase(mockOnboardingRepo));
+    getIt.registerLazySingleton<CompleteOnboardingUseCase>(
+        () => CompleteOnboardingUseCase(mockOnboardingRepo));
   });
 
   group('FlavorApp Widget Tests', () {
