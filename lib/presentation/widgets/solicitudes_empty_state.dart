@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 
 /// Componente visual ilustrado para representar estados vacíos en listas de solicitudes.

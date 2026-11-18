@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../core/utils/application_date_formatter.dart';
 import '../../domain/entities/review.dart';
 import 'rating_stars_bar.dart';

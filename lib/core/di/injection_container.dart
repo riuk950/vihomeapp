@@ -77,6 +77,11 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton<ReviewRemoteDataSource>(
     () => ReviewRemoteDataSourceImpl(getIt<SupabaseService>()),
   );
+  getIt.registerLazySingleton<OnboardingLocalDataSource>(
+    () => OnboardingLocalDataSourceImpl(
+      sharedPreferences: getIt<SharedPreferences>(),
+    ),
+  );
 
   // Repositories
   getIt.registerLazySingleton<AuthRepository>(
@@ -103,6 +108,11 @@ Future<void> setupDependencyInjection() async {
   );
   getIt.registerLazySingleton<ReviewRepository>(
     () => ReviewRepositoryImpl(getIt<ReviewRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<OnboardingRepository>(
+    () => OnboardingRepositoryImpl(
+      localDataSource: getIt<OnboardingLocalDataSource>(),
+    ),
   );
 
   // Use cases
@@ -161,6 +171,12 @@ Future<void> setupDependencyInjection() async {
   getIt.registerLazySingleton(
     () => GetConstructoraUseCase(getIt<ProjectRepository>()),
   );
+  getIt.registerLazySingleton(
+    () => GetOnboardingStatusUseCase(getIt<OnboardingRepository>()),
+  );
+  getIt.registerLazySingleton(
+    () => CompleteOnboardingUseCase(getIt<OnboardingRepository>()),
+  );
 
   // Providers
   getIt.registerFactory(
@@ -213,6 +229,12 @@ Future<void> setupDependencyInjection() async {
   );
   getIt.registerFactory(
     () => ReviewProvider(getIt<ReviewRepository>()),
+  );
+  getIt.registerFactory(
+    () => OnboardingProvider(
+      getOnboardingStatusUseCase: getIt<GetOnboardingStatusUseCase>(),
+      completeOnboardingUseCase: getIt<CompleteOnboardingUseCase>(),
+    ),
   );
   getIt.registerLazySingleton<AdManager>(() => AdManager());
   getIt.registerLazySingleton<AnalyticsService>(() => AnalyticsService());

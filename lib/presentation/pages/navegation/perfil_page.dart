@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +12,7 @@ import '../../providers/tenant_provider.dart';
 import '../../providers/landlord_provider.dart';
 import '../../providers/application_provider.dart';
 import '../../providers/review_provider.dart';
+import '../../providers/subscription_provider.dart';
 import '../../widgets/user_reputation_header.dart';
 import '../../../domain/entities/user_reputation.dart';
 import '../../../env/env_def.dart';
@@ -789,6 +790,11 @@ class _PerfilPageState extends State<PerfilPage>
           Provider.of<LandlordProvider>(context, listen: false);
       final appProvider =
           Provider.of<ApplicationProvider>(context, listen: false);
+      SubscriptionProvider? subscriptionProvider;
+      try {
+        subscriptionProvider =
+            Provider.of<SubscriptionProvider>(context, listen: false);
+      } catch (_) {}
 
       try {
         // Aseguramos que la sesión se cierre a nivel de Supabase
@@ -801,12 +807,13 @@ class _PerfilPageState extends State<PerfilPage>
       tenantProvider.clear();
       landlordProvider.clear();
       appProvider.clear();
+      subscriptionProvider?.clear();
 
       // Cerramos sesión a nivel de aplicación (Provider)
       await authProvider.signOut();
 
       if (context.mounted) {
-        context.go('/login');
+        context.go('/home');
       }
     }
   }
@@ -865,6 +872,9 @@ class _PerfilPageState extends State<PerfilPage>
         tenantProvider.clear();
         landlordProvider.clear();
         appProvider.clear();
+        try {
+          Provider.of<SubscriptionProvider>(context, listen: false).clear();
+        } catch (_) {}
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -873,7 +883,7 @@ class _PerfilPageState extends State<PerfilPage>
             backgroundColor: Colors.black87,
           ),
         );
-        context.go('/login');
+        context.go('/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

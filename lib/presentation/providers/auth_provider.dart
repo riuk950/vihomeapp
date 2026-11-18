@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthChangeEvent;
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/auth/get_current_user_usecase.dart';
 import '../../domain/usecases/auth/sign_in_usecase.dart';
@@ -12,6 +14,7 @@ import '../../domain/usecases/auth/update_user_role_usecase.dart';
 import '../../infrastructure/services/push_notification_service.dart';
 import '../../infrastructure/services/supabase_service.dart';
 import '../../core/network/network_info.dart';
+import '../../core/constants/storage_keys.dart';
 
 class AuthProvider with ChangeNotifier {
   final GetCurrentUserUseCase getCurrentUserUseCase;
@@ -28,12 +31,17 @@ class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   bool _isInitialized = false;
+  bool _isManualSignOut = false;
+  bool _sessionExpired = false;
+  StreamSubscription<dynamic>? _authStateSubscription;
 
   User? get user => _user;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _user != null;
+  bool get isGuest => !isAuthenticated;
   bool get isInitialized => _isInitialized;
+  bool get hasExpiredSession => _sessionExpired;
 
   AuthProvider({
     required this.getCurrentUserUseCase,
@@ -47,25 +55,69 @@ class AuthProvider with ChangeNotifier {
     this.networkInfo,
   }) {
     _initializeAuth();
+    _listenToAuthStateChanges();
   }
 
   void _initializeAuth() async {
-    final result = await getCurrentUserUseCase();
-    result.fold(
-      (failure) {
-        _setError(failure.message);
-        _isInitialized = true;
-        notifyListeners();
-      },
-      (user) {
-        _user = user;
-        if (user != null) {
-          _syncToken(user);
+    try {
+      final result = await getCurrentUserUseCase();
+      result.fold(
+        (failure) {
+          _user = null;
+          _setError(failure.message);
+          _isInitialized = true;
+          notifyListeners();
+        },
+        (user) {
+          _user = user;
+          if (user != null) {
+            _syncToken(user);
+          }
+          _isInitialized = true;
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      // Respaldo seguro (RF-1.5 / RF-1.6): continuar en modo invitado sin bloquear el arranque
+      _user = null;
+      _errorMessage = e.toString();
+      _isInitialized = true;
+      notifyListeners();
+    }
+  }
+
+  void _listenToAuthStateChanges() {
+    try {
+      _authStateSubscription =
+          SupabaseService.instance.client.auth.onAuthStateChange.listen((data) {
+        if (data.event == AuthChangeEvent.signedOut &&
+            _user != null &&
+            !_isManualSignOut) {
+          handleSessionExpired();
         }
-        _isInitialized = true;
-        notifyListeners();
-      },
-    );
+      });
+    } catch (_) {
+      // En pruebas unitarias sin Supabase inicializado se omite de forma segura
+    }
+  }
+
+  /// Gestiona la expiración o revocación remota de una sesión activa (RF-1.7).
+  void handleSessionExpired() {
+    if (_user == null) return;
+    _user = null;
+    _sessionExpired = true;
+    notifyListeners();
+  }
+
+  /// Consume la bandera temporal de sesión expirada tras evaluar el enrutamiento.
+  void consumeSessionExpiredFlag() {
+    _sessionExpired = false;
+  }
+
+  @override
+  void dispose() {
+    _authStateSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> reloadUser() async {
@@ -102,6 +154,7 @@ class AuthProvider with ChangeNotifier {
         },
         (user) {
           _user = user;
+          _sessionExpired = false;
           _syncToken(user);
           _setLoading(false);
           return true;
@@ -130,6 +183,7 @@ class AuthProvider with ChangeNotifier {
         },
         (user) {
           _user = user;
+          _sessionExpired = false;
           _syncToken(user);
           _setLoading(false);
           return true;
@@ -166,6 +220,7 @@ class AuthProvider with ChangeNotifier {
         },
         (user) {
           _user = user;
+          _sessionExpired = false;
           _syncToken(user);
           _setLoading(false);
           return true;
@@ -180,6 +235,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    _isManualSignOut = true;
     try {
       _setLoading(true);
       _clearError();
@@ -197,12 +253,18 @@ class AuthProvider with ChangeNotifier {
     } finally {
       try {
         final prefs = await SharedPreferences.getInstance();
+        final onboardingBackup = prefs.getString(kOnboardingStateKey);
         await prefs.clear();
+        if (onboardingBackup != null) {
+          await prefs.setString(kOnboardingStateKey, onboardingBackup);
+        }
       } catch (e) {
         debugPrint('Error al limpiar caché: $e');
       }
 
       _user = null;
+      _sessionExpired = false;
+      _isManualSignOut = false;
       _setLoading(false);
       notifyListeners();
     }
@@ -211,6 +273,7 @@ class AuthProvider with ChangeNotifier {
   /// Elimina de forma permanente la cuenta del usuario en Supabase,
   /// limpia la caché local y cierra la sesión.
   Future<bool> deleteAccount() async {
+    _isManualSignOut = true;
     try {
       _setLoading(true);
       _clearError();
@@ -231,10 +294,14 @@ class AuthProvider with ChangeNotifier {
         }
       }
 
-      // Limpieza de almacenamiento local (SharedPreferences)
+      // Limpieza de almacenamiento local (SharedPreferences) preservando estado de onboarding
       try {
         final prefs = await SharedPreferences.getInstance();
+        final onboardingBackup = prefs.getString(kOnboardingStateKey);
         await prefs.clear();
+        if (onboardingBackup != null) {
+          await prefs.setString(kOnboardingStateKey, onboardingBackup);
+        }
       } catch (e) {
         debugPrint('Error al limpiar caché local tras eliminar cuenta: $e');
       }
@@ -247,6 +314,7 @@ class AuthProvider with ChangeNotifier {
       }
 
       _user = null;
+      _sessionExpired = false;
       _setLoading(false);
       notifyListeners();
       return true;
@@ -254,6 +322,8 @@ class AuthProvider with ChangeNotifier {
       _setError(e.toString());
       _setLoading(false);
       return false;
+    } finally {
+      _isManualSignOut = false;
     }
   }
 

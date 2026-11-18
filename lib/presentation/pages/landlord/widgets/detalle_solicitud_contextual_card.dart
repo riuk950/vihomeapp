@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:vihomeapp/domain/entities/application_context_data.dart';
 
 /// Tarjeta de visualización contextual para el arrendador [RF-17.1, RF-17.2]

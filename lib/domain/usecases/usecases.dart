@@ -16,3 +16,5 @@ export './landlord/get_landlord_profile_usecase.dart';
 export './landlord/save_landlord_profile_usecase.dart';
 export './project/get_projects_usecase.dart';
 export './project/get_constructora_usecase.dart';
+export './onboarding/get_onboarding_status_usecase.dart';
+export './onboarding/complete_onboarding_usecase.dart';

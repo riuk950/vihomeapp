@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/ads/ad_manager.dart';
@@ -31,8 +31,11 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
       // Si es premium, no cargamos anuncio
       if (isPremium) return;
 
+      final adUnitId = getIt<AdManager>().bannerAdUnitId;
+      if (adUnitId.isEmpty) return;
+
       _bannerAd = BannerAd(
-        adUnitId: getIt<AdManager>().bannerAdUnitId,
+        adUnitId: adUnitId,
         request: const AdRequest(),
         size: AdSize.banner,
         listener: BannerAdListener(

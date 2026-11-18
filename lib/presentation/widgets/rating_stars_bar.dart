@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Barra interactiva o de solo lectura para calificación por estrellas (1 a 5).
 /// Cumple con las directrices de accesibilidad semántica WCAG 2.1 AA.

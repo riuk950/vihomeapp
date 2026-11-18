@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import '../core/di/injection_container.dart';
@@ -24,9 +24,19 @@ class FlavorApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => getIt<ProjectProvider>()),
         ChangeNotifierProvider(create: (_) => getIt<SubscriptionProvider>()),
         ChangeNotifierProvider(create: (_) => getIt<ReviewProvider>()),
+        ChangeNotifierProvider(create: (_) => getIt<OnboardingProvider>()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
+          try {
+            if (authProvider.hasExpiredSession) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                appRouter.refresh();
+              });
+            }
+          } catch (_) {
+            // Compatibilidad con mocks parciales en pruebas de widgets
+          }
           return MaterialApp.router(
             debugShowCheckedModeBanner: EnvDef.isDebugMode,
             theme: AppTheme.ligthTheme,

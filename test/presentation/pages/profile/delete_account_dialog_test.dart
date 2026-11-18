@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -194,6 +194,10 @@ API_BASE_URL=https://api.example.com
           builder: (context, state) => const Scaffold(body: PerfilPage()),
         ),
         GoRoute(
+          path: '/home',
+          builder: (context, state) => const Scaffold(body: Text('Home Screen')),
+        ),
+        GoRoute(
           path: '/login',
           builder: (context, state) => const Scaffold(body: Text('Login Screen')),
         ),
@@ -221,6 +225,10 @@ API_BASE_URL=https://api.example.com
         GoRoute(
           path: '/',
           builder: (context, state) => const Scaffold(body: PanelPage()),
+        ),
+        GoRoute(
+          path: '/home',
+          builder: (context, state) => const Scaffold(body: Text('Home Screen')),
         ),
         GoRoute(
           path: '/login',
@@ -290,7 +298,7 @@ API_BASE_URL=https://api.example.com
       expect(fakeAuthProvider.deleteAccountCalled, isFalse);
     });
 
-    testWidgets('Al confirmar en PerfilPage se invoca deleteAccount y redirige a login [CA-3, CA-4]', (tester) async {
+    testWidgets('Al confirmar en PerfilPage se invoca deleteAccount y redirige a /home en modo invitado con confirmación [010 CA-3/CA-4, 012 RF-7.4]', (tester) async {
       fakeAuthProvider.user = const User(
         id: 'usr-1',
         email: 'tenant@vihome.app',
@@ -310,7 +318,37 @@ API_BASE_URL=https://api.example.com
       await tester.pumpAndSettle();
 
       expect(fakeAuthProvider.deleteAccountCalled, isTrue);
-      expect(find.text('Login Screen'), findsOneWidget);
+      expect(find.text('Home Screen'), findsOneWidget);
+      expect(
+        find.text('Tu cuenta y datos han sido eliminados correctamente.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Si deleteAccount falla en PerfilPage mantiene sesión y muestra error [010 CA-5, 012 RF-7.5]', (tester) async {
+      fakeAuthProvider.deleteAccountReturn = false;
+      fakeAuthProvider.user = const User(
+        id: 'usr-1',
+        email: 'tenant@vihome.app',
+        role: 'arrendatario',
+      );
+
+      await tester.pumpWidget(buildPerfilWidget());
+      await tester.pumpAndSettle();
+
+      final deleteOptionFinder = find.byKey(const Key('delete_account_button_perfil'));
+      await tester.scrollUntilVisible(deleteOptionFinder, 200);
+      await tester.tap(deleteOptionFinder);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Eliminar definitivamente'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(fakeAuthProvider.deleteAccountCalled, isTrue);
+      expect(fakeAuthProvider.isAuthenticated, isTrue);
+      expect(find.text('Home Screen'), findsNothing);
+      expect(find.textContaining('Ocurrió un error al intentar eliminar la cuenta'), findsOneWidget);
     });
   });
 
@@ -342,7 +380,7 @@ API_BASE_URL=https://api.example.com
       expect(fakeAuthProvider.deleteAccountCalled, isFalse);
     });
 
-    testWidgets('Al confirmar en PanelPage se invoca deleteAccount y redirige a login [CA-3, CA-4]', (tester) async {
+    testWidgets('Al confirmar en PanelPage se invoca deleteAccount y redirige a /home en modo invitado con confirmación [010 CA-3/CA-4, 012 RF-7.4]', (tester) async {
       fakeAuthProvider.user = const User(
         id: 'usr-landlord',
         email: 'landlord@vihome.app',
@@ -362,7 +400,11 @@ API_BASE_URL=https://api.example.com
       await tester.pumpAndSettle();
 
       expect(fakeAuthProvider.deleteAccountCalled, isTrue);
-      expect(find.text('Login Screen'), findsOneWidget);
+      expect(find.text('Home Screen'), findsOneWidget);
+      expect(
+        find.text('Tu cuenta y datos han sido eliminados correctamente.'),
+        findsOneWidget,
+      );
     });
   });
 }

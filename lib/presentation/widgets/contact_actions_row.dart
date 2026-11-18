@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:vihomeapp/core/utils/external_contact_launcher.dart';
 import 'package:vihomeapp/core/utils/text_sanitizer.dart';
 

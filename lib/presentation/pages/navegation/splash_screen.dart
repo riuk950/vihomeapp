@@ -1,9 +1,13 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
+import '../../../core/di/injection_container.dart';
+import '../../../domain/entities/onboarding_state.dart';
+import '../../../domain/usecases/onboarding/complete_onboarding_usecase.dart';
+import '../../../domain/usecases/onboarding/get_onboarding_status_usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/subscription_provider.dart';
 
@@ -56,11 +60,47 @@ class _SplashScreenState extends State<SplashScreen> {
     final isAuthenticated = authProvider.isAuthenticated;
     if (mounted) {
       if (isAuthenticated) {
-        final subscriptionProvider = Provider.of<SubscriptionProvider>(context, listen: false);
+        // RF-1.3: Usuario existente con sesión activa tras actualización
+        try {
+          final getStatusUseCase = getIt<GetOnboardingStatusUseCase>();
+          final status = await getStatusUseCase();
+          if (!status.hasSeenOnboarding) {
+            final completeUseCase = getIt<CompleteOnboardingUseCase>();
+            await completeUseCase(
+              reason: OnboardingCompletionReason.existingSession,
+              step: 0,
+            );
+          }
+        } catch (e) {
+          debugPrint('Error comprobando/marcando onboarding para usuario autenticado: $e');
+        }
+
+        if (!mounted) return;
+        final subscriptionProvider =
+            Provider.of<SubscriptionProvider>(context, listen: false);
         await subscriptionProvider.initialize(authProvider.user?.id);
         if (mounted) context.go('/home');
       } else {
-        context.go('/login');
+        // RF-1.1 & RF-1.2: Usuario sin sesión activa
+        bool hasSeenOnboarding = false;
+        try {
+          final getStatusUseCase = getIt<GetOnboardingStatusUseCase>();
+          final status = await getStatusUseCase();
+          hasSeenOnboarding = status.hasSeenOnboarding;
+        } catch (e) {
+          debugPrint('Error al consultar estado de onboarding en splash: $e');
+          // Respaldo determinista: mostrar onboarding si falla la lectura sin sesión (RF-8.3)
+          hasSeenOnboarding = false;
+        }
+
+        if (mounted) {
+          if (!hasSeenOnboarding) {
+            context.go('/onboarding');
+          } else {
+            // RF-1.4, RF-1.5, RF-1.6: Acceso directo a Arriendos en modo invitado
+            context.go('/home');
+          }
+        }
       }
     }
   }

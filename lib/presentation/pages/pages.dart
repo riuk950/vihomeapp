@@ -40,3 +40,6 @@ export '../helpers/phone_input_formatter.dart';
 export 'user/login_page.dart';
 export 'user/register_page.dart';
 export 'suscripciones/subscription_page.dart';
+
+// Onboarding page
+export 'onboarding/onboarding_page.dart';
