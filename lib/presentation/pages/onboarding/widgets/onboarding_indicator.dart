@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Indicador animado de progreso de cuatro posiciones.
 /// Estrictamente no interactivo según RF-2.6.

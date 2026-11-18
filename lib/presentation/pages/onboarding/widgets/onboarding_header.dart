@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Cabecera superior del onboarding con botón de retroceso condicional y acción "Saltar".
 class OnboardingHeader extends StatelessWidget {

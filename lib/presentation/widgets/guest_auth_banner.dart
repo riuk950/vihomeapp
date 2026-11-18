@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 
 /// Banner informativo contextual mostrado en la pantalla de inicio de sesión

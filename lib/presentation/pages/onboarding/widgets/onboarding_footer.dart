@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Bloque inferior de acciones: botón CTA principal ("Continuar" / "Comenzar Ahora")
 /// y enlace secundario para usuarios registrados ("¿Ya tienes una cuenta? Iniciar Sesión").

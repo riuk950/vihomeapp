@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../domain/entities/review.dart';
 import '../../domain/entities/user_reputation.dart';
 import 'review_list_item.dart';
