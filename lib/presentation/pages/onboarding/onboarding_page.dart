@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../domain/entities/guest_redirect_context.dart';
 import '../../../domain/entities/onboarding_state.dart';
 import '../../providers/onboarding_provider.dart';
 import 'widgets/onboarding_footer.dart';
@@ -69,7 +70,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     if (provider.isLastStep) {
       final success = await provider.exitOnboarding(OnboardingCompletionReason.completed);
       if (success && mounted) {
-        context.go('/login');
+        context.go('/home');
       }
     } else {
       if (_pageController.hasClients) {
@@ -95,7 +96,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     final provider = Provider.of<OnboardingProvider>(context, listen: false);
     final success = await provider.exitOnboarding(OnboardingCompletionReason.skipped);
     if (success && mounted) {
-      context.go('/login');
+      context.go('/home');
     }
   }
 
@@ -103,7 +104,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     final provider = Provider.of<OnboardingProvider>(context, listen: false);
     final success = await provider.exitOnboarding(OnboardingCompletionReason.loginShortcut);
     if (success && mounted) {
-      context.go('/login');
+      context.go('/login', extra: GuestRedirectContext.onboardingShortcut());
     }
   }
 

@@ -3,36 +3,65 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:vihomeapp/data/models/property_model.dart';
 import 'package:vihomeapp/domain/entities/application.dart';
+import 'package:vihomeapp/domain/entities/guest_redirect_context.dart';
+import 'package:vihomeapp/domain/entities/project.dart';
 import 'package:vihomeapp/domain/entities/property.dart';
 import 'package:vihomeapp/env/env_def.dart';
 import 'package:vihomeapp/presentation/pages/pages.dart';
 import 'package:vihomeapp/presentation/providers/auth_provider.dart';
-import 'package:vihomeapp/domain/entities/project.dart';
 
 final RouteObserver<ModalRoute<void>> appRouteObserver =
     RouteObserver<ModalRoute<void>>();
 
-GoRouter createAppRouter() {
+/// Rutas accesibles sin sesión activa (incluyendo exploración pública en modo invitado).
+const Set<String> kPublicAppRoutes = {
+  '/',
+  '/onboarding',
+  '/login',
+  '/register',
+  '/home',
+  '/property-details',
+  '/proyecto-detalle',
+  '/mapa',
+};
+
+GoRouter createAppRouter({
+  String initialLocation = '/',
+  Listenable? refreshListenable,
+}) {
   return GoRouter(
     observers: [appRouteObserver],
     debugLogDiagnostics: EnvDef.isDebugMode,
-    initialLocation: '/',
+    initialLocation: initialLocation,
+    refreshListenable: refreshListenable,
     redirect: (context, state) {
       try {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         final isAuthenticated = authProvider.isAuthenticated;
-        final isGoingToLogin = state.matchedLocation == '/login';
-        final isGoingToRegister = state.matchedLocation == '/register';
-        final isGoingToOnboarding = state.matchedLocation == '/onboarding';
-        final isGoingToSplash = state.matchedLocation == '/';
-        final isPublicRoute = isGoingToLogin ||
-            isGoingToRegister ||
-            isGoingToOnboarding ||
-            isGoingToSplash;
+        var hasExpiredSession = false;
+        try {
+          hasExpiredSession = authProvider.hasExpiredSession;
+        } catch (_) {}
+        final location = state.matchedLocation;
+        final isGoingToLogin = location == '/login';
+        final isGoingToRegister = location == '/register';
+        final isGoingToOnboarding = location == '/onboarding';
+        final isPublicRoute = kPublicAppRoutes.contains(location);
 
-        // Si no está autenticado y va a una ruta protegida
+        // Si no está autenticado y va a una ruta protegida (RF-5.1 / RF-1.7)
         if (!isAuthenticated && !isPublicRoute) {
-          return '/login';
+          final reason = hasExpiredSession
+              ? GuestRedirectReason.sessionExpired.wireValue
+              : GuestRedirectReason.privateRoute.wireValue;
+          if (hasExpiredSession) {
+            authProvider.consumeSessionExpiredFlag();
+          }
+          return '/login?reason=$reason&from=${Uri.encodeComponent(location)}';
+        }
+
+        // Si expiró sesión estando en una ruta pública, transicionar a modo invitado (RF-1.7)
+        if (!isAuthenticated && isPublicRoute && hasExpiredSession) {
+          authProvider.consumeSessionExpiredFlag();
         }
 
         // Si está autenticado y va a login/register/onboarding, redirigir a home
@@ -60,7 +89,24 @@ GoRouter createAppRouter() {
       GoRoute(
         path: '/login',
         name: 'login',
-        builder: (context, state) => const LoginPage(),
+        builder: (context, state) {
+          GuestRedirectContext? redirectContext;
+          if (state.extra is GuestRedirectContext) {
+            redirectContext = state.extra as GuestRedirectContext;
+          } else {
+            final reasonParam = state.uri.queryParameters['reason'];
+            if (reasonParam != null && reasonParam.isNotEmpty) {
+              final reason = GuestRedirectReason.fromWireValue(reasonParam);
+              final sourcePath = state.uri.queryParameters['from'] ?? '/';
+              redirectContext = GuestRedirectContext.fromReason(
+                reason,
+                sourcePath: sourcePath,
+                canReturnToPreviousView: false,
+              );
+            }
+          }
+          return LoginPage(redirectContext: redirectContext);
+        },
       ),
       GoRoute(
         path: '/register',
@@ -123,13 +169,6 @@ GoRouter createAppRouter() {
           }
 
           final user = Provider.of<AuthProvider>(context, listen: false).user;
-
-          if (user == null) {
-            return Scaffold(
-              appBar: AppBar(title: const Text('Error')),
-              body: const Center(child: Text('Error: Usuario no encontrado')),
-            );
-          }
 
           return DetallesPropiedadesPage(
             property: property,

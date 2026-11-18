@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/core/router/app_router.dart';
+import 'package:vihomeapp/core/router/guest_access_guard.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
+import 'package:vihomeapp/domain/entities/guest_redirect_context.dart';
+import 'package:vihomeapp/infrastructure/services/push_notification_service.dart';
 import 'package:vihomeapp/presentation/pages/pages.dart';
 import 'package:vihomeapp/presentation/providers/providers.dart';
-import 'package:vihomeapp/core/router/app_router.dart';
-import 'package:vihomeapp/infrastructure/services/push_notification_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,14 +30,16 @@ class _HomePageState extends State<HomePage> with RouteAware {
       _lastRole = user?.role;
       _loadApplicationsForRole(user?.role, user?.id);
 
-      if (_currentIndex == 3) {
+      if (_currentIndex == 3 && user != null) {
         _syncReputationForCurrentUser();
       }
 
-      // Procesar notificación inicial si la app se abrió desde una
-      PushNotificationService.handleInitialMessage();
+      // Procesar notificación inicial solo para usuarios autenticados (RF-1.4)
+      if (user != null) {
+        PushNotificationService.handleInitialMessage();
+      }
 
-      // Escuchar cambios futuros de rol
+      // Escuchar cambios futuros de rol o cierre de sesión
       authProvider.addListener(_onAuthChanged);
     });
   }
@@ -66,15 +70,45 @@ class _HomePageState extends State<HomePage> with RouteAware {
   }
 
   void _onAuthChanged() {
+    if (!mounted) return;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.user;
     final newRole = user?.role;
 
+    // Transición a modo invitado: regresar a Arriendos y limpiar datos privados (RF-7.3, RF-7.4, RNF-2)
+    if (user == null) {
+      if (_lastRole != null) {
+        _lastRole = null;
+        _clearPrivateProviders();
+      }
+      if (_currentIndex == 3) {
+        setState(() {
+          _currentIndex = 0;
+        });
+      }
+      return;
+    }
+
     // Solo recargar si el rol cambió efectivamente
     if (newRole != _lastRole) {
       _lastRole = newRole;
-      _loadApplicationsForRole(newRole, user?.id);
+      _loadApplicationsForRole(newRole, user.id);
     }
+  }
+
+  void _clearPrivateProviders() {
+    try {
+      Provider.of<ApplicationProvider>(context, listen: false).clear();
+    } catch (_) {}
+    try {
+      Provider.of<TenantProvider>(context, listen: false).clear();
+    } catch (_) {}
+    try {
+      Provider.of<LandlordProvider>(context, listen: false).clear();
+    } catch (_) {}
+    try {
+      Provider.of<SubscriptionProvider>(context, listen: false).clear();
+    } catch (_) {}
   }
 
   void _syncReputationForCurrentUser() {
@@ -120,17 +154,25 @@ class _HomePageState extends State<HomePage> with RouteAware {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
+    final isAuthenticated = user != null;
     final isLandlord = user?.role == 'arrendador';
 
     final List<Widget> pages = [
       const ArriendosPage(),
       const VentasPage(),
       const ProyectosPage(),
-      isLandlord ? const PanelPage() : const PerfilPage(),
+      if (isAuthenticated)
+        (isLandlord ? const PanelPage() : const PerfilPage())
+      else
+        const SizedBox.shrink(),
     ];
 
+    final effectiveIndex = (!isAuthenticated && _currentIndex == 3)
+        ? 0
+        : _currentIndex;
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: pages),
+      body: IndexedStack(index: effectiveIndex, children: pages),
       bottomNavigationBar: SafeArea(
         child: Container(
           decoration: BoxDecoration(
@@ -144,8 +186,16 @@ class _HomePageState extends State<HomePage> with RouteAware {
           ),
           child: BottomNavigationBar(
             backgroundColor: backgroundColor,
-            currentIndex: _currentIndex,
+            currentIndex: effectiveIndex,
             onTap: (index) {
+              if (index == 3 && authProvider.user == null) {
+                GuestAccessGuard.requireAuth(
+                  context,
+                  reason: GuestRedirectReason.profile,
+                  sourcePath: '/home',
+                );
+                return;
+              }
               setState(() {
                 _currentIndex = index;
               });

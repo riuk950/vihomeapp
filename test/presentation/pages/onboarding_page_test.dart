@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:vihomeapp/domain/entities/guest_redirect_context.dart';
 import 'package:vihomeapp/domain/entities/onboarding_state.dart';
 import 'package:vihomeapp/domain/repositories/onboarding_repository.dart';
 import 'package:vihomeapp/domain/usecases/onboarding/complete_onboarding_usecase.dart';
@@ -44,10 +45,13 @@ void main() {
     );
   });
 
+  GuestRedirectContext? lastLoginExtra;
+
   Widget buildTestApp({
     Size screenSize = const Size(393, 852),
     VoidCallback? onLoginReached,
   }) {
+    lastLoginExtra = null;
     final router = GoRouter(
       initialLocation: '/onboarding',
       routes: [
@@ -56,8 +60,14 @@ void main() {
           builder: (context, state) => const OnboardingPage(),
         ),
         GoRoute(
+          path: '/home',
+          builder: (context, state) =>
+              const Scaffold(body: Text('HOME_PAGE_DESTINATION')),
+        ),
+        GoRoute(
           path: '/login',
           builder: (context, state) {
+            lastLoginExtra = state.extra as GuestRedirectContext?;
             onLoginReached?.call();
             return const Scaffold(body: Text('LOGIN_PAGE_DESTINATION'));
           },
@@ -149,7 +159,7 @@ void main() {
       expect(find.text('Conecta con tu Espacio Ideal'), findsOneWidget);
     });
 
-    testWidgets('4. Pulsar Comenzar Ahora en paso 4 guarda reason=completed y navega a /login (RF-4.1)', (tester) async {
+    testWidgets('4. Pulsar Comenzar Ahora en paso 4 guarda reason=completed y navega directo a /home en modo invitado (012 RF-1.1)', (tester) async {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
@@ -167,10 +177,10 @@ void main() {
 
       expect(mockRepo.lastReason, OnboardingCompletionReason.completed);
       expect(mockRepo.lastStep, 4);
-      expect(find.text('LOGIN_PAGE_DESTINATION'), findsOneWidget);
+      expect(find.text('HOME_PAGE_DESTINATION'), findsOneWidget);
     });
 
-    testWidgets('5. Pulsar Saltar en cualquier paso guarda reason=skipped y navega a /login (RF-5.1)', (tester) async {
+    testWidgets('5. Pulsar Saltar en cualquier paso guarda reason=skipped y navega directo a /home en modo invitado (012 RF-1.1)', (tester) async {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
@@ -178,10 +188,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(mockRepo.lastReason, OnboardingCompletionReason.skipped);
-      expect(find.text('LOGIN_PAGE_DESTINATION'), findsOneWidget);
+      expect(find.text('HOME_PAGE_DESTINATION'), findsOneWidget);
     });
 
-    testWidgets('6. Pulsar Iniciar Sesión guarda reason=loginShortcut y navega a /login (RF-6.1)', (tester) async {
+    testWidgets('6. Pulsar Iniciar Sesión guarda reason=loginShortcut y navega a /login sin banner de restricción (012 RF-1.3)', (tester) async {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
@@ -190,9 +200,11 @@ void main() {
 
       expect(mockRepo.lastReason, OnboardingCompletionReason.loginShortcut);
       expect(find.text('LOGIN_PAGE_DESTINATION'), findsOneWidget);
+      expect(lastLoginExtra?.reason, GuestRedirectReason.onboardingLoginShortcut);
+      expect(lastLoginExtra?.showRestrictionBanner, isFalse);
     });
 
-    testWidgets('7. Error al guardar en almacenamiento local no bloquea la navegación al login (RF-8.2)', (tester) async {
+    testWidgets('7. Error al guardar en almacenamiento local no bloquea la navegación a /home (012 RF-1.2)', (tester) async {
       mockRepo.saveSuccess = false;
 
       await tester.pumpWidget(buildTestApp());
@@ -201,8 +213,8 @@ void main() {
       await tester.tap(find.text('Saltar'));
       await tester.pumpAndSettle();
 
-      // A pesar del error interno de guardado, el usuario llega a /login
-      expect(find.text('LOGIN_PAGE_DESTINATION'), findsOneWidget);
+      // A pesar del error interno de guardado, el usuario llega a /home en modo invitado
+      expect(find.text('HOME_PAGE_DESTINATION'), findsOneWidget);
     });
 
     testWidgets('8. Diseño responsivo sin RenderFlex overflow en pantalla compacta de 320x568 (RNF-3)', (tester) async {

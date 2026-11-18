@@ -28,6 +28,15 @@ class FlavorApp extends StatelessWidget {
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
+          try {
+            if (authProvider.hasExpiredSession) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                appRouter.refresh();
+              });
+            }
+          } catch (_) {
+            // Compatibilidad con mocks parciales en pruebas de widgets
+          }
           return MaterialApp.router(
             debugShowCheckedModeBanner: EnvDef.isDebugMode,
             theme: AppTheme.ligthTheme,

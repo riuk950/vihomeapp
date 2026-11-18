@@ -31,8 +31,11 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
       // Si es premium, no cargamos anuncio
       if (isPremium) return;
 
+      final adUnitId = getIt<AdManager>().bannerAdUnitId;
+      if (adUnitId.isEmpty) return;
+
       _bannerAd = BannerAd(
-        adUnitId: getIt<AdManager>().bannerAdUnitId,
+        adUnitId: adUnitId,
         request: const AdRequest(),
         size: AdSize.banner,
         listener: BannerAdListener(

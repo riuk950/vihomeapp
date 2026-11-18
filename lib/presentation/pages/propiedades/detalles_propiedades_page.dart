@@ -23,15 +23,17 @@ import 'package:vihomeapp/domain/usecases/landlord/get_landlord_profile_usecase.
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vihomeapp/core/ads/ad_manager.dart';
-import 'package:vihomeapp/domain/entities/user.dart';
 import 'package:vihomeapp/core/router/app_router.dart';
+import 'package:vihomeapp/core/router/guest_access_guard.dart';
+import 'package:vihomeapp/domain/entities/guest_redirect_context.dart';
+import 'package:vihomeapp/domain/entities/user.dart';
 
 class DetallesPropiedadesPage extends StatefulWidget {
   final Property property;
-  final User user;
+  final User? user;
 
   const DetallesPropiedadesPage(
-      {super.key, required this.property, required this.user});
+      {super.key, required this.property, this.user});
 
   @override
   State<DetallesPropiedadesPage> createState() =>
@@ -253,7 +255,16 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
         actions: [
           IconButton(
             icon: const Icon(Icons.share, color: Colors.black),
-            onPressed: _shareProperty,
+            onPressed: () {
+              if (!GuestAccessGuard.requireAuth(
+                context,
+                reason: GuestRedirectReason.share,
+                sourcePath: '/property-details',
+              )) {
+                return;
+              }
+              _shareProperty();
+            },
           ),
         ],
       ),
@@ -276,7 +287,8 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
           ],
         ),
       ),
-      bottomNavigationBar: (widget.user.role == 'arrendatario' &&
+      bottomNavigationBar: ((widget.user == null ||
+                  widget.user?.role == 'arrendatario') &&
               widget.property.estado == 'arriendo')
           ? _buildTenantActionBar()
           : null,
@@ -588,6 +600,13 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
 
                 return InkWell(
                   onTap: () {
+                    if (!GuestAccessGuard.requireAuth(
+                      context,
+                      reason: GuestRedirectReason.landlordReviews,
+                      sourcePath: '/property-details',
+                    )) {
+                      return;
+                    }
                     if (reputation != null) {
                       LandlordReputationBottomSheet.show(
                         context,
@@ -652,6 +671,13 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
         const SizedBox(height: 12),
         GestureDetector(
           onTap: () async {
+            if (!GuestAccessGuard.requireAuth(
+              context,
+              reason: GuestRedirectReason.externalMap,
+              sourcePath: '/property-details',
+            )) {
+              return;
+            }
             final url = Uri.parse(
               'https://www.google.com/maps/search/?api=1&query=${widget.property.lat},${widget.property.lng}',
             );
@@ -729,6 +755,13 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
             return BtnPrimary(
               text: "Solicitar Arriendo",
               onPressed: () async {
+                if (!GuestAccessGuard.requireAuth(
+                  context,
+                  reason: GuestRedirectReason.rentApplication,
+                  sourcePath: '/property-details',
+                )) {
+                  return;
+                }
                 if (!tenantProvider.isVerified) {
                   showDialog(
                       context: context,
@@ -820,6 +853,13 @@ ${widget.property.descripcion.isNotEmpty ? widget.property.descripcion : 'Excele
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () async {
+              if (!GuestAccessGuard.requireAuth(
+                context,
+                reason: GuestRedirectReason.whatsappContact,
+                sourcePath: '/property-details',
+              )) {
+                return;
+              }
               if (_landlord == null || _landlord!.telefonoContacto.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(

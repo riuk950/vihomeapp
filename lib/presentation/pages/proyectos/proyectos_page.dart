@@ -61,17 +61,16 @@ class _ProyectosPageState extends State<ProyectosPage> {
               context.push('/mapa?tipo=proyectos');
             },
           ),
-          Consumer<ApplicationProvider>(
-            builder: (context, appProvider, child) {
-              final authProvider =
-                  Provider.of<AuthProvider>(context, listen: false);
+          Consumer2<AuthProvider, ApplicationProvider>(
+            builder: (context, authProvider, appProvider, child) {
               final user = authProvider.user;
-              int notificationCount = 0;
-              if (user != null) {
-                notificationCount = user.role == 'arrendador'
-                    ? appProvider.unreadLandlordCount
-                    : appProvider.unreadTenantCount;
+              if (user == null) {
+                return const SizedBox.shrink();
               }
+
+              final notificationCount = user.role == 'arrendador'
+                  ? appProvider.unreadLandlordCount
+                  : appProvider.unreadTenantCount;
 
               return Badge(
                 label: Text(
@@ -85,12 +84,10 @@ class _ProyectosPageState extends State<ProyectosPage> {
                   icon:
                       const Icon(Icons.notifications_none, color: Colors.black),
                   onPressed: () {
-                    if (user != null) {
-                      if (user.role == 'arrendador') {
-                        context.push('/notifications_landlord');
-                      } else {
-                        context.push('/notifications_tenant');
-                      }
+                    if (user.role == 'arrendador') {
+                      context.push('/notifications_landlord');
+                    } else {
+                      context.push('/notifications_tenant');
                     }
                   },
                 ),
@@ -138,7 +135,27 @@ class _ProyectosPageState extends State<ProyectosPage> {
                   }
 
                   if (provider.errorMessage != null) {
-                    return Center(child: Text(provider.errorMessage!));
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              provider.errorMessage!,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: () {
+                                provider.fetchProjects();
+                              },
+                              child: const Text('Reintentar'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   }
 
                   final projects = provider.filteredProjects;

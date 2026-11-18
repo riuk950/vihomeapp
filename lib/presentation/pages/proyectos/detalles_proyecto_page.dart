@@ -9,6 +9,8 @@ import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:vihomeapp/env/env_def.dart';
 import 'package:vihomeapp/core/di/injection_container.dart';
+import 'package:vihomeapp/core/router/guest_access_guard.dart';
+import '../../../domain/entities/guest_redirect_context.dart';
 import '../../../domain/entities/project.dart';
 import '../../../domain/entities/constructora.dart';
 import '../../../domain/usecases/usecases.dart';
@@ -198,7 +200,16 @@ ${widget.project.descripcion.isNotEmpty ? widget.project.descripcion : 'Excelent
                           size: 20,
                         ),
                       ),
-                      onPressed: _shareProject,
+                      onPressed: () {
+                        if (!GuestAccessGuard.requireAuth(
+                          context,
+                          reason: GuestRedirectReason.share,
+                          sourcePath: '/proyecto-detalle',
+                        )) {
+                          return;
+                        }
+                        _shareProject();
+                      },
                     ),
                     const SizedBox(width: 4),
                   ],
@@ -594,6 +605,13 @@ ${widget.project.descripcion.isNotEmpty ? widget.project.descripcion : 'Excelent
                         title: 'Ubicación',
                         child: GestureDetector(
                           onTap: () async {
+                            if (!GuestAccessGuard.requireAuth(
+                              context,
+                              reason: GuestRedirectReason.externalMap,
+                              sourcePath: '/proyecto-detalle',
+                            )) {
+                              return;
+                            }
                             final url = Uri.parse(
                               'https://www.google.com/maps/search/?api=1&query=${project.lat},${project.lng}',
                             );
@@ -692,6 +710,13 @@ ${widget.project.descripcion.isNotEmpty ? widget.project.descripcion : 'Excelent
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () async {
+                          if (!GuestAccessGuard.requireAuth(
+                            context,
+                            reason: GuestRedirectReason.projectContact,
+                            sourcePath: '/proyecto-detalle',
+                          )) {
+                            return;
+                          }
                           final text = Uri.encodeComponent(
                               'Hola, estoy interesado en el proyecto ${_constructora!.nombre} - ${widget.project.tipoPropiedad}');
                           final url = Uri.parse(

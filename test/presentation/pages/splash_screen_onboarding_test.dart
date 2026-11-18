@@ -25,10 +25,16 @@ import 'package:vihomeapp/presentation/providers/subscription_provider.dart';
 
 class FakeAuthRepo implements AuthRepository {
   User? user;
-  FakeAuthRepo({this.user});
+  bool shouldThrowOnGetCurrentUser;
+  FakeAuthRepo({this.user, this.shouldThrowOnGetCurrentUser = false});
 
   @override
-  Future<Either<Failure, User?>> getCurrentUser() async => Right(user);
+  Future<Either<Failure, User?>> getCurrentUser() async {
+    if (shouldThrowOnGetCurrentUser) {
+      throw Exception('Session expired or check failed');
+    }
+    return Right(user);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -122,8 +128,14 @@ void main() {
     );
   }
 
-  AuthProvider createAuthProvider({User? user}) {
-    final repo = FakeAuthRepo(user: user);
+  AuthProvider createAuthProvider({
+    User? user,
+    bool shouldThrowOnGetCurrentUser = false,
+  }) {
+    final repo = FakeAuthRepo(
+      user: user,
+      shouldThrowOnGetCurrentUser: shouldThrowOnGetCurrentUser,
+    );
     return AuthProvider(
       getCurrentUserUseCase: GetCurrentUserUseCase(repo),
       signInUseCase: SignInUseCase(repo),
@@ -157,7 +169,7 @@ void main() {
       expect(find.text('ONBOARDING_SCREEN'), findsOneWidget);
     });
 
-    testWidgets('2. Usuario no autenticado que ya vio onboarding navega directamente a /login (RF-1.2)', (tester) async {
+    testWidgets('2. Usuario no autenticado que ya vio onboarding navega directamente a /home en modo invitado (012 RF-1.4)', (tester) async {
       fakeOnboardingRepo.stateToReturn = const OnboardingState(
         hasSeenOnboarding: true,
         completionReason: OnboardingCompletionReason.completed,
@@ -176,7 +188,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 2100));
       await tester.pumpAndSettle();
 
-      expect(find.text('LOGIN_SCREEN'), findsOneWidget);
+      expect(find.text('HOME_SCREEN'), findsOneWidget);
     });
 
     testWidgets('3. Usuario autenticado tras actualización marca onboarding como visto y navega a /home (RF-1.3)', (tester) async {
@@ -216,6 +228,29 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('ONBOARDING_SCREEN'), findsOneWidget);
+    });
+
+    testWidgets('5. Error o sesión expirada al inicializar con onboarding visto entra en modo invitado en /home (012 RF-1.5, RF-1.6)', (tester) async {
+      fakeOnboardingRepo.stateToReturn = const OnboardingState(
+        hasSeenOnboarding: true,
+        completionReason: OnboardingCompletionReason.completed,
+        lastCompletedStep: 4,
+      );
+      final authProvider = createAuthProvider(shouldThrowOnGetCurrentUser: true);
+
+      await tester.pumpWidget(
+        buildTestApp(
+          authProvider: authProvider,
+          currentRouteGetter: () => null,
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 2100));
+      await tester.pumpAndSettle();
+
+      expect(authProvider.isGuest, isTrue);
+      expect(find.text('HOME_SCREEN'), findsOneWidget);
     });
   });
 }

@@ -997,6 +997,11 @@ class _PanelPageState extends State<PanelPage>
           Provider.of<LandlordProvider>(context, listen: false);
       final appProvider =
           Provider.of<ApplicationProvider>(context, listen: false);
+      SubscriptionProvider? subscriptionProvider;
+      try {
+        subscriptionProvider =
+            Provider.of<SubscriptionProvider>(context, listen: false);
+      } catch (_) {}
 
       try {
         // Aseguramos que la sesión se cierre a nivel de Supabase
@@ -1009,12 +1014,13 @@ class _PanelPageState extends State<PanelPage>
       tenantProvider.clear();
       landlordProvider.clear();
       appProvider.clear();
+      subscriptionProvider?.clear();
 
       // Cerramos sesión a nivel de aplicación (Provider)
       await authProvider.signOut();
 
       if (context.mounted) {
-        context.go('/login');
+        context.go('/home');
       }
     }
   }
@@ -1073,6 +1079,9 @@ class _PanelPageState extends State<PanelPage>
         tenantProvider.clear();
         landlordProvider.clear();
         appProvider.clear();
+        try {
+          Provider.of<SubscriptionProvider>(context, listen: false).clear();
+        } catch (_) {}
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -1081,7 +1090,7 @@ class _PanelPageState extends State<PanelPage>
             backgroundColor: Colors.black87,
           ),
         );
-        context.go('/login');
+        context.go('/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

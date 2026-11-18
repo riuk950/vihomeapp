@@ -375,6 +375,15 @@ class SubscriptionProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Limpia el estado de suscripción al cerrar sesión o pasar a modo invitado (RF-2.5, RF-7.3).
+  void clear() {
+    _userId = null;
+    _isSubscribed = false;
+    _isLoading = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   /// Verifica la compra contra Google Play Developer API via Edge Function de Supabase.
   /// La Edge Function autentica con Google usando Service Account y actualiza
   /// is_premium en el servidor de forma segura (sin exponer credentials en el cliente).

@@ -2,13 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vihomeapp/core/router/guest_access_guard.dart';
 import 'package:vihomeapp/core/theme/app_theme.dart';
 import 'package:vihomeapp/core/utils/ui_feedback.dart';
+import 'package:vihomeapp/domain/entities/guest_redirect_context.dart';
+import 'package:vihomeapp/presentation/widgets/guest_auth_banner.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/subscription_provider.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final GuestRedirectContext? redirectContext;
+
+  const LoginPage({
+    super.key,
+    this.redirectContext,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -30,9 +38,19 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
+    GuestAccessGuard.resetDebounce();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  void _handleExitAsGuest() {
+    GuestAccessGuard.resetDebounce();
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/home');
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -82,28 +100,59 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SafeArea(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-            key: _formKey,
-            child: Consumer<AuthProvider>(
-              builder: (context, authProvider, child) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 40),
-                    const Icon(
-                      Icons.lock_outline,
-                      size: 80,
-                      color: primaryColor,
-                    ),
+    final bannerMessage =
+        (widget.redirectContext?.showRestrictionBanner ?? false)
+            ? widget.redirectContext?.bannerMessage
+            : null;
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _handleExitAsGuest();
+      },
+      child: Scaffold(
+        backgroundColor: backgroundColor,
+        appBar: AppBar(
+          backgroundColor: backgroundColor,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leading: Semantics(
+            button: true,
+            label: 'Volver a explorar como invitado',
+            child: IconButton(
+              key: const Key('login_back_button'),
+              icon: const Icon(Icons.arrow_back, color: textColor),
+              tooltip: 'Volver',
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              onPressed: _handleExitAsGuest,
+            ),
+          ),
+        ),
+        body: SafeArea(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 24.0),
+              child: Form(
+                key: _formKey,
+                child: Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (bannerMessage != null && bannerMessage.isNotEmpty) ...[
+                          GuestAuthBanner(message: bannerMessage),
+                          const SizedBox(height: 16),
+                        ],
+                        const SizedBox(height: 16),
+                        const Icon(
+                          Icons.lock_outline,
+                          size: 80,
+                          color: primaryColor,
+                        ),
                     const SizedBox(height: 24),
                     const Text(
                       'Bienvenido',
@@ -214,10 +263,17 @@ class _LoginPageState extends State<LoginPage> {
                     const Row(
                       children: [
                         Expanded(child: Divider()),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('O inicia sesión con',
-                              style: TextStyle(color: Colors.grey)),
+                        Flexible(
+                          flex: 2,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              'O inicia sesión con',
+                              style: TextStyle(color: Colors.grey),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
                         Expanded(child: Divider()),
                       ],
@@ -253,8 +309,9 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         const Text('¿No tienes cuenta? '),
                         TextButton(
@@ -272,6 +329,30 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    Semantics(
+                      button: true,
+                      label: 'Continuar como invitado',
+                      child: TextButton(
+                        key: const Key('continue_as_guest_button'),
+                        onPressed:
+                            authProvider.isLoading ? null : _handleExitAsGuest,
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                          foregroundColor: primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Continuar como invitado',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 );
               },
@@ -280,6 +361,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     ),
-  );
+  ),
+    );
   }
 }

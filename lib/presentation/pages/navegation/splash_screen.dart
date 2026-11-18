@@ -97,7 +97,8 @@ class _SplashScreenState extends State<SplashScreen> {
           if (!hasSeenOnboarding) {
             context.go('/onboarding');
           } else {
-            context.go('/login');
+            // RF-1.4, RF-1.5, RF-1.6: Acceso directo a Arriendos en modo invitado
+            context.go('/home');
           }
         }
       }
